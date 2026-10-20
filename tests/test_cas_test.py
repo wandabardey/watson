@@ -1,5 +1,7 @@
 """Cas de test tirés de la base : proposition, enregistrement en brouillon, signalement quand une règle bouge."""
 
+from __future__ import annotations
+
 import shutil
 from pathlib import Path
 

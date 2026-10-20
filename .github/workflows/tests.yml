@@ -7,11 +7,28 @@ on:
 
 jobs:
   tests:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        # 3.8 : la plus ancienne disponible ici, proche des postes encore en 3.7 ; 3.12 : avec l'assistant.
+        python: ["3.8", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install pytest
+      - if: matrix.python == '3.12'
+        run: pip install claude-agent-sdk
+      - run: pytest -q
+
+  python37:
+    # Le serveur du plugin tourne avec le python3 du poste : rien au-delà de Python 3.7 dans le moteur.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pytest claude-agent-sdk
-      - run: pytest -q
+      - run: pip install vermin
+      - run: vermin --no-tips -t=3.7- --violations --backport typing referentiel serveur

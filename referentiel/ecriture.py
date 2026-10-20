@@ -126,7 +126,8 @@ def _ecrire_transaction(racine: Path, fichiers: dict[Path, str]) -> Projet:
     if p.erreurs:
         for f, ancien in sauvegardes.items():
             if ancien is None:
-                f.unlink(missing_ok=True)
+                if f.exists():
+                    f.unlink()
             else:
                 f.write_text(ancien, encoding="utf-8")
         raise ErreurEcriture("La base serait devenue invalide, rien n'a été écrit :\n" + "\n".join(f"- {e}" for e in p.erreurs))

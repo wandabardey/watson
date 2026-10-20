@@ -24,7 +24,7 @@ Relie Claude au référentiel métier d'un projet : la source de vérité des en
 
 ## Prérequis
 
-- `python3` (version 3.9 ou plus) disponible sur l'ordinateur. Aucune bibliothèque à installer : tout est embarqué.
+- `python3` (version 3.7 ou plus) disponible sur l'ordinateur. Aucune bibliothèque à installer : tout est embarqué.
   Sur Mac, si `python3` manque, macOS propose d'installer les outils de développement à la première utilisation.
 - Un dossier de projet accessible par Claude (dans Cowork, connecter le dossier à la conversation).
 

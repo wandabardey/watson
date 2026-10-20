@@ -143,7 +143,7 @@ def correspondance(racine: Path) -> dict:
     racine = Path(racine)
     p = charger(racine)
     apps = applications(p)
-    par_nom = {a["nom"].lower(): a for a in apps} | {a["id"].lower(): a for a in apps}
+    par_nom = {**{a["nom"].lower(): a for a in apps}, **{a["id"].lower(): a for a in apps}}
     livrees = {a["id"]: livraisons(racine, a, p.meta.get("id")) for a in apps}
     envs = {}
     for nom, env in environnements(racine).items():

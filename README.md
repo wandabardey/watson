@@ -12,8 +12,8 @@ Il s'utilise de deux façons : depuis l'app Claude grâce au **plugin** (serveur
 
 ## Installation
 
-Python 3.9 ou plus, **aucune bibliothèque à installer** : PyYAML (licence MIT) est embarqué dans `referentiel/_vendor`.
-Pour lancer les tests : `pip install pytest` puis `pytest`.
+Python 3.7 ou plus pour le moteur et le plugin, **aucune bibliothèque à installer** : PyYAML (licence MIT) est embarqué dans `referentiel/_vendor`.
+Pour lancer les tests : `pip install pytest` puis `pytest` (Python 3.8 ou plus ; les tests de l'assistant demandent Python 3.10 et `claude-agent-sdk`, ils sont sautés sinon). La CI les lance en 3.8 et 3.12, et vérifie que le moteur reste compatible Python 3.7.
 
 ## Installer et mettre à jour (plugin Claude)
 

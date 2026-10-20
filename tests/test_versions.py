@@ -1,5 +1,7 @@
 """Versions de la spec (étiquettes Git spec-X.Y), contexte compact, et leur usage par le serveur MCP et l'assistant."""
 
+from __future__ import annotations
+
 import json
 import shutil
 import subprocess

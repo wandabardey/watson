@@ -1,5 +1,7 @@
 """Évolutions rattachées à une version cible, et correspondance entre versions de code et versions de spec."""
 
+from __future__ import annotations
+
 import json
 import shutil
 import subprocess

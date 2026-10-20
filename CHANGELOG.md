@@ -3,6 +3,12 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.5.1 (2026-10-20)
+
+- Moteur et plugin compatibles Python 3.7 (le python3 de certains postes) ; tests lançables dès Python 3.8,
+  ceux de l'assistant sautés sans claude-agent-sdk ; CI en 3.8 et 3.12 avec contrôle de compatibilité 3.7.
+- Tests collectés depuis la racine du dépôt (conftest.py).
+
 ## 0.5.0 (2026-10-20)
 
 - Le plugin s'appelle désormais watson (serveur MCP watson, skill socle referentiel). Dépôt GitHub « watson » : le dépôt est lui-même le plugin et un catalogue de plugins Claude, pour installer

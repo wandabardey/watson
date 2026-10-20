@@ -463,10 +463,12 @@ def _avec_noms(p, impact: dict) -> dict:
             return f"Capture de l'écran « {p.ecrans[sid]['nom']} » ({fichier})"
         return libelle(p, ident)
 
-    return {
+    avec_noms = {
         k: ([{"id": i, "nom": nom(i)} for i in v] if isinstance(v, list) else v)
         for k, v in impact.items()
-    } | {"element_nom": nom(impact["element"])}
+    }
+    avec_noms["element_nom"] = nom(impact["element"])
+    return avec_noms
 
 
 def outil_analyser_impact(args):

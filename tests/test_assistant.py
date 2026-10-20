@@ -1,5 +1,7 @@
 """Tests de « Demander au référentiel » : le kit d'agents est remplacé par un faux, aucun appel à Claude."""
 
+from __future__ import annotations
+
 import asyncio
 import json
 import os
@@ -12,7 +14,9 @@ from unittest import mock
 
 import pytest
 
-from claude_agent_sdk import PermissionResultAllow, PermissionResultDeny, ResultMessage
+pytest.importorskip("claude_agent_sdk")  # facultatif, et réservé à Python 3.10 ou plus
+
+from claude_agent_sdk import PermissionResultAllow, PermissionResultDeny, ResultMessage  # noqa: E402
 from referentiel import assistant
 from referentiel.assistant import ErreurAssistant
 

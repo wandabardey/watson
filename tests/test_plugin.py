@@ -1,5 +1,7 @@
 """Le dépôt est le plugin : manifestes cohérents, lanceur fonctionnel, archive complète."""
 
+from __future__ import annotations
+
 import json
 import subprocess
 import sys
