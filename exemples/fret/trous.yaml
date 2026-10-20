@@ -1,0 +1,12 @@
+# Décisions du responsable produit sur les trous détectés.
+# statut : hors_perimetre | impossible_metier | a_traiter
+- trou: STATUT_INATTEIGNABLE:ENT-EXPEDITION:ARCHIVEE
+  statut: hors_perimetre
+  justification: L'archivage est fait par un traitement nocturne, spécifié dans le lot 2.
+  par: Wanda Bardey
+  date: 2026-10-08
+- trou: STATUT_HORS_CAS_USAGE:ENT-EXPEDITION:ARCHIVEE
+  statut: hors_perimetre
+  justification: Même raison, lot 2.
+  par: Wanda Bardey
+  date: 2026-10-08

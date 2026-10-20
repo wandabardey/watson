@@ -1,0 +1,11 @@
+id: RG-001
+titre: Champs obligatoires à la soumission
+statut: validee
+type: contrainte
+entite: ENT-EXPEDITION
+enonce: Une expédition ne peut être soumise que si l'adresse de destination, le poids et la nature de la marchandise sont renseignés.
+source: Atelier de cadrage du 2026-09-12
+historique:
+  - date: 2026-09-12
+    auteur: Wanda Bardey
+    changement: Création

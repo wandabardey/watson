@@ -1,0 +1,7 @@
+id: SCR-002
+nom: Détail d'une expédition
+acteurs: [ACT-EXPEDITEUR, ACT-AGENT-TRANSIT]
+captures:
+  - fichier: captures/SCR-002-expediteur.png
+    date: 2026-09-20
+    acteur: ACT-EXPEDITEUR

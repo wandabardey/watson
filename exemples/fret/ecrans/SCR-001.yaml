@@ -1,0 +1,7 @@
+id: SCR-001
+nom: Saisie d'une expédition
+acteurs: [ACT-EXPEDITEUR]
+captures:
+  - fichier: captures/SCR-001-expediteur.png
+    date: 2026-09-20
+    acteur: ACT-EXPEDITEUR

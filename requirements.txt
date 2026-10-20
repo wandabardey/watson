@@ -1,0 +1,4 @@
+# Aucune dépendance : PyYAML est embarqué dans referentiel/_vendor.
+# Pour lancer les tests :
+pytest
+claude-agent-sdk  # facultatif : « Demander au référentiel »

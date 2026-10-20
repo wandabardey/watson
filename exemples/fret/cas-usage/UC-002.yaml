@@ -1,0 +1,8 @@
+id: UC-002
+nom: Annuler une expédition
+acteur_principal: ACT-EXPEDITEUR
+etapes:
+  - acteur: ACT-EXPEDITEUR
+    action: Ouvre le détail de son expédition et l'annule
+    transition: TR-ANNULER
+    ecran: SCR-002

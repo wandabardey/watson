@@ -1,0 +1,13 @@
+id: RG-007
+titre: Annulation uniquement au brouillon
+statut: validee
+type: contrainte
+entite: ENT-EXPEDITION
+enonce: L'expéditeur ne peut annuler son expédition que tant qu'elle est au statut Brouillon. Au-delà, il doit contacter le support.
+source: Comité produit du 2026-10-01
+remplace: RG-006
+historique:
+  - date: 2026-10-01
+    auteur: Wanda Bardey
+    changement: Création, remplace RG-006
+    raison: Les annulations tardives généraient des frais de transporteur non refacturés.

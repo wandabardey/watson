@@ -1,0 +1,15 @@
+id: RG-006
+titre: Annulation possible avant prise en charge
+statut: obsolete
+type: contrainte
+entite: ENT-EXPEDITION
+enonce: L'expéditeur peut annuler son expédition tant qu'elle n'a pas été prise en charge par le transporteur.
+source: Atelier de cadrage du 2026-09-12
+historique:
+  - date: 2026-09-12
+    auteur: Wanda Bardey
+    changement: Création
+  - date: 2026-10-01
+    auteur: Wanda Bardey
+    changement: Rendue obsolète, remplacée par RG-007
+    raison: Les annulations tardives généraient des frais de transporteur non refacturés.

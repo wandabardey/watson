@@ -1,0 +1,12 @@
+id: FRET-DEMO
+nom: Fret international (démo fictive)
+description: Projet fictif pour tester le format de la base sur une entité Expédition.
+glossaire:
+  - terme: Expédition
+    definition: Envoi d'une ou plusieurs marchandises d'un expéditeur vers un destinataire, suivi de la création à la livraison.
+  - terme: Document douanier
+    definition: Ensemble des pièces exigées pour faire franchir une frontière à la marchandise.
+  - terme: Marchandise dangereuse
+    definition: Marchandise soumise à une réglementation de transport spécifique (inflammable, toxique, etc.).
+  - terme: Grand compte
+    definition: Client sous contrat cadre, bénéficiant de relances automatiques et d'un suivi dédié.

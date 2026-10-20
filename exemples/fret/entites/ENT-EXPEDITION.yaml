@@ -1,0 +1,92 @@
+id: ENT-EXPEDITION
+nom: Expédition
+description: Cycle de vie d'un envoi, de la saisie à la livraison.
+attributs:
+  - nom: document_douanier
+    libelle: Document douanier
+    type: enum
+    valeurs: [valide, manquant, refuse]
+  - nom: marchandise_dangereuse
+    libelle: Marchandise dangereuse
+    type: booleen
+  - nom: client_grand_compte
+    libelle: Client grand compte
+    type: booleen
+statut_initial: BROUILLON
+statuts:
+  - id: BROUILLON
+    nom: Brouillon
+    description: Saisie en cours par l'expéditeur.
+  - id: EN_ATTENTE_DOCUMENTS
+    nom: En attente de documents
+  - id: CONTROLE_SECURITE
+    nom: Contrôle sécurité
+    description: Vérification réglementaire des marchandises dangereuses.
+  - id: PRETE
+    nom: Prête à expédier
+  - id: EN_TRANSIT
+    nom: En transit
+  - id: LITIGE
+    nom: En litige
+  - id: LIVREE
+    nom: Livrée
+    final: true
+  - id: ANNULEE
+    nom: Annulée
+    final: true
+  - id: ARCHIVEE
+    nom: Archivée
+    final: true
+transitions:
+  - id: TR-SOUMETTRE
+    nom: Soumettre l'expédition
+    de: BROUILLON
+    vers: EN_ATTENTE_DOCUMENTS
+    acteurs: [ACT-EXPEDITEUR]
+    regles: [RG-001]
+  - id: TR-VALIDER-DOCS
+    nom: Valider les documents
+    de: EN_ATTENTE_DOCUMENTS
+    vers: PRETE
+    acteurs: [ACT-AGENT-TRANSIT]
+    regles: [RG-002]
+  - id: TR-ENVOYER-CONTROLE
+    nom: Envoyer en contrôle sécurité
+    de: EN_ATTENTE_DOCUMENTS
+    vers: CONTROLE_SECURITE
+    acteurs: [ACT-AGENT-TRANSIT]
+    regles: [RG-002]
+  - id: TR-RELANCER
+    nom: Relancer l'expéditeur
+    de: EN_ATTENTE_DOCUMENTS
+    vers: EN_ATTENTE_DOCUMENTS
+    regles: [RG-002]
+  - id: TR-VALIDER-CONTROLE
+    nom: Valider le contrôle sécurité
+    de: CONTROLE_SECURITE
+    vers: PRETE
+    acteurs: [ACT-AGENT-TRANSIT]
+  - id: TR-PRENDRE-EN-CHARGE
+    nom: Prendre en charge
+    de: PRETE
+    vers: EN_TRANSIT
+    acteurs: [ACT-TRANSPORTEUR]
+    regles: [RG-003]
+  - id: TR-LIVRER
+    nom: Livrer
+    de: EN_TRANSIT
+    vers: LIVREE
+    acteurs: [ACT-TRANSPORTEUR]
+    regles: [RG-004]
+  - id: TR-SIGNALER-LITIGE
+    nom: Signaler un litige
+    de: EN_TRANSIT
+    vers: LITIGE
+    acteurs: [ACT-EXPEDITEUR, ACT-TRANSPORTEUR]
+    regles: [RG-005]
+  - id: TR-ANNULER
+    nom: Annuler l'expédition
+    de: BROUILLON
+    vers: ANNULEE
+    acteurs: [ACT-EXPEDITEUR]
+    regles: [RG-006]

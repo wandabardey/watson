@@ -1,0 +1,11 @@
+id: RG-004
+titre: Preuve de livraison obligatoire
+statut: validee
+type: contrainte
+entite: ENT-EXPEDITION
+enonce: La livraison n'est enregistrée qu'avec une preuve (signature ou photo géolocalisée).
+source: Atelier de cadrage du 2026-09-12
+historique:
+  - date: 2026-09-12
+    auteur: Wanda Bardey
+    changement: Création

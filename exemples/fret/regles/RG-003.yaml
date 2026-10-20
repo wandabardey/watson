@@ -1,0 +1,10 @@
+id: RG-003
+titre: Prise en charge sur créneau réservé
+statut: validee
+type: contrainte
+entite: ENT-EXPEDITION
+enonce: Le transporteur ne peut prendre en charge une expédition que sur le créneau réservé, avec une tolérance de 2 heures.
+historique:
+  - date: 2026-09-15
+    auteur: Wanda Bardey
+    changement: Création

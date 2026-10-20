@@ -1,0 +1,41 @@
+name: Publier une version
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: |
+          pip install pytest claude-agent-sdk
+          pytest -q
+      - name: Vérifier le numéro de version
+        run: |
+          attendu="${GITHUB_REF_NAME#v}"
+          trouve=$(python3 -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          test "$attendu" = "$trouve" || { echo "Étiquette $attendu, manifeste $trouve"; exit 1; }
+      - name: Construire le plugin
+        run: python3 scripts/construire_plugin.py
+      - name: Créer la publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=$(python3 - <<'PY'
+          import os, re
+          v = os.environ["GITHUB_REF_NAME"][1:]
+          texte = open("CHANGELOG.md", encoding="utf-8").read()
+          m = re.search(rf"## {re.escape(v)}[^\n]*\n(.*?)(?=\n## |\Z)", texte, re.S)
+          print(m.group(1).strip() if m else "")
+          PY
+          )
+          gh release create "$GITHUB_REF_NAME" dist/*.plugin --title "Watson $GITHUB_REF_NAME" --notes "$notes"

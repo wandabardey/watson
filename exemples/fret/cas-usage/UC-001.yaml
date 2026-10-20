@@ -1,0 +1,21 @@
+id: UC-001
+nom: Expédier une marchandise à l'international
+acteur_principal: ACT-EXPEDITEUR
+description: Parcours nominal d'une expédition sans incident.
+etapes:
+  - acteur: ACT-EXPEDITEUR
+    action: Saisit l'expédition et la soumet
+    transition: TR-SOUMETTRE
+    ecran: SCR-001
+  - acteur: ACT-AGENT-TRANSIT
+    action: Vérifie les documents et valide
+    transition: TR-VALIDER-DOCS
+    ecran: SCR-002
+  - acteur: ACT-TRANSPORTEUR
+    action: Prend en charge la marchandise
+    transition: TR-PRENDRE-EN-CHARGE
+    ecran: SCR-003
+  - acteur: ACT-EXPEDITEUR
+    action: Confirme la livraison
+    transition: TR-LIVRER
+    ecran: SCR-002

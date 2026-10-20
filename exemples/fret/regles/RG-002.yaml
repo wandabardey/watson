@@ -1,0 +1,23 @@
+id: RG-002
+titre: Orientation après vérification des documents
+statut: validee
+type: table_decision
+entite: ENT-EXPEDITION
+enonce: Selon l'état du document douanier, la nature de la marchandise et le type de client, l'expédition est orientée vers l'étape suivante.
+source: Atelier de cadrage du 2026-09-12
+conditions:
+  - attribut: document_douanier
+  - attribut: marchandise_dangereuse
+  - attribut: client_grand_compte
+lignes:
+  - si: {document_douanier: valide, marchandise_dangereuse: false}
+    alors: TR-VALIDER-DOCS
+  - si: {document_douanier: valide, marchandise_dangereuse: true}
+    alors: TR-ENVOYER-CONTROLE
+  - si: {document_douanier: manquant, client_grand_compte: true}
+    alors: TR-RELANCER
+    note: Relance automatique tous les deux jours ouvrés.
+historique:
+  - date: 2026-09-12
+    auteur: Wanda Bardey
+    changement: Création
