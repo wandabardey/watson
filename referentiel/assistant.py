@@ -297,8 +297,8 @@ def _message_erreur(resultat) -> str:
     return "Claude n'a pas pu répondre" + (f" : {erreurs[0]}" if erreurs else ".")
 
 
-def valider(donnees) -> dict:
-    """Vérifie la forme de la réponse : on n'affiche jamais une réponse mal formée."""
+def valider_json(donnees) -> dict:
+    """Objet JSON de la réponse de Claude, qu'il soit déjà décodé, nu ou dans un bloc de code."""
     if isinstance(donnees, str):
         texte = donnees.strip()
         if texte.startswith("```"):
@@ -308,6 +308,14 @@ def valider(donnees) -> dict:
             donnees = json.loads(texte[debut:fin + 1] if debut >= 0 else texte)
         except json.JSONDecodeError as e:
             raise ErreurAssistant("Réponse de Claude illisible.") from e
+    if not isinstance(donnees, dict):
+        raise ErreurAssistant("Réponse de Claude illisible.")
+    return donnees
+
+
+def valider(donnees) -> dict:
+    """Vérifie la forme de la réponse : on n'affiche jamais une réponse mal formée."""
+    donnees = valider_json(donnees)
     if not isinstance(donnees, dict):
         raise ErreurAssistant("Réponse de Claude illisible.")
     manquants = [c for c in SCHEMA["required"] if c not in donnees]

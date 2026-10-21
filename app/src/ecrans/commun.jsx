@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { Sparkles } from 'lucide-preact';
 import { appel } from '../api.js';
 
 // Charge une vue du moteur et gère l'attente et l'erreur.
@@ -39,4 +40,26 @@ export function Entete({ titre, description, children }) {
 export function Point({ p }) {
   const [titre, classe] = GRAVITE[p.gravite] || ['Point', 'e-indigo'];
   return <div class={`encart ${classe}`}><span><strong>{titre}.</strong> {p.question || p.message}</span></div>;
+}
+
+// Connexion du compte Claude (page d'Anthropic, Watson ne voit pas les identifiants).
+export function ConnexionClaude({ claude, setClaude, usage }) {
+  const [attente, setAttente] = useState(false);
+  if (claude?.connecte) return null;
+  const connecter = async () => {
+    setAttente(true);
+    await appel('/claude/connexion', { corps: {} }).catch(() => {});
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const c = (await appel('/etat')).claude;
+      if (c?.connecte) { setClaude(c); break; }
+    }
+    setAttente(false);
+  };
+  return (
+    <div class="encart e-indigo"><Sparkles size={18} />
+      <span class="espace">{usage} utilise ton compte Claude. Connecte-le une fois : la page d'Anthropic s'ouvre, Watson ne voit pas tes identifiants.</span>
+      <button class="bouton" disabled={attente} onClick={connecter}>{attente ? 'En attente de la connexion…' : 'Connecter mon compte Claude'}</button>
+    </div>
+  );
 }

@@ -19,7 +19,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install pytest
       - if: matrix.python == '3.12'
-        run: pip install claude-agent-sdk dulwich keyring platformdirs
+        run: pip install claude-agent-sdk dulwich keyring platformdirs pypdf
       - run: pytest -q
 
   python37:

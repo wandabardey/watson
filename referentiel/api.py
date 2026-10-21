@@ -18,7 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import __version__, application, depot, github
+from . import __version__, alimentation, application, depot, github
 from .chargement import charger
 from .contexte import STATUTS
 from .controles import ERREUR, analyser, couverture
@@ -161,12 +161,33 @@ def vue_versions(racine: Path) -> dict:
 # Routes
 # ---------------------------------------------------------------------------
 
+TAILLE_MAX = 56_000_000  # environ 40 Mo de documents, une fois encodés
+
+
 def _p(pid):
     racine = application.chemin(pid)
     p = charger(racine)
     if p.erreurs:
         raise Erreur("La base de ce projet est invalide : " + " ; ".join(p.erreurs[:3]))
     return racine, p
+
+
+def _alimenter(methode, pid, reste, corps):
+    racine = application.chemin(pid)
+    if methode == "GET" and not reste:
+        return {"lots": alimentation.lots(pid)}
+    if methode == "POST" and not reste:
+        return alimentation.analyser(pid, racine, corps.get("documents") or [])
+    if methode == "GET" and len(reste) == 1:
+        return alimentation.lire_lot(pid, reste[0])
+    if methode == "DELETE" and len(reste) == 1:
+        alimentation.abandonner(pid, reste[0])
+        return {"ok": True}
+    if methode == "POST" and len(reste) == 2 and reste[1] == "appliquer":
+        compte = github.compte()
+        r = alimentation.appliquer(pid, racine, reste[0], corps.get("decisions") or [], compte["nom"])
+        return {**r, **application.enregistrer_et_envoyer(pid, r["message"])}
+    raise Erreur("Introuvable.", 404)
 
 
 def route(methode: str, chemin: str, requete: dict, corps: dict):
@@ -215,6 +236,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return {"ok": True}
         if methode == "POST" and reste == ["synchroniser"]:
             return application.synchroniser(pid)
+        if reste[:1] == ["alimenter"]:
+            return _alimenter(methode, pid, reste[1:], corps)
         racine, p = _p(pid)
         if methode == "GET":
             if reste == ["synthese"]:
@@ -283,13 +306,15 @@ def fabrique(jeton: str):
             corps = {}
             if methode in ("POST", "DELETE"):
                 longueur = int(self.headers.get("Content-Length") or 0)
+                if longueur > TAILLE_MAX:
+                    return self._repondre(413, {"erreur": "Documents trop lourds pour un seul envoi (40 Mo au plus) : les envoyer en plusieurs fois."})
                 if longueur:
-                    corps = json.loads(self.rfile.read(min(longueur, 200_000)) or b"{}")
+                    corps = json.loads(self.rfile.read(longueur) or b"{}")
             try:
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

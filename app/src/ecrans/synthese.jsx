@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-preact';
+import { ExternalLink, FilePlus2, Sparkles } from 'lucide-preact';
 import { ouvrirLien } from '../api.js';
 import { Attente, Entete, GRAVITE, useVue } from './commun.jsx';
 
@@ -10,8 +10,21 @@ export function Synthese({ projet, aller }) {
     ['Entités', d.compteurs.entites, 'catalogue'], ['Règles', d.compteurs.regles, 'regles'], ['Acteurs', d.compteurs.acteurs, 'catalogue'],
     ['Points à trancher', ouverts, 'regles'], ['Spec figée', d.versions.derniere || 'aucune', 'versions']
   ];
+  const vide = d.compteurs.entites + d.compteurs.regles + d.compteurs.acteurs === 0;
   return (
     <>
+      {vide && (
+        <section class="pile">
+          <div class="pile" style="gap:4px"><h1>Par où commencer ?</h1>
+            <p class="doux">Le projet est vide. Le plus rapide : donner à Claude ce qui existe déjà, il en tire une première base que tu valides.</p></div>
+          <div class="depart">
+            <button class="carte mis-en-avant" onClick={() => aller('alimenter')}><FilePlus2 size={22} color="#4F46E5" /><strong>Alimenter avec des documents</strong>
+              <span class="doux">Comptes rendus, transcriptions Meet, notes Gemini, spécifications, mails : Claude propose les objets métier, étapes et règles.</span></button>
+            <button class="carte" onClick={() => aller('demander')}><Sparkles size={22} color="#4F46E5" /><strong>Poser une question</strong>
+              <span class="doux">Une fois la base alimentée, Claude répond en citant ses sources.</span></button>
+          </div>
+        </section>
+      )}
       <Entete titre={d.projet.nom} description={d.projet.description}>
         <button class="bouton" onClick={() => ouvrirLien(`https://github.com/${d.depot}`)}><ExternalLink size={15} /> Dépôt GitHub</button>
       </Entete>

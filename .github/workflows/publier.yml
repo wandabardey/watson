@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pytest claude-agent-sdk dulwich keyring platformdirs
+      - run: pip install pytest claude-agent-sdk dulwich keyring platformdirs pypdf
       - run: pytest -q
       - name: Numéros de version alignés sur l'étiquette
         run: |
@@ -87,7 +87,7 @@ jobs:
         env:
           WATSON_CIBLE: ${{ matrix.cible }}
         run: |
-          pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk truststore certifi
+          pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk truststore certifi pypdf
           python scripts/construire_moteur.py
       - uses: actions/setup-node@v4
         with:

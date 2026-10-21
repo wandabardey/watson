@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { ArrowUp, Scale, Sparkles } from 'lucide-preact';
 import { appel } from '../api.js';
-import { Entete } from './commun.jsx';
+import { ConnexionClaude, Entete } from './commun.jsx';
 
 const VERDICT = { oui: 'b-vert', non: 'b-rouge', depend: 'b-violet', partiel: 'b-ambre', inconnu: 'b-ambre', resume: 'b-indigo' };
 
@@ -21,13 +21,10 @@ export function Demander({ projet, etat }) {
       setFil((f) => f.map((x) => (x.id === id ? { ...x, r } : x)));
     } catch (err) { setFil((f) => f.map((x) => (x.id === id ? { ...x, erreur: err.message } : x))); }
   };
-  const connecter = async () => { await appel('/claude/connexion', { corps: {} }); setTimeout(async () => setClaude((await appel('/etat')).claude), 3000); };
   return (
     <>
       <Entete titre="Poser une question" description="Claude répond à partir de la connaissance du projet, et cite ses sources : règle, décision, date, auteur." />
-      {!claude?.connecte && (
-        <div class="encart e-indigo"><Sparkles size={18} /><span class="espace">Cette fonction utilise ton compte Claude. Connecte-le une fois : la page d'Anthropic s'ouvre, Watson ne voit pas tes identifiants.</span><button class="bouton" onClick={connecter}>Connecter mon compte Claude</button></div>
-      )}
+      <ConnexionClaude claude={claude} setClaude={setClaude} usage="Cette fonction" />
       <form class="ligne" onSubmit={poser} style="padding:8px 8px 8px 16px;border-radius:16px;box-shadow:0 0 0 1px var(--bord),0 6px 16px rgba(24,24,27,.06)">
         <input style="flex:1;border:0;outline:none;min-height:36px" placeholder="Par exemple : qui peut annuler une expédition ?" value={q} onInput={(e) => setQ(e.target.value)} />
         <select class="saisie" value={portee} onChange={(e) => setPortee(e.target.value)}><option value="travail">Version de travail</option><option value="production">Production</option><option value="histoire">Toute l'histoire</option></select>

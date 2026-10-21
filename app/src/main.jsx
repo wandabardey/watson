@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import {
-  ArrowLeftRight, BookOpen, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
+  ArrowLeftRight, BookOpen, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
   MonitorPlay, Network, Palette, RefreshCw, Scale, Settings, Sparkles, Workflow as IconeWorkflow
 } from 'lucide-preact';
 import { appel, attendreMoteur, installerMiseAJour, verifierMiseAJour } from './api.js';
@@ -13,6 +13,7 @@ import { Workflow } from './ecrans/workflow.jsx';
 import { Regles } from './ecrans/regles.jsx';
 import { Versions } from './ecrans/versions.jsx';
 import { Demander } from './ecrans/demander.jsx';
+import { Alimenter } from './ecrans/alimenter.jsx';
 import './styles.css';
 
 const MENU = [
@@ -28,7 +29,7 @@ const MENU = [
   ['administration', 'Administration', Settings, true]
 ];
 
-const ECRANS = { synthese: Synthese, catalogue: Catalogue, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander };
+const ECRANS = { synthese: Synthese, catalogue: Catalogue, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
 
 function Lateral({ projet, ecran, choisir, quitter, compte }) {
   return (
@@ -42,6 +43,9 @@ function Lateral({ projet, ecran, choisir, quitter, compte }) {
       </button>
       <button class={`menu question ${ecran === 'demander' ? 'actif' : ''}`} onClick={() => choisir('demander')}>
         <Sparkles size={17} /> Poser une question
+      </button>
+      <button class={`menu ${ecran === 'alimenter' ? 'actif' : ''}`} onClick={() => choisir('alimenter')}>
+        <FilePlus2 size={18} strokeWidth={1.8} /> Alimenter
       </button>
       {MENU.map(([cle, libelle, Icone, bientot]) => (Icone ? (
         <button key={cle} class={`menu ${ecran === cle ? 'actif' : ''}`} disabled={bientot} onClick={() => choisir(cle)} title={bientot ? 'Dans une prochaine version' : ''}>

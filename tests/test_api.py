@@ -133,3 +133,22 @@ def test_proprietaires(monkeypatch):
     monkeypatch.setattr(github, "_requete", requete)
     r = github.proprietaires()
     assert [x["login"] for x in r["proprietaires"]] == ["wanda", "4sh", "zeta"] and r["reconnexion"] is True
+
+
+def test_alimenter_par_l_api(serveur, monkeypatch):
+    base, nu = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+
+    async def lire(systeme, message, requete=None):
+        assert "Comité du 20/10" in message
+        return {"resume": "Un acteur.", "propositions": [
+            {"type": "acteur", "action": "creer", "titre": "Douanier", "pourquoi": "x", "conflit": "",
+             "citation": {"document": "DOC-1", "extrait": "douanier"}, "contenu": {"id": "ACT-DOUANIER", "nom": "Douanier"}}]}
+
+    monkeypatch.setattr("referentiel.alimentation._lire_par_claude", lire)
+    lot = appel(base, f"/api/projets/{pid}/alimenter", {"documents": [{"titre": "Comité du 20/10", "texte": "Le douanier contrôle."}]})
+    assert appel(base, f"/api/projets/{pid}/alimenter")["lots"][0]["id"] == lot["id"]
+    r = appel(base, f"/api/projets/{pid}/alimenter/{lot['id']}/appliquer", {"decisions": [{"index": 0, "accepte": True}]})
+    assert r["envoye"] and r["ecrits"][0]["id"] == "ACT-DOUANIER"
+    fichiers = subprocess.run(["git", "-C", str(nu), "show", "--name-only", "--format=%s", "HEAD"], capture_output=True, text=True).stdout
+    assert "Alimentation : Comité du 20/10" in fichiers and "sources/index.yaml" in fichiers and "acteurs/ACT-DOUANIER.yaml" in fichiers
