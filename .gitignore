@@ -4,3 +4,4 @@ sortie/
 .pytest_cache/
 dist/
 .DS_Store
+build/

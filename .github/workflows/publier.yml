@@ -8,25 +8,41 @@ permissions:
   contents: write
 
 jobs:
-  publier:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Tests
-        run: |
-          pip install pytest claude-agent-sdk
-          pytest -q
-      - name: Vérifier le numéro de version
+      - run: pip install pytest claude-agent-sdk dulwich keyring platformdirs
+      - run: pytest -q
+      - name: Numéros de version alignés sur l'étiquette
         run: |
           attendu="${GITHUB_REF_NAME#v}"
-          trouve=$(python3 -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])")
-          test "$attendu" = "$trouve" || { echo "Étiquette $attendu, manifeste $trouve"; exit 1; }
-      - name: Construire le plugin
-        run: python3 scripts/construire_plugin.py
-      - name: Créer la publication
+          python3 - "$attendu" <<'PY'
+          import json, re, sys
+          v = sys.argv[1]
+          trouves = {
+            "plugin": json.load(open(".claude-plugin/plugin.json"))["version"],
+            "app": json.load(open("app/src-tauri/tauri.conf.json"))["version"],
+            "package": json.load(open("app/package.json"))["version"],
+            "cargo": re.search(r'^version = "([^"]+)"', open("app/src-tauri/Cargo.toml").read(), re.M).group(1),
+            "moteur": re.search(r'__version__ = "([^"]+)"', open("referentiel/__init__.py").read()).group(1),
+          }
+          faux = {k: x for k, x in trouves.items() if x != v}
+          if faux:
+              sys.exit(f"Étiquette {v}, mais : {faux}")
+          PY
+
+  preparer:
+    needs: tests
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.creer.outputs.release }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: creer
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -38,4 +54,64 @@ jobs:
           print(m.group(1).strip() if m else "")
           PY
           )
-          gh release create "$GITHUB_REF_NAME" dist/*.plugin --title "Watson $GITHUB_REF_NAME" --notes "$notes"
+          gh release create "$GITHUB_REF_NAME" --draft --title "Watson $GITHUB_REF_NAME" --notes "$notes"
+          echo "release=$(gh release view "$GITHUB_REF_NAME" --json databaseId -q .databaseId)" >> "$GITHUB_OUTPUT"
+
+  application:
+    needs: preparer
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            cible: aarch64-apple-darwin
+          - os: windows-latest
+            cible: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.cible }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Moteur (Python embarqué)
+        run: |
+          pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk
+          python scripts/construire_moteur.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+        working-directory: app
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        with:
+          projectPath: app
+          releaseId: ${{ needs.preparer.outputs.release }}
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+          args: --target ${{ matrix.cible }}
+
+  finaliser:
+    needs: [preparer, application]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Plugin Claude, empreintes et publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/construire_plugin.py
+          gh release upload "$GITHUB_REF_NAME" dist/*.plugin
+          mkdir -p empreintes && cd empreintes
+          gh release download "$GITHUB_REF_NAME" --pattern "*.tar.gz" --pattern "*.exe" --pattern "*.dmg" --pattern "*.plugin"
+          sha256sum * > ../SHA256SUMS && cd ..
+          gh release upload "$GITHUB_REF_NAME" SHA256SUMS
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest

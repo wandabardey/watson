@@ -28,6 +28,7 @@ import tempfile
 from pathlib import Path
 
 from ._vendor import yaml
+from . import depot
 from .chargement import Projet, charger
 
 PREFIXE = "spec-"
@@ -54,6 +55,8 @@ def _git(racine: Path, *args, binaire=False):
 
 
 def est_versionne(racine: Path) -> bool:
+    if depot.actif():
+        return depot.racine(racine) is not None
     try:
         return _git(racine, "rev-parse", "--is-inside-work-tree").strip() == "true"
     except (ErreurVersion, OSError):
@@ -62,6 +65,8 @@ def est_versionne(racine: Path) -> bool:
 
 def _prefixe_projet(racine: Path) -> str:
     """Chemin du projet dans le dépôt (vide si le projet est à la racine du dépôt)."""
+    if depot.actif():
+        return depot.prefixe(racine)
     return _git(racine, "rev-parse", "--show-prefix").strip()
 
 
@@ -88,6 +93,10 @@ def lister_versions(racine: Path) -> list[dict]:
     """Versions figées, de la plus ancienne à la plus récente."""
     if not est_versionne(racine):
         return []
+    if depot.actif():
+        return sorted(({"version": e["nom"][len(PREFIXE):], "etiquette": e["nom"], "commit": e["commit"], "date": e["date"],
+                        "auteur": e["auteur"], "message": e["message"]} for e in depot.etiquettes(racine, PREFIXE)),
+                      key=lambda v: _cle_version(v["version"]))
     sortie = _git(
         racine, "for-each-ref", f"refs/tags/{PREFIXE}*",
         "--format=%(refname:short)%09%(objectname)%09%(*objectname)%09%(creatordate:short)%09%(taggername)%09%(contents:subject)",
@@ -140,15 +149,23 @@ def charger_version(racine: Path, reference: str | None = None) -> Projet:
 def charger_commit(racine: Path, commit: str, libelle: str) -> Projet:
     """Le projet tel qu'il est dans un commit (étiquette, branche ou empreinte), sans toucher aux fichiers."""
     racine = Path(racine)
-    commit = _git(racine, "rev-parse", f"{commit}^{{commit}}").strip()
+    commit = depot.commit(racine, commit) if depot.actif() else _git(racine, "rev-parse", f"{commit}^{{commit}}").strip()
     cle = (str(racine.resolve()), commit)
     if cle in _cache:
         return _cache[cle]
     prefixe = _prefixe_projet(racine)
+    if depot.actif():
+        dossier = tempfile.TemporaryDirectory(prefix="referentiel-")
+        _dossiers.append(dossier)
+        depot.extraire(racine, commit, prefixe, Path(dossier.name))
+        p = charger(Path(dossier.name) / prefixe)
+        p.meta = {**p.meta, "version": libelle}
+        _cache[cle] = p
+        return p
     # Lancé depuis la racine du dépôt, avec un chemin simple : le pathspec « :(top) » n'est pas honoré par
     # git archive depuis un sous-dossier sur les Git anciens (2.33, par exemple).
-    depot = Path(_git(racine, "rev-parse", "--show-toplevel").strip())
-    archive = _git(depot, "archive", "--format=tar", commit, *(["--", prefixe] if prefixe else []), binaire=True)
+    racine_depot = Path(_git(racine, "rev-parse", "--show-toplevel").strip())
+    archive = _git(racine_depot, "archive", "--format=tar", commit, *(["--", prefixe] if prefixe else []), binaire=True)
     dossier = tempfile.TemporaryDirectory(prefix="referentiel-")
     _dossiers.append(dossier)
     with tarfile.open(fileobj=io.BytesIO(archive)) as t:
@@ -284,6 +301,11 @@ def figer_version(racine: Path, version: str, message: str, auteur: str | None =
         raise ErreurVersion(f"La version {v} existe déjà.")
     if existantes and _cle_version(v) <= _cle_version(existantes[-1]["version"]):
         raise ErreurVersion(f"La version doit être postérieure à la {existantes[-1]['version']}.")
+    if depot.actif():
+        if depot.modifications(racine):
+            raise ErreurVersion("Des changements ne sont pas encore enregistrés dans le dépôt : les valider avant de figer.")
+        depot.etiqueter(racine, f"{PREFIXE}{v}", message, auteur)
+        return next(x for x in lister_versions(racine) if x["version"] == v)
     if _git(racine, "status", "--porcelain", "--", ".").strip():
         raise ErreurVersion("Des changements ne sont pas encore enregistrés dans le dépôt : les valider avant de figer.")
     args = ["-c", f"user.name={auteur}"] if auteur else []

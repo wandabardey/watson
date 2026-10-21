@@ -19,6 +19,10 @@ def test_versions_alignees():
     assert plugin["version"] == __version__ == catalogue["plugins"][0]["version"]
     assert catalogue["plugins"][0]["name"] == plugin["name"] and catalogue["plugins"][0]["source"] == "./"
     assert f"## {__version__}" in (RACINE / "CHANGELOG.md").read_text(encoding="utf-8")
+    app = RACINE / "app"
+    assert json.loads((app / "package.json").read_text(encoding="utf-8"))["version"] == __version__
+    assert json.loads((app / "src-tauri" / "tauri.conf.json").read_text(encoding="utf-8"))["version"] == __version__
+    assert f'version = "{__version__}"' in (app / "src-tauri" / "Cargo.toml").read_text(encoding="utf-8")
 
 
 def _lancer(lanceur: Path):

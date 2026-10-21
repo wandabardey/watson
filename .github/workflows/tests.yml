@@ -19,7 +19,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install pytest
       - if: matrix.python == '3.12'
-        run: pip install claude-agent-sdk
+        run: pip install claude-agent-sdk dulwich keyring platformdirs
       - run: pytest -q
 
   python37:
@@ -31,4 +31,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install vermin
-      - run: vermin --no-tips -t=3.7- --violations --backport typing referentiel serveur
+      - run: vermin --no-tips -t=3.7- --violations --backport typing referentiel serveur/lancer.py
+
+  application:
+    # L'interface et l'application de bureau se construisent (sans publier) : on le sait avant l'étiquette.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci && npm run build
+        working-directory: app

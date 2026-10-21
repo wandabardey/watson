@@ -3,6 +3,17 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.6.0 (2026-10-21)
+
+- Première version de l'application de bureau Watson, pour Mac (Apple Silicon) et Windows, installée par une
+  commande et mise à jour toute seule (mises à jour signées).
+- Connexion GitHub depuis l'application (code à saisir sur github.com, jeton dans le trousseau du système).
+- Projets : ouvrir un dépôt de connaissance GitHub, ou en créer un (vide ou le projet de démonstration Fret).
+  La référence est le dépôt GitHub ; chaque changement validé y est enregistré au nom de la personne.
+- Écrans branchés sur le moteur : Synthèse, Catalogue, Workflow (schéma tracé depuis les données), Règles
+  (avec validation d'une règle proposée), Versions (comparaison), Poser une question.
+- Accès Git sans le programme git (Dulwich) dans l'application ; plugin et ligne de commande inchangés.
+
 ## 0.5.2 (2026-10-21)
 
 - Lecture des versions passées compatible avec les Git anciens (2.33, 2.34) : l'archive est lancée depuis la

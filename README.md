@@ -10,7 +10,32 @@ Une source de vérité unique pour les règles métier d'un projet. À partir de
 
 Il s'utilise de deux façons : depuis l'app Claude grâce au **plugin** (serveur MCP + skills), ou en ligne de commande.
 
-## Installation
+## L'application Watson
+
+Sur Mac (Apple Silicon), dans le Terminal :
+
+```
+curl -fsSL https://raw.githubusercontent.com/wandabardey/watson/main/installer/install.sh | sh
+```
+
+Sur Windows, dans PowerShell :
+
+```
+irm https://raw.githubusercontent.com/wandabardey/watson/main/installer/install.ps1 | iex
+```
+
+La commande télécharge la dernière version, vérifie son empreinte, l'installe et l'ouvre. Ensuite, Watson se
+met à jour tout seul : à chaque nouvelle version publiée, un bandeau propose « Installer et redémarrer ».
+Les mises à jour sont signées (clé dans le secret `TAURI_SIGNING_PRIVATE_KEY` du dépôt) et vérifiées par
+l'application avant installation.
+
+L'application embarque son moteur : rien d'autre à installer, ni Python, ni git. La connaissance de chaque
+projet vit dans son propre dépôt GitHub ; Watson en garde une copie de travail et y enregistre chaque changement.
+
+Organisation : `app/` (interface Preact et coquille Tauri), `referentiel/api.py` (API locale du moteur),
+`referentiel/depot.py` (Git en Python), `referentiel/github.py` (connexion et dépôts), `installer/`.
+
+## Installation (moteur, ligne de commande)
 
 Python 3.7 ou plus pour le moteur et le plugin, **aucune bibliothèque à installer** : PyYAML (licence MIT) est embarqué dans `referentiel/_vendor`.
 Pour lancer les tests : `pip install pytest` puis `pytest` (Python 3.8 ou plus ; les tests de l'assistant demandent Python 3.10 et `claude-agent-sdk`, ils sont sautés sinon). La CI les lance en 3.8 et 3.12, et vérifie que le moteur reste compatible Python 3.7.

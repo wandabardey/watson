@@ -22,6 +22,18 @@ def git(depot, *args):
                    check=True, capture_output=True)
 
 
+@pytest.fixture(autouse=True, params=["git", "dulwich"])
+def acces_git(request, monkeypatch):
+    """Chaque test tourne avec le programme git (plugin, ligne de commande) et avec Dulwich (application)."""
+    if request.param == "dulwich":
+        pytest.importorskip("dulwich")
+        monkeypatch.setenv("REFERENTIEL_GIT", "dulwich")
+    else:
+        monkeypatch.delenv("REFERENTIEL_GIT", raising=False)
+    versions._cache.clear()
+    return request.param
+
+
 @pytest.fixture()
 def projet(tmp_path):
     """Dépôt avec le projet dans un sous-dossier : spec 1.0 (ancienne annulation), 1.1 (nouvelle), puis un changement en cours."""
@@ -158,9 +170,11 @@ def test_ligne_de_commande(projet, tmp_path, capsys):
     assert "Version : 1.0" in fichier.read_text(encoding="utf-8")
 
 
-def test_archive_lancee_depuis_la_racine_du_depot(projet, monkeypatch):
+def test_archive_lancee_depuis_la_racine_du_depot(projet, monkeypatch, acces_git):
     """Non-régression : sur Git 2.33, « git -C sous-dossier archive -- ':(top)chemin' » échoue.
     L'archive se lance donc depuis la racine du dépôt, avec un chemin simple."""
+    if acces_git == "dulwich":
+        pytest.skip("propre au programme git")
     appels = []
     vrai_git = versions._git
 

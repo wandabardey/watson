@@ -2,8 +2,8 @@
 
     python3 scripts/publier_version.py 0.6.0 "Ce qui change, en une phrase"
 
-Ensuite : git push && git push --tags. GitHub construit alors le .plugin et crée la publication ; les personnes
-qui ont ajouté le catalogue watson récupèrent la mise à jour depuis Claude.
+Ensuite : git push && git push --tags. GitHub construit alors l'application (Mac, Windows), le plugin, et publie la
+version : les applications installées proposent la mise à jour, le plugin se met à jour depuis le catalogue watson.
 """
 
 import json
@@ -33,6 +33,10 @@ def main():
         sys.exit("Les tests échouent : version non publiée.")
     ecrire_json(RACINE / ".claude-plugin" / "plugin.json", lambda d: d.update(version=version))
     ecrire_json(RACINE / ".claude-plugin" / "marketplace.json", lambda d: [p.update(version=version) for p in d["plugins"]])
+    ecrire_json(RACINE / "app" / "package.json", lambda d: d.update(version=version))
+    ecrire_json(RACINE / "app" / "src-tauri" / "tauri.conf.json", lambda d: d.update(version=version))
+    cargo = RACINE / "app" / "src-tauri" / "Cargo.toml"
+    cargo.write_text(re.sub(r'^version = "[^"]+"', f'version = "{version}"', cargo.read_text(encoding="utf-8"), count=1, flags=re.M), encoding="utf-8")
     init = RACINE / "referentiel" / "__init__.py"
     init.write_text(re.sub(r'__version__ = "[^"]+"', f'__version__ = "{version}"', init.read_text(encoding="utf-8")), encoding="utf-8")
     journal = RACINE / "CHANGELOG.md"
