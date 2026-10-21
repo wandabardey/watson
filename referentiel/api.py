@@ -193,6 +193,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
         if methode == "POST" and morceaux[1:] == ["deconnexion"]:
             github.deconnecter()
             return {"ok": True}
+        if methode == "GET" and morceaux[1:] == ["proprietaires"]:
+            return github.proprietaires()
         if methode == "GET" and morceaux[1:] == ["depots"]:
             return {"depots": github.depots(requete.get("q", [""])[0])}
     if morceaux[:1] == ["claude"] and methode == "POST" and morceaux[1:] == ["connexion"]:

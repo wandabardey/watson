@@ -16,9 +16,10 @@ import urllib.error
 import urllib.request
 
 CLIENT_ID = os.environ.get("WATSON_GITHUB_CLIENT_ID", "Ov23liqDDgk0RR7ZdVpw")  # application OAuth « Watson », publique
-PORTEE = "repo"  # lire et écrire les dépôts de connaissance, y compris privés
+PORTEE = "repo read:org"  # lire et écrire les dépôts de connaissance (privés compris) ; voir ses organisations
 API = "https://api.github.com"
 SERVICE = "watson"
+_PORTEES = [None]  # portées accordées au jeton, relevées à chaque réponse de l'API
 
 
 class ErreurGitHub(Exception):
@@ -38,6 +39,8 @@ def _requete(url: str, donnees: dict | None = None, jeton: str | None = None, me
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             texte = r.read().decode("utf-8")
+            if r.headers.get("X-OAuth-Scopes") is not None:
+                _PORTEES[0] = {x.strip() for x in r.headers["X-OAuth-Scopes"].split(",") if x.strip()}
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", "replace")
         try:
@@ -48,6 +51,11 @@ def _requete(url: str, donnees: dict | None = None, jeton: str | None = None, me
             raise ErreurGitHub("Connexion GitHub expirée ou retirée : se reconnecter.") from e
         if e.code == 404:
             raise ErreurGitHub("Dépôt introuvable, ou pas d'accès avec ce compte GitHub.") from e
+        if e.code == 422 and "name already exists" in detail:
+            raise ErreurGitHub("Un dépôt porte déjà ce nom à cet endroit : en choisir un autre.") from e
+        if e.code == 403 and ("OAuth App access restrictions" in detail or "third-party" in detail.lower()):
+            raise ErreurGitHub("Cette organisation n'a pas encore autorisé Watson. Un de ses propriétaires doit l'approuver "
+                               "dans les réglages de l'organisation sur GitHub (accès des applications tierces).") from e
         raise ErreurGitHub(f"GitHub a répondu : {message}") from e
     except urllib.error.URLError as e:
         raison = str(getattr(e, "reason", e))
@@ -132,6 +140,20 @@ def deconnecter():
 def compte(j: str | None = None) -> dict:
     u = _requete(f"{API}/user", jeton=j or jeton())
     return {"login": u["login"], "nom": u.get("name") or u["login"], "email": u.get("email"), "avatar": u.get("avatar_url")}
+
+
+def proprietaires() -> dict:
+    """Où créer un dépôt : son propre compte, puis ses organisations.
+
+    `reconnexion` signale un jeton obtenu avant l'ajout du droit de lecture des organisations : la liste peut alors
+    manquer les organisations dont l'appartenance est privée."""
+    c = compte()
+    orgs = _requete(f"{API}/user/orgs?per_page=100", jeton=jeton())
+    liste = [{"login": c["login"], "nom": c["nom"], "type": "compte", "avatar": c.get("avatar")}]
+    liste += [{"login": o["login"], "nom": o["login"], "type": "organisation", "avatar": o.get("avatar_url")}
+              for o in sorted(orgs, key=lambda o: o["login"].lower())]
+    portees = _PORTEES[0]
+    return {"proprietaires": liste, "reconnexion": portees is not None and "read:org" not in portees and "admin:org" not in portees}
 
 
 def depots(recherche: str = "") -> list[dict]:

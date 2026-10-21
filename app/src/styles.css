@@ -74,3 +74,5 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .code { font-size: 30px; font-weight: 700; letter-spacing: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .bandeau-maj { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 12px; background: var(--indigo); color: #fff; }
 .bandeau-maj .bouton { background: #fff; color: var(--indigo-fonce); border-color: #fff; }
+.e-gris { background: #f4f4f6; color: var(--texte2, #55555f); }
+.lien { background: none; border: 0; padding: 0; color: #4f46e5; font-weight: 500; text-decoration: underline; cursor: pointer; }

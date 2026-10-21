@@ -123,7 +123,9 @@ def creer(nom: str, nom_depot: str | None = None, organisation: str | None = Non
     from .ecriture import creer_projet
 
     compte = github.compte()
-    nom_depot = nom_depot or (_slug(nom) + "-connaissance")
+    nom_depot = _nom_depot(nom_depot or (_slug(nom) + "-knowledge"))
+    if organisation and organisation.lower() == compte["login"].lower():
+        organisation = None  # son propre compte
     cree = github.creer_depot(nom_depot, f"Connaissance métier : {nom} (Watson)", organisation)
     copie = dossier_donnees() / "depots" / _slug(cree["nom"])
     if copie.exists():
@@ -142,6 +144,14 @@ def creer(nom: str, nom_depot: str | None = None, organisation: str | None = Non
     p = {"id": _slug(cree["nom"]), "depot": cree["nom"], "copie": str(copie), "sous_dossier": "", "nom": nom}
     _ecrire(_lire() + [p])
     return p
+
+
+def _nom_depot(nom: str) -> str:
+    """Nom accepté par GitHub : lettres, chiffres, tirets, points et soulignés."""
+    n = re.sub(r"[^A-Za-z0-9._-]+", "-", unicodedata.normalize("NFKD", nom.strip()).encode("ascii", "ignore").decode()).strip("-.")
+    if not n:
+        raise ErreurApplication("Nom de dépôt invalide.")
+    return n[:100]
 
 
 def _copier(source: Path, cible: Path):

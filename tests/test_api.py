@@ -101,3 +101,35 @@ def test_depot_sans_projet(serveur, tmp_path, monkeypatch):
     with pytest.raises(urllib.error.HTTPError) as e:
         appel(base, "/api/projets", {"depot": "autre/vide"})
     assert "projet.yaml" in json.loads(e.value.read())["erreur"]
+
+
+def test_creer_dans_une_organisation(serveur, tmp_path, monkeypatch):
+    base, _ = serveur
+    demandes = []
+
+    def creer_depot(nom, description, organisation=None, prive=True):
+        demandes.append((nom, organisation))
+        nu = tmp_path / f"cree-{len(demandes)}.git"
+        subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(nu)], check=True)
+        return {"nom": f"{organisation or 'wanda'}/{nom}", "url": str(nu), "prive": True}
+
+    monkeypatch.setattr(github, "creer_depot", creer_depot)
+    monkeypatch.setattr(github, "url_clone", lambda nom: str(tmp_path / f"cree-{len(demandes)}.git"))
+    p = appel(base, "/api/projets", {"creer": True, "nom": "Fret international", "organisation": "4sh", "demo": True})
+    assert demandes == [("fret-international-knowledge", "4sh")] and p["depot"] == "4sh/fret-international-knowledge"
+    # Son propre compte, et un nom choisi (nettoyé pour GitHub)
+    appel(base, "/api/projets", {"creer": True, "nom": "Autre", "depot": "Mon dépôt à moi", "organisation": "wanda"})
+    assert demandes[-1] == ("Mon-depot-a-moi", None)
+
+
+def test_proprietaires(monkeypatch):
+    monkeypatch.setattr(github, "jeton", lambda: "j")
+    monkeypatch.setattr(github, "compte", lambda j=None: {"login": "wanda", "nom": "Wanda Bardey"})
+
+    def requete(url, donnees=None, jeton=None, methode=None):
+        github._PORTEES[0] = {"repo"}
+        return [{"login": "zeta"}, {"login": "4sh"}]
+
+    monkeypatch.setattr(github, "_requete", requete)
+    r = github.proprietaires()
+    assert [x["login"] for x in r["proprietaires"]] == ["wanda", "4sh", "zeta"] and r["reconnexion"] is True

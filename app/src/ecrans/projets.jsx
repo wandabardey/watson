@@ -37,24 +37,51 @@ function Ouvrir({ fermer, ouvert }) {
   );
 }
 
-function Creer({ fermer, ouvert, compte }) {
+function Creer({ fermer, ouvert, compte, reconnecter }) {
   const [nom, setNom] = useState('Fret international');
+  const [depot, setDepot] = useState(null); // null : suit le nom du projet
+  const [proprietaire, setProprietaire] = useState(compte.login);
+  const [proprietaires, setProprietaires] = useState(null);
+  const [reconnexion, setReconnexion] = useState(false);
   const [demo, setDemo] = useState(true);
   const [occupe, setOccupe] = useState(false);
   const [message, setMessage] = useState(null);
-  const slug = nom.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  useEffect(() => {
+    appel('/github/proprietaires')
+      .then((r) => { setProprietaires(r.proprietaires); setReconnexion(r.reconnexion); })
+      .catch(() => setProprietaires([{ login: compte.login, nom: compte.nom, type: 'compte' }]));
+  }, []);
+  const slug = nom.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const nomDepot = depot ?? (slug ? `${slug}-knowledge` : '');
   const creer = async () => {
     setOccupe(true); setMessage(null);
-    try { ouvert(await appel('/projets', { corps: { creer: true, nom, demo } })); } catch (e) { setMessage(e.message); setOccupe(false); }
+    try {
+      ouvert(await appel('/projets', { corps: { creer: true, nom, demo, depot: nomDepot, organisation: proprietaire === compte.login ? null : proprietaire } }));
+    } catch (e) { setMessage(e.message); setOccupe(false); }
   };
   return (
     <div class="carte pile">
       <div class="ligne"><h2 class="espace">Créer un projet</h2><button class="bouton" onClick={fermer}>Fermer</button></div>
       <label class="champ">Nom du projet<input value={nom} onInput={(e) => setNom(e.target.value)} /></label>
+      <div class="ligne" style="align-items:flex-end;flex-wrap:wrap">
+        <label class="champ" style="flex:0 1 240px">Propriétaire du dépôt
+          <select value={proprietaire} onChange={(e) => setProprietaire(e.target.value)} disabled={!proprietaires}>
+            {(proprietaires || [{ login: compte.login, type: 'compte' }]).map((o) => (
+              <option key={o.login} value={o.login}>{o.type === 'compte' ? `${o.login} (mon compte)` : o.login}</option>
+            ))}
+          </select>
+        </label>
+        <span style="padding-bottom:10px" class="doux">/</span>
+        <label class="champ" style="flex:1 1 260px">Nom du dépôt<input value={nomDepot} onInput={(e) => setDepot(e.target.value)} /></label>
+      </div>
+      {reconnexion && (
+        <p class="encart e-gris petit">Une organisation manque ? Watson a besoin d'un droit de plus pour toutes les voir.{' '}
+          <button class="lien" onClick={reconnecter}>Se reconnecter à GitHub</button></p>
+      )}
       <label class="ligne" style="cursor:pointer"><input type="checkbox" checked={demo} onChange={(e) => setDemo(e.target.checked)} /> Partir du projet de démonstration (expéditions, règles, workflow d'exemple)</label>
-      <p class="encart e-indigo">Watson crée le dépôt privé <strong>{compte.login}/{slug}-connaissance</strong> sur GitHub. Toute la connaissance du projet y vit ; les dépôts de code pourront s'appuyer dessus.</p>
+      <p class="encart e-indigo">Watson crée le dépôt privé <strong>{proprietaire}/{nomDepot}</strong> sur GitHub. Toute la connaissance du projet y vit ; les dépôts de code pourront s'appuyer dessus.</p>
       {message && <p class="encart e-rouge">{message}</p>}
-      <div class="ligne"><button class="bouton principal-b" disabled={occupe || !nom.trim()} onClick={creer}><Plus size={16} />{occupe ? 'Création…' : 'Créer le projet'}</button></div>
+      <div class="ligne"><button class="bouton principal-b" disabled={occupe || !nom.trim() || !nomDepot.trim()} onClick={creer}><Plus size={16} />{occupe ? 'Création…' : 'Créer le projet'}</button></div>
     </div>
   );
 }
@@ -81,7 +108,7 @@ export function MesProjets({ compte, version, ouvrir, deconnecte }) {
         <button class="bouton principal-b" onClick={() => setMode('creer')}><Plus size={16} /> Créer un projet</button>
       </div>
       {mode === 'ouvrir' && <Ouvrir fermer={() => setMode(null)} ouvert={ouvert} />}
-      {mode === 'creer' && <Creer fermer={() => setMode(null)} ouvert={ouvert} compte={compte} />}
+      {mode === 'creer' && <Creer fermer={() => setMode(null)} ouvert={ouvert} compte={compte} reconnecter={deconnecter} />}
       {message && <p class="encart e-rouge">{message}</p>}
       {projets && projets.length === 0 && !mode && <div class="vide">Aucun projet sur ce poste pour l'instant. Ouvre un dépôt de connaissance existant, ou crée le projet de démonstration.</div>}
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
