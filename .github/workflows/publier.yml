@@ -107,6 +107,21 @@ jobs:
           includeUpdaterJson: true
           updaterJsonPreferNsis: true
           args: --target ${{ matrix.cible }}
+      - name: Vérifier que le moteur de l'application démarre
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            moteur="app/src-tauri/target/${{ matrix.cible }}/release/bundle/macos/Watson.app/Contents/MacOS/watson-moteur"
+            codesign -dv "$moteur" 2>&1 | head -5 || true
+          else
+            moteur="app/src-tauri/target/${{ matrix.cible }}/release/watson-moteur.exe"
+          fi
+          export WATSON_DONNEES="$RUNNER_TEMP/watson"
+          "$moteur" > moteur.log 2>&1 &
+          for i in $(seq 1 60); do grep -q '^WATSON ' moteur.log && break; sleep 1; done
+          cat moteur.log
+          grep -q '^WATSON ' moteur.log || { echo "Le moteur ne démarre pas dans l'application construite."; exit 1; }
+          kill %1 2>/dev/null || true
 
   finaliser:
     # Publie même si une plateforme a échoué : les autres restent disponibles.

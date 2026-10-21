@@ -3,6 +3,13 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.6.3 (2026-10-21)
+
+- Mac : le moteur ne démarrait pas (« Le moteur s'est arrêté, code 255 »). macOS refusait de charger le Python
+  embarqué, signé par un autre éditeur que l'application. Le moteur et son Python sont désormais signés de la
+  même façon, et l'application déclare le droit de charger ses propres bibliothèques.
+- Si le moteur s'arrête, l'écran d'erreur affiche ses derniers messages au lieu d'un simple code.
+
 ## 0.6.2 (2026-10-21)
 
 - Publication : la version Mac Intel est construite sur une machine Apple Silicon (GitHub n'attribue plus de

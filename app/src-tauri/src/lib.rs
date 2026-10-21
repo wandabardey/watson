@@ -21,6 +21,8 @@ struct Moteur {
 struct Etat {
     moteur: Mutex<Option<Moteur>>,
     enfant: Mutex<Option<CommandChild>>,
+    /// Dernières lignes d'erreur du moteur, affichées si le moteur s'arrête.
+    journal: Mutex<Vec<String>>,
 }
 
 #[tauri::command]
@@ -57,9 +59,19 @@ fn demarrer_moteur(app: &tauri::AppHandle) {
                                 }
                             }
                         }
-                        CommandEvent::Stderr(ligne) => eprintln!("[moteur] {}", String::from_utf8_lossy(&ligne)),
+                        CommandEvent::Stderr(ligne) => {
+                            let texte = String::from_utf8_lossy(&ligne).trim_end().to_string();
+                            eprintln!("[moteur] {}", texte);
+                            let etat = app.state::<Etat>();
+                            let mut journal = etat.journal.lock().unwrap();
+                            journal.push(texte);
+                            let surplus = journal.len().saturating_sub(15);
+                            journal.drain(..surplus);
+                        }
                         CommandEvent::Terminated(fin) => {
-                            let message = format!("Le moteur s'est arrêté (code {:?}).", fin.code);
+                            let detail = app.state::<Etat>().journal.lock().unwrap().join("\n");
+                            let code = fin.code.map(|c| c.to_string()).unwrap_or_else(|| "inconnu".into());
+                            let message = format!("Le moteur s'est arrêté (code {}).\n{}", code, detail);
                             *app.state::<Etat>().moteur.lock().unwrap() = Some(Moteur { erreur: Some(message), ..Default::default() });
                         }
                         _ => {}

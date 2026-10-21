@@ -98,7 +98,7 @@ function App() {
     try { setSynchro(await appel(`/projets/${p.id}/synchroniser`, { corps: {} })); } catch (e) { setSynchro({ erreur: e.message }); }
   };
 
-  if (erreur) return <div class="coquille"><div class="panneau principal"><h1>Watson ne démarre pas</h1><p class="encart e-rouge">{erreur}</p></div></div>;
+  if (erreur) return <div class="coquille"><div class="panneau principal"><h1>Watson ne démarre pas</h1><pre class="encart e-rouge" style="white-space:pre-wrap;font-size:12px">{erreur}</pre><p class="doux">Envoie ce message à la personne qui maintient Watson.</p></div></div>;
   if (!etat) return <div class="chargement">Démarrage de Watson…</div>;
   if (!etat.github.connecte) return <ConnexionGitHub version={etat.version} connecte={charger} />;
   if (!projet) {
