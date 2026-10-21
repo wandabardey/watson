@@ -14,7 +14,8 @@ else
 fi
 
 echo "Recherche de la dernière version de Watson…"
-INFOS=$(curl -fsSL "https://api.github.com/repos/$DEPOT/releases/latest")
+INFOS=$(curl -fsSL --max-time 30 "https://api.github.com/repos/$DEPOT/releases/latest") || {
+  echo "GitHub ne répond pas (connexion, ou trop de demandes en peu de temps) : réessayer dans quelques minutes." >&2; exit 1; }
 lien() { printf '%s\n' "$INFOS" | grep -o '"browser_download_url": *"[^"]*"' | sed 's/.*"\(https[^"]*\)"$/\1/' | grep -E "$1" | head -n 1; }
 ARCHIVE=$(lien "_${ARCH}\.app\.tar\.gz$")
 if [ -z "$ARCHIVE" ] && [ "$ARCH" = "aarch64" ]; then
@@ -31,8 +32,11 @@ fi
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 NOM=$(basename "$ARCHIVE")
-curl -fsSL -o "$TMP/$NOM" "$ARCHIVE"
+VERSION=$(printf '%s\n' "$INFOS" | grep -o '"tag_name": *"[^"]*"' | head -n 1 | sed 's/.*"\(v[^"]*\)"$/\1/')
+echo "Téléchargement de Watson $VERSION (environ 150 Mo)…"
+curl -fL --progress-bar -o "$TMP/$NOM" "$ARCHIVE"
 curl -fsSL -o "$TMP/SHA256SUMS" "$EMPREINTES"
+echo "Vérification de l'empreinte…"
 ATTENDU=$(grep " \*\{0,1\}$NOM\$" "$TMP/SHA256SUMS" | cut -d' ' -f1)
 OBTENU=$(shasum -a 256 "$TMP/$NOM" | cut -d' ' -f1)
 if [ -z "$ATTENDU" ] || [ "$ATTENDU" != "$OBTENU" ]; then
@@ -40,6 +44,7 @@ if [ -z "$ATTENDU" ] || [ "$ATTENDU" != "$OBTENU" ]; then
 fi
 codesign --verify --deep "$TMP" >/dev/null 2>&1 || true
 
+echo "Installation dans ~/Applications…"
 mkdir -p "$HOME/Applications"
 tar -xzf "$TMP/$NOM" -C "$TMP"
 rm -rf "$HOME/Applications/Watson.app"
