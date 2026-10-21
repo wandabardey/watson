@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.8.2 (2026-10-21)
+
+- Sur Mac, plus de barre de titre grise : les boutons de fenêtre flottent sur l'application, et le haut de la fenêtre sert à la déplacer.
+
 ## 0.8.1 (2026-10-21)
 
 - Icône plus claire. Watson apparaît selon ce que tu fais : il salue à l'accueil et à la connexion, lit tes documents pendant l'analyse, prend note quand c'est enregistré, réfléchit quand il cherche ou qu'il manque quelque chose. Devise : « Réglementaire, mon cher Watson. »
