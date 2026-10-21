@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.6.6 (2026-10-21)
+
+- Création d'un projet : le dépôt s'appelle <nom>-knowledge par défaut, son nom se modifie, et on choisit de le créer sur son compte ou dans une de ses organisations. Watson demande désormais aussi la lecture des organisations : se reconnecter une fois.
+
 ## 0.6.5 (2026-10-21)
 
 - Connexion à GitHub : la page de validation s'ouvre dans le navigateur ; sinon l'adresse est affichée pour l'ouvrir à la main.
