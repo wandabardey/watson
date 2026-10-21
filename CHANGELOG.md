@@ -3,6 +3,11 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.6.2 (2026-10-21)
+
+- Publication : la version Mac Intel est construite sur une machine Apple Silicon (GitHub n'attribue plus de
+  machine Intel, la 0.6.1 restait en attente) ; une plateforme en échec n'empêche plus de publier les autres.
+
 ## 0.6.1 (2026-10-21)
 
 - Installation sur Mac : architecture détectée par le système, même dans un Terminal lancé avec Rosetta

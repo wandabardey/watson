@@ -65,11 +65,15 @@ jobs:
         include:
           - os: macos-14
             cible: aarch64-apple-darwin
-          - os: macos-13
+          # Mac Intel : construit sur un Mac Apple Silicon (les machines Intel de GitHub ne sont plus attribuées),
+          # avec un Python x64 exécuté par Rosetta pour le moteur.
+          - os: macos-14
             cible: x86_64-apple-darwin
+            python: x64
           - os: windows-latest
             cible: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -78,7 +82,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          architecture: ${{ matrix.python || '' }}
       - name: Moteur (Python embarqué)
+        env:
+          WATSON_CIBLE: ${{ matrix.cible }}
         run: |
           pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk
           python scripts/construire_moteur.py
@@ -102,7 +109,9 @@ jobs:
           args: --target ${{ matrix.cible }}
 
   finaliser:
+    # Publie même si une plateforme a échoué : les autres restent disponibles.
     needs: [preparer, application]
+    if: ${{ !cancelled() && needs.preparer.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

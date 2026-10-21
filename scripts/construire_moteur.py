@@ -5,6 +5,7 @@ l'attend, app/src-tauri/binaries/watson-moteur-<cible>[.exe].
     python scripts/construire_moteur.py
 """
 
+import os
 import platform
 import subprocess
 import sys
@@ -14,6 +15,8 @@ RACINE = Path(__file__).resolve().parent.parent
 
 
 def cible() -> str:
+    if os.environ.get("WATSON_CIBLE"):
+        return os.environ["WATSON_CIBLE"]
     try:
         r = subprocess.run(["rustc", "-vV"], capture_output=True, text=True)
         for ligne in r.stdout.splitlines():
