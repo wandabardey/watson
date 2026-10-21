@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.8.0 (2026-10-21)
+
+- Nouvelle identité : icône à la moustache, mascotte Watson. Nouvel accueil : Watson te salue, résume ce qui a changé depuis ta dernière visite et les questions qui t'attendent, permet de poser une question ou de donner un document directement, et présente tes projets. Dans un projet, le logo Watson en haut ramène à l'accueil et le bloc projet permet de passer d'un projet à l'autre.
+
 ## 0.7.1 (2026-10-21)
 
 - Écran Paramètres : choix du modèle Claude (Opus 5.5 par défaut, Sonnet 5.5, Haiku 5.5 ou un autre identifiant) et du niveau de réflexion (moyen par défaut), bouton pour tester, compte GitHub et version. Chaque réponse indique le modèle qui l'a produite.
