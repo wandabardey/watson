@@ -167,4 +167,6 @@ function App() {
   );
 }
 
-render(<App />, document.getElementById('app'));
+// Sur Mac, pas de barre de titre : les boutons de fenêtre flottent sur l'application, une bande invisible en haut sert à la déplacer.
+if (navigator.userAgent.includes('Mac')) document.documentElement.classList.add('mac');
+render(<><div class="barre-titre" data-tauri-drag-region /><App /></>, document.getElementById('app'));

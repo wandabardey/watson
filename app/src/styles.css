@@ -151,3 +151,12 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .devise { font-family: Georgia, 'Times New Roman', serif; font-style: italic; color: #6D5DF6; font-size: 15px; text-align: center; }
 .devise-pied { margin-top: 18px; font-family: Georgia, serif; font-style: italic; display: flex; gap: 10px; }
 .devise-pied span { font-family: inherit; font-style: normal; }
+
+/* Fenêtre sans barre de titre (Mac) */
+:root { --haut: 0px; }
+.mac { --haut: 28px; }
+.barre-titre { display: none; }
+.mac .barre-titre { display: block; position: fixed; top: 0; left: 0; right: 0; height: var(--haut); z-index: 50; -webkit-app-region: drag; }
+.mac body { padding-top: var(--haut); }
+.mac .coquille, .mac .demarrage { min-height: calc(100vh - var(--haut)); }
+.mac .accueil { min-height: calc(100vh - 24px - var(--haut)); }
