@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.7.0 (2026-10-21)
+
+- Alimenter un projet : déposer des documents (PDF, Word, PowerPoint, texte, transcriptions) ou coller du texte ; Claude propose objets métier, étapes du workflow, règles et questions ouvertes, chacun avec le passage qui le justifie ; tri élément par élément ; documents gardés dans le dossier sources du dépôt. Écran « Par où commencer » pour un projet vide.
+
 ## 0.6.6 (2026-10-21)
 
 - Création d'un projet : le dépôt s'appelle <nom>-knowledge par défaut, son nom se modifie, et on choisit de le créer sur son compte ou dans une de ses organisations. Watson demande désormais aussi la lecture des organisations : se reconnecter une fois.
