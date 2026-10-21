@@ -3,6 +3,11 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.6.1 (2026-10-21)
+
+- Installation sur Mac : architecture détectée par le système, même dans un Terminal lancé avec Rosetta
+  (qui faisait croire à un Mac Intel) ; version Mac Intel publiée aussi.
+
 ## 0.6.0 (2026-10-21)
 
 - Première version de l'application de bureau Watson, pour Mac (Apple Silicon) et Windows, installée par une

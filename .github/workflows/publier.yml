@@ -65,6 +65,8 @@ jobs:
         include:
           - os: macos-14
             cible: aarch64-apple-darwin
+          - os: macos-13
+            cible: x86_64-apple-darwin
           - os: windows-latest
             cible: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}

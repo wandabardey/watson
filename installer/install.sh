@@ -6,16 +6,23 @@
 set -eu
 
 DEPOT="wandabardey/watson"
-case "$(uname -m)" in
-  arm64) ARCH="aarch64" ;;
-  *) echo "Watson n'est pour l'instant publié que pour les Mac Apple Silicon (M1 et suivants)." >&2; exit 1 ;;
-esac
+# Un Terminal lancé avec Rosetta répond x86_64 à uname même sur un Mac Apple Silicon : on demande au système.
+if [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ]; then
+  ARCH="aarch64"
+else
+  ARCH="x64"
+fi
 
 echo "Recherche de la dernière version de Watson…"
 INFOS=$(curl -fsSL "https://api.github.com/repos/$DEPOT/releases/latest")
 lien() { printf '%s\n' "$INFOS" | grep -o '"browser_download_url": *"[^"]*"' | sed 's/.*"\(https[^"]*\)"$/\1/' | grep -E "$1" | head -n 1; }
-ARCHIVE=$(lien "${ARCH}.*\.app\.tar\.gz$")
-[ -n "$ARCHIVE" ] || ARCHIVE=$(lien '\.app\.tar\.gz$')
+ARCHIVE=$(lien "_${ARCH}\.app\.tar\.gz$")
+if [ -z "$ARCHIVE" ] && [ "$ARCH" = "aarch64" ]; then
+  ARCHIVE=$(lien '\.app\.tar\.gz$' | grep -v x64 || true)
+fi
+if [ -z "$ARCHIVE" ] && [ "$ARCH" = "x64" ]; then
+  echo "Cette version de Watson n'existe pas encore pour les Mac Intel." >&2; exit 1
+fi
 EMPREINTES=$(lien '/SHA256SUMS$')
 if [ -z "$ARCHIVE" ] || [ -z "$EMPREINTES" ]; then
   echo "Version introuvable sur https://github.com/$DEPOT/releases" >&2; exit 1

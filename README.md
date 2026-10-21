@@ -12,7 +12,7 @@ Il s'utilise de deux façons : depuis l'app Claude grâce au **plugin** (serveur
 
 ## L'application Watson
 
-Sur Mac (Apple Silicon), dans le Terminal :
+Sur Mac (Apple Silicon ou Intel), dans le Terminal :
 
 ```
 curl -fsSL https://raw.githubusercontent.com/wandabardey/watson/main/installer/install.sh | sh
