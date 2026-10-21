@@ -50,7 +50,10 @@ def _requete(url: str, donnees: dict | None = None, jeton: str | None = None, me
             raise ErreurGitHub("Dépôt introuvable, ou pas d'accès avec ce compte GitHub.") from e
         raise ErreurGitHub(f"GitHub a répondu : {message}") from e
     except urllib.error.URLError as e:
-        raise ErreurGitHub("GitHub injoignable : vérifier la connexion Internet.") from e
+        raison = str(getattr(e, "reason", e))
+        if "CERTIFICATE" in raison.upper():
+            raise ErreurGitHub(f"Connexion sécurisée à GitHub refusée (certificat non reconnu). Détail : {raison}") from e
+        raise ErreurGitHub(f"GitHub injoignable : vérifier la connexion Internet. Détail : {raison}") from e
     return json.loads(texte) if texte else {}
 
 

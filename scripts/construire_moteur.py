@@ -1,7 +1,7 @@
 """Construit le moteur de l'application de bureau : un exécutable autonome (PyInstaller), placé là où Tauri
 l'attend, app/src-tauri/binaries/watson-moteur-<cible>[.exe].
 
-    pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk
+    pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk truststore certifi
     python scripts/construire_moteur.py
 """
 
@@ -41,7 +41,7 @@ def main():
         "--distpath", str(dist), "--workpath", str(RACINE / "build" / "pyinstaller"), "--specpath", str(RACINE / "build"),
         "--add-data", f"{RACINE / 'exemples' / 'fret'}{sep}exemples/fret",
         "--collect-all", "claude_agent_sdk", "--collect-submodules", "keyring", "--collect-submodules", "dulwich",
-        "--hidden-import", "platformdirs",
+        "--hidden-import", "platformdirs", "--hidden-import", "truststore", "--collect-data", "certifi",
         # macOS : tout ce qui est embarqué (Python compris) est re-signé sans éditeur, comme l'application ; sinon
         # macOS refuse de charger le Python signé par python.org dans un programme qui ne l'est pas.
         *(["--codesign-identity", "-", "--osx-entitlements-file", str(RACINE / "app" / "src-tauri" / "Entitlements.plist")]

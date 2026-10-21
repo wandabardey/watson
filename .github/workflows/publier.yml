@@ -87,7 +87,7 @@ jobs:
         env:
           WATSON_CIBLE: ${{ matrix.cible }}
         run: |
-          pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk
+          pip install pyinstaller dulwich keyring platformdirs claude-agent-sdk truststore certifi
           python scripts/construire_moteur.py
       - uses: actions/setup-node@v4
         with:
@@ -122,6 +122,7 @@ jobs:
           cat moteur.log
           grep -q '^WATSON ' moteur.log || { echo "Le moteur ne démarre pas dans l'application construite."; exit 1; }
           kill %1 2>/dev/null || true
+          "$moteur" --verifier-reseau || { echo "Le moteur de l'application n'arrive pas à joindre GitHub."; exit 1; }
 
   finaliser:
     # Publie même si une plateforme a échoué : les autres restent disponibles.
