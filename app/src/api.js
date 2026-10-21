@@ -32,10 +32,17 @@ export async function appel(chemin, { methode, corps } = {}) {
 
 export async function ouvrirLien(url) {
   if (dansTauri) {
-    const { openUrl } = await import('@tauri-apps/plugin-opener');
-    return openUrl(url);
+    try {
+      const { openUrl } = await import('@tauri-apps/plugin-opener');
+      await openUrl(url);
+      return true;
+    } catch (e) {
+      console.error('Ouverture du lien impossible', url, e);
+      return false;
+    }
   }
   window.open(url, '_blank');
+  return true;
 }
 
 export async function verifierMiseAJour() {

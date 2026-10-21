@@ -5,13 +5,13 @@ import { appel, ouvrirLien } from '../api.js';
 export function ConnexionGitHub({ version, connecte }) {
   const [code, setCode] = useState(null);
   const [message, setMessage] = useState(null);
+  const [copie, setCopie] = useState(false);
 
   const demarrer = async () => {
     setMessage(null);
     try {
       const c = await appel('/github/connexion', { corps: {} });
-      setCode(c);
-      ouvrirLien(c.adresse);
+      setCode({ ...c, ouverte: await ouvrirLien(c.adresse) });
     } catch (e) { setMessage(e.message); }
   };
 
@@ -43,11 +43,12 @@ export function ConnexionGitHub({ version, connecte }) {
         {!code && <button class="bouton principal-b" onClick={demarrer}><LogIn size={18} /> Se connecter avec GitHub</button>}
         {code && (
           <div class="carte pile" style="align-items:flex-start">
-            <span class="doux">Saisis ce code sur la page GitHub qui vient de s'ouvrir, puis autorise Watson :</span>
+            <span class="doux">{code.ouverte ? 'Saisis ce code sur la page GitHub qui vient de s\'ouvrir, puis autorise Watson :' : 'Ouvre cette adresse dans ton navigateur, saisis ce code, puis autorise Watson :'}</span>
+            <span class="petit" style="user-select:all;font-weight:500">{code.adresse}</span>
             <span class="code">{code.code}</span>
             <div class="ligne">
-              <button class="bouton" onClick={() => navigator.clipboard?.writeText(code.code)}>Copier le code</button>
-              <button class="bouton" onClick={() => ouvrirLien(code.adresse)}>Rouvrir la page GitHub</button>
+              <button class="bouton" onClick={() => { navigator.clipboard?.writeText(code.code); setCopie(true); }}>{copie ? 'Code copié' : 'Copier le code'}</button>
+              <button class="bouton" onClick={async () => setCode({ ...code, ouverte: await ouvrirLien(code.adresse) })}>Ouvrir la page GitHub</button>
             </div>
             <span class="petit doux">En attente de ta validation sur GitHub…</span>
           </div>
