@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.6.5 (2026-10-21)
+
+- Connexion à GitHub : la page de validation s'ouvre dans le navigateur ; sinon l'adresse est affichée pour l'ouvrir à la main.
+
 ## 0.6.4 (2026-10-21)
 
 - Connexion à GitHub depuis l'application : le moteur utilise les certificats du système (Trousseau macOS, magasin Windows, proxy d'entreprise compris). Le message d'erreur précise la cause, et la publication vérifie que l'application joint GitHub.
