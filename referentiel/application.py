@@ -173,6 +173,62 @@ def oublier(pid: str):
     _ecrire([x for x in _lire() if x["id"] != pid])
 
 
+def _visites() -> dict:
+    f = dossier_donnees() / "visites.json"
+    try:
+        return json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    except ValueError:
+        return {}
+
+
+def noter_visite(pid: str):
+    import time
+
+    v = _visites()
+    v[pid] = int(time.time())
+    (dossier_donnees() / "visites.json").write_text(json.dumps(v), encoding="utf-8")
+
+
+def _questions(racine: Path) -> list[dict]:
+    f = racine / "sujets.yaml"
+    if not f.exists():
+        return []
+    from ._vendor import yaml
+
+    try:
+        sujets = yaml.safe_load(f.read_text(encoding="utf-8")) or []
+    except Exception:  # noqa: BLE001 - fichier abîmé : on n'empêche pas l'accueil
+        return []
+    return [{"id": q.get("id"), "question": q.get("question")} for q in sujets if q.get("statut", "ouvert") == "ouvert"]
+
+
+def accueil(moi: str | None = None) -> dict:
+    """Pour l'accueil : chaque projet avec ses chiffres, ses questions ouvertes et ce qui a changé
+    depuis la dernière visite sur ce poste (enregistrements des autres personnes surtout)."""
+    visites = _visites()
+    resultat = []
+    for info in lister():
+        p = projet(info["id"])
+        racine = Path(p["copie"]) / p.get("sous_dossier", "")
+        info = dict(info)
+        if not info.get("absent"):
+            try:
+                j = depot.journal(racine)
+            except Exception:  # noqa: BLE001
+                j = []
+            info["derniere"] = j[0] if j else None
+            vu = visites.get(info["id"])
+            nouveaux = [c for c in j if vu and c["date"] > vu and c["auteur"] != moi]  # ses propres changements, on les connaît
+            info["nouveautes"] = {"total": len(nouveaux),
+                                  "auteurs": sorted({c["auteur"] for c in nouveaux if c["auteur"] != moi}),
+                                  "messages": [c["message"] for c in nouveaux[:5]]}
+            info["questions"] = _questions(racine)
+            info["visite"] = vu
+        resultat.append(info)
+    resultat.sort(key=lambda x: -((x.get("derniere") or {}).get("date") or 0))
+    return {"projets": resultat}
+
+
 def synchroniser(pid: str) -> dict:
     """Récupère les changements faits ailleurs, et envoie ceux de ce poste qui attendaient."""
     racine = chemin(pid)

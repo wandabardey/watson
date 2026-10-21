@@ -137,6 +137,21 @@ def extraire(chemin: Path, reference: str, pref: str, destination: Path):
         cible.write_bytes(repo[entree.sha].data)
 
 
+def journal(chemin: Path, nombre: int = 30) -> list[dict]:
+    """Derniers enregistrements de la branche courante : auteur, date (horodatage), message."""
+    repo = _repo(chemin)
+    try:
+        tete = repo.head()
+    except KeyError:
+        return []
+    resultat = []
+    for entree in repo.get_walker(include=[tete], max_entries=nombre):
+        c = entree.commit
+        resultat.append({"auteur": _texte(c.author).split(" <")[0], "date": c.commit_time,
+                         "message": _texte(c.message).strip().splitlines()[0] if c.message else ""})
+    return resultat
+
+
 def modifications(chemin: Path) -> list[str]:
     """Fichiers modifiés, ajoutés ou non suivis sous le dossier du projet."""
     porcelain, _ = _dulwich()

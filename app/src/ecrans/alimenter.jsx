@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { Check, ClipboardPaste, FileText, Quote, Trash2, Upload, X } from 'lucide-preact';
 import { appel } from '../api.js';
 import { ConnexionClaude, Entete } from './commun.jsx';
+import mascotte from '../images/mascotte.png';
 
 const FORMATS = '.pdf,.docx,.pptx,.txt,.md,.vtt,.srt,.html,.csv,.json';
 const MAX = 40 * 1024 * 1024;
@@ -223,7 +224,7 @@ export function Alimenter({ projet, etat, aller }) {
       {phase.nom === 'depot' && <Depot projet={projet} lancer={lancer} reprendre={reprendre} />}
       {phase.nom === 'lecture' && (
         <div class="carte pile" style="align-items:center;padding:40px;text-align:center">
-          <span class="rond-attente" />
+          <img class="mascotte" src={mascotte} alt="" style="width:96px;height:96px" />
           <strong>Claude lit {phase.noms.length > 1 ? `${phase.noms.length} documents` : `« ${phase.noms[0]} »`}</strong>
           <span class="doux">Avec la base actuelle, pour ne proposer que ce qui est nouveau. Compte de trente secondes à deux minutes.</span>
         </div>

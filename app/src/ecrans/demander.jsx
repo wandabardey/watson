@@ -1,18 +1,18 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { ArrowUp, Scale, Sparkles } from 'lucide-preact';
 import { appel } from '../api.js';
 import { ConnexionClaude, Entete } from './commun.jsx';
 
 const VERDICT = { oui: 'b-vert', non: 'b-rouge', depend: 'b-violet', partiel: 'b-ambre', inconnu: 'b-ambre', resume: 'b-indigo' };
 
-export function Demander({ projet, etat }) {
+export function Demander({ projet, etat, questionInitiale }) {
   const [q, setQ] = useState('');
   const [portee, setPortee] = useState('travail');
   const [fil, setFil] = useState([]);
   const [claude, setClaude] = useState(etat.claude);
-  const poser = async (e) => {
-    e.preventDefault();
-    const question = q.trim(); if (!question) return;
+  const poser = async (e, texte) => {
+    e?.preventDefault();
+    const question = (texte ?? q).trim(); if (!question) return;
     setQ('');
     const id = Date.now();
     setFil((f) => [{ id, question }, ...f]);
@@ -21,6 +21,7 @@ export function Demander({ projet, etat }) {
       setFil((f) => f.map((x) => (x.id === id ? { ...x, r } : x)));
     } catch (err) { setFil((f) => f.map((x) => (x.id === id ? { ...x, erreur: err.message } : x))); }
   };
+  useEffect(() => { if (questionInitiale) poser(null, questionInitiale); }, []);
   return (
     <>
       <Entete titre="Poser une question" description="Claude répond à partir de la connaissance du projet, et cite ses sources : règle, décision, date, auteur." />

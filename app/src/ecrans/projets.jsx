@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { FolderGit2, LogOut, Network, Plus, Search, Settings } from 'lucide-preact';
 import { appel } from '../api.js';
 
-function Ouvrir({ fermer, ouvert }) {
+export function Ouvrir({ fermer, ouvert }) {
   const [q, setQ] = useState('');
   const [depots, setDepots] = useState(null);
   const [message, setMessage] = useState(null);
@@ -37,7 +37,7 @@ function Ouvrir({ fermer, ouvert }) {
   );
 }
 
-function Creer({ fermer, ouvert, compte, reconnecter }) {
+export function Creer({ fermer, ouvert, compte, reconnecter }) {
   const [nom, setNom] = useState('Fret international');
   const [depot, setDepot] = useState(null); // null : suit le nom du projet
   const [proprietaire, setProprietaire] = useState(compte.login);

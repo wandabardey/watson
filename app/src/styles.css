@@ -25,7 +25,7 @@ p { margin: 0; }
 .espace { flex: 1 1 auto; }
 
 /* Barre latérale */
-.lateral { flex: 0 0 232px; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.lateral { flex: 0 0 248px; width: 248px; min-width: 0; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
 .marque { display: flex; align-items: center; gap: 10px; padding: 4px 8px 14px; cursor: pointer; border: 0; background: none; text-align: left; }
 .logo { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; }
 .section { padding: 14px 12px 4px; font-size: 12px; font-weight: 500; color: var(--pale); }
@@ -100,3 +100,49 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .choix.actif { border-color: var(--indigo); box-shadow: 0 0 0 1px var(--indigo); background: #FCFCFF; }
 .pastille { flex: 0 0 20px; height: 20px; margin-top: 1px; border-radius: 50%; border: 1.5px solid var(--bord2); display: inline-flex; align-items: center; justify-content: center; color: #fff; }
 .choix.actif .pastille { background: var(--indigo); border-color: var(--indigo); }
+
+/* Identité : accueil */
+.tuile { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; border-radius: 30%; font-weight: 800; letter-spacing: .02em; }
+.tronque { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tronque2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; }
+.demarrage { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.demarrage img { width: 84px; height: 84px; animation: respire 1.6s ease-in-out infinite; }
+@keyframes respire { 50% { transform: scale(1.06); } }
+.accueil { min-height: calc(100vh - 24px); display: flex; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 1px 2px rgba(24,24,27,.05); }
+.rail { flex: 0 0 80px; border-right: 1px solid var(--bord); display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 0; }
+.rail-logo { border: 0; background: none; padding: 0; cursor: pointer; }
+.rail-logo img { width: 48px; height: 48px; display: block; filter: drop-shadow(0 6px 12px rgba(91,69,224,.3)); }
+.rail-sep { width: 28px; height: 1px; background: var(--bord); margin: 6px 0; }
+.rail-projet { border: 0; background: none; padding: 0; cursor: pointer; border-radius: 14px; transition: transform .15s; }
+.rail-projet:hover { transform: translateY(-1px); }
+.rail-plus { width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; border: 2px dashed var(--bord2); color: var(--indigo); }
+.rail-icone { border: 0; background: none; color: var(--doux); cursor: pointer; padding: 8px; border-radius: 10px; }
+.rail-icone:hover { background: #F4F4F5; }
+.accueil-centre { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; padding: 48px 40px 32px; background: radial-gradient(900px 380px at 50% 0%, #F3F0FF, #fff 70%); }
+.mascotte { width: 120px; height: 120px; filter: drop-shadow(0 16px 28px rgba(91,69,224,.35)); animation: flotte 5s ease-in-out infinite; }
+@keyframes flotte { 50% { transform: translateY(-5px); } }
+.salut { margin-top: 20px; font-size: 40px; font-weight: 800; letter-spacing: -.02em; text-align: center; line-height: 1.15; }
+.salut span { background: linear-gradient(90deg, #6D5DF6, #B45CF0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bulle { margin-top: 12px; max-width: 720px; text-align: center; color: var(--doux); font-size: 16px; line-height: 1.6; }
+.bulle b { color: var(--texte); font-weight: 600; }
+.saisie-accueil { margin-top: 28px; width: 100%; max-width: 860px; border-radius: 20px; box-shadow: 0 0 0 1px var(--bord), 0 12px 30px rgba(31,27,77,.07); background: #fff; padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 8px; }
+.saisie-accueil textarea { border: 0; outline: none; resize: none; font-size: 16px; min-height: 52px; padding: 4px 6px; }
+.envoi { width: 40px; height: 40px; border-radius: 12px; border: 0; background: #1C1747; color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.envoi:disabled { opacity: .35; cursor: default; }
+.entete-projets { width: 100%; max-width: 860px; margin-top: 40px; }
+.entete-projets h3 { font-size: 12px; letter-spacing: .1em; color: var(--doux); text-transform: uppercase; font-weight: 700; }
+.lien { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.accueil-centre > .carte { width: 100%; max-width: 860px; margin-top: 12px; }
+.grille-projets { width: 100%; max-width: 860px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 14px; }
+.carte-projet { text-align: left; border: 0; cursor: pointer; border-radius: 18px; padding: 18px; background: #fff; box-shadow: 0 0 0 1px var(--bord); display: flex; flex-direction: column; gap: 10px; min-height: 172px; transition: box-shadow .15s, transform .15s; }
+.carte-projet:hover { box-shadow: 0 0 0 1px #C7D2FE, 0 8px 22px rgba(79,70,229,.1); transform: translateY(-1px); }
+.titre-projet { font-size: 16px; }
+.carte-nouveau { border: 2px dashed var(--bord2); box-shadow: none; align-items: center; justify-content: center; flex-direction: row; color: var(--indigo); font-weight: 600; }
+
+/* Barre latérale : Watson en haut, projet dessous */
+.marque-logo { width: 30px; height: 30px; filter: drop-shadow(0 3px 6px rgba(91,69,224,.3)); }
+.marque-nom { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.bloc-projet-cadre { position: relative; margin-bottom: 8px; }
+.bloc-projet { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 12px; border: 0; background: #F6F5FA; cursor: pointer; text-align: left; }
+.bloc-projet:hover { background: #EFEDF6; }
+.liste-projets { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); background: #fff; border-radius: 12px; padding: 6px; box-shadow: 0 0 0 1px var(--bord), 0 12px 28px rgba(24,24,27,.12); display: flex; flex-direction: column; gap: 2px; }

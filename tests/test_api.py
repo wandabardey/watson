@@ -152,3 +152,25 @@ def test_alimenter_par_l_api(serveur, monkeypatch):
     assert r["envoye"] and r["ecrits"][0]["id"] == "ACT-DOUANIER"
     fichiers = subprocess.run(["git", "-C", str(nu), "show", "--name-only", "--format=%s", "HEAD"], capture_output=True, text=True).stdout
     assert "Alimentation : Comité du 20/10" in fichiers and "sources/index.yaml" in fichiers and "acteurs/ACT-DOUANIER.yaml" in fichiers
+
+
+def test_accueil_nouveautes_depuis_la_visite(serveur, tmp_path):
+    import time
+    base, nu = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    a = appel(base, "/api/accueil")["projets"][0]
+    assert a["regles"] == 7 and a["derniere"]["message"] == "Projet fret" and a["nouveautes"]["total"] == 0
+    appel(base, f"/api/projets/{pid}/visite", {})
+    time.sleep(1.1)
+    # Paul enregistre ailleurs une question ouverte, puis on synchronise
+    autre = tmp_path / "autre"
+    subprocess.run(["git", "clone", "-q", str(nu), str(autre)], check=True)
+    (autre / "sujets.yaml").write_text("- id: Q-001\n  question: Assurance au-delà de 50 000 euros ?\n  statut: ouvert\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(autre), "-c", "user.name=Paul", "-c", "user.email=p@p", "commit", "-qam", "x"], check=False)
+    subprocess.run(["git", "-C", str(autre), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(autre), "-c", "user.name=Paul", "-c", "user.email=p@p", "commit", "-qm", "Question sur l'assurance"], check=True)
+    subprocess.run(["git", "-C", str(autre), "push", "-q", "origin", "HEAD"], check=True)
+    appel(base, f"/api/projets/{pid}/synchroniser", {})
+    a = appel(base, "/api/accueil")["projets"][0]
+    assert a["nouveautes"]["total"] == 1 and a["nouveautes"]["auteurs"] == ["Paul"]
+    assert a["questions"] == [{"id": "Q-001", "question": "Assurance au-delà de 50 000 euros ?"}]

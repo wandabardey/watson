@@ -230,6 +230,12 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
         from .assistant import lancer_connexion
         lancer_connexion()
         return {"ok": True}
+    if morceaux == ["accueil"] and methode == "GET":
+        try:
+            moi = github.compte()["nom"]
+        except github.ErreurGitHub:
+            moi = None
+        return application.accueil(moi)
     if morceaux == ["projets"]:
         if methode == "GET":
             return {"projets": application.lister()}
@@ -244,6 +250,9 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return {"ok": True}
         if methode == "POST" and reste == ["synchroniser"]:
             return application.synchroniser(pid)
+        if methode == "POST" and reste == ["visite"]:
+            application.noter_visite(pid)
+            return {"ok": True}
         if reste[:1] == ["alimenter"]:
             return _alimenter(methode, pid, reste[1:], corps)
         racine, p = _p(pid)
