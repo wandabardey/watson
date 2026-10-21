@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.7.1 (2026-10-21)
+
+- Écran Paramètres : choix du modèle Claude (Opus 5.5 par défaut, Sonnet 5.5, Haiku 5.5 ou un autre identifiant) et du niveau de réflexion (moyen par défaut), bouton pour tester, compte GitHub et version. Chaque réponse indique le modèle qui l'a produite.
+
 ## 0.7.0 (2026-10-21)
 
 - Alimenter un projet : déposer des documents (PDF, Word, PowerPoint, texte, transcriptions) ou coller du texte ; Claude propose objets métier, étapes du workflow, règles et questions ouvertes, chacun avec le passage qui le justifie ; tri élément par élément ; documents gardés dans le dossier sources du dépôt. Écran « Par où commencer » pour un projet vide.
