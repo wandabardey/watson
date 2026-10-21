@@ -156,3 +156,21 @@ def test_ligne_de_commande(projet, tmp_path, capsys):
     fichier = tmp_path / "REFERENTIEL.md"
     main(["contexte", str(projet), "--version", "production", "-o", str(fichier)])
     assert "Version : 1.0" in fichier.read_text(encoding="utf-8")
+
+
+def test_archive_lancee_depuis_la_racine_du_depot(projet, monkeypatch):
+    """Non-régression : sur Git 2.33, « git -C sous-dossier archive -- ':(top)chemin' » échoue.
+    L'archive se lance donc depuis la racine du dépôt, avec un chemin simple."""
+    appels = []
+    vrai_git = versions._git
+
+    def espion(racine, *args, **kw):
+        appels.append((Path(racine), args))
+        return vrai_git(racine, *args, **kw)
+
+    monkeypatch.setattr(versions, "_git", espion)
+    versions._cache.clear()
+    assert "RG-007" not in versions.charger_version(projet, "1.0").regles
+    racine_depot, args = next((r, a) for r, a in appels if a and a[0] == "archive")
+    assert racine_depot == projet.parent.parent
+    assert args[-2:] == ("--", "referentiel/fret/") and not any(":(top)" in a for a in args)

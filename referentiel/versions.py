@@ -145,7 +145,10 @@ def charger_commit(racine: Path, commit: str, libelle: str) -> Projet:
     if cle in _cache:
         return _cache[cle]
     prefixe = _prefixe_projet(racine)
-    archive = _git(racine, "archive", "--format=tar", commit, "--", f":(top){prefixe}" if prefixe else ":(top)", binaire=True)
+    # Lancé depuis la racine du dépôt, avec un chemin simple : le pathspec « :(top) » n'est pas honoré par
+    # git archive depuis un sous-dossier sur les Git anciens (2.33, par exemple).
+    depot = Path(_git(racine, "rev-parse", "--show-toplevel").strip())
+    archive = _git(depot, "archive", "--format=tar", commit, *(["--", prefixe] if prefixe else []), binaire=True)
     dossier = tempfile.TemporaryDirectory(prefix="referentiel-")
     _dossiers.append(dossier)
     with tarfile.open(fileobj=io.BytesIO(archive)) as t:
@@ -154,9 +157,8 @@ def charger_commit(racine: Path, commit: str, libelle: str) -> Projet:
             t.extractall(dossier.name, members=membres, filter="data")
         except TypeError:  # Python sans le filtre d'extraction
             t.extractall(dossier.name, members=[m for m in membres if m.isfile() or m.isdir()])
-    # Lancé depuis le dossier du projet, git archive donne des chemins relatifs à ce dossier.
-    base = Path(dossier.name)
-    p = charger(base / prefixe if (base / prefixe / "projet.yaml").exists() else base)
+    # Les chemins de l'archive partent de la racine du dépôt : le projet est sous son préfixe.
+    p = charger(Path(dossier.name) / prefixe)
     p.meta = {**p.meta, "version": libelle}
     _cache[cle] = p
     return p

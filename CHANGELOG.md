@@ -3,6 +3,12 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.5.2 (2026-10-21)
+
+- Lecture des versions passées compatible avec les Git anciens (2.33, 2.34) : l'archive est lancée depuis la
+  racine du dépôt, sans le pathspec « :(top) » que ces Git n'honorent pas depuis un sous-dossier. Touchait les
+  projets rangés dans un sous-dossier du dépôt (comparaison, histoire, contexte d'une version figée).
+
 ## 0.5.1 (2026-10-20)
 
 - Moteur et plugin compatibles Python 3.7 (le python3 de certains postes) ; tests lançables dès Python 3.8,
