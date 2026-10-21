@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.6.4 (2026-10-21)
+
+- Connexion à GitHub depuis l'application : le moteur utilise les certificats du système (Trousseau macOS, magasin Windows, proxy d'entreprise compris). Le message d'erreur précise la cause, et la publication vérifie que l'application joint GitHub.
+
 ## 0.6.3 (2026-10-21)
 
 - Mac : le moteur ne démarrait pas (« Le moteur s'est arrêté, code 255 »). macOS refusait de charger le Python
