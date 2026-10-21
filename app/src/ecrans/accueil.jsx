@@ -3,7 +3,7 @@ import { ArrowUp, FilePlus2, FolderGit2, Plus, Settings } from 'lucide-preact';
 import { appel } from '../api.js';
 import { Creer, Ouvrir } from './projets.jsx';
 import logo from '../images/logo.png';
-import mascotte from '../images/mascotte.png';
+import { DEVISE, Watson } from './commun.jsx';
 
 const TEINTES = [['#EFEDFF', '#4B3BD6'], ['#FFF3E0', '#9A5A00'], ['#E8F6EE', '#1E7A3C'], ['#FDECEF', '#A3263F'], ['#E7F1FD', '#1D5FA8'], ['#F3ECFB', '#7A2FB0']];
 
@@ -103,7 +103,7 @@ export function Accueil({ etat, ouvrir, parametres, deconnecte }) {
       </nav>
 
       <main class="accueil-centre">
-        <img class="mascotte" src={mascotte} alt="Watson" />
+        <Watson humeur="salue" buste hauteur={150} />
         <h1 class="salut">{heure >= 18 ? 'Bonsoir' : 'Bonjour'} {prenom}. <span>{projets.length ? accroche : 'Enchanté.'}</span></h1>
         {donnees ? <Resume projets={projets} /> : <p class="bulle">&nbsp;</p>}
 
@@ -148,7 +148,7 @@ export function Accueil({ etat, ouvrir, parametres, deconnecte }) {
           ))}
           <button class="carte-projet carte-nouveau" onClick={() => setMode('creer')}><Plus size={20} /> Créer un projet</button>
         </div>
-        <span class="petit doux" style="margin-top:8px">Watson {etat.version}</span>
+        <span class="petit doux devise-pied">{DEVISE} <span>Watson {etat.version}</span></span>
       </main>
     </div>
   );

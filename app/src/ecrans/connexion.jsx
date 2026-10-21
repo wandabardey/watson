@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { LogIn } from 'lucide-preact';
-import logo from '../images/logo.png';
-import mascotte from '../images/mascotte.png';
+import { DEVISE, Watson } from './commun.jsx';
 import { appel, ouvrirLien } from '../api.js';
 
 export function ConnexionGitHub({ version, connecte }) {
@@ -39,8 +38,9 @@ export function ConnexionGitHub({ version, connecte }) {
   return (
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
       <div class="panneau" style="max-width:520px;width:100%;padding:36px;display:flex;flex-direction:column;gap:18px">
-        <img src={mascotte} alt="Watson" style="width:96px;height:96px;filter:drop-shadow(0 12px 24px rgba(91,69,224,.35))" />
+        <Watson humeur="salue" hauteur={190} style="align-self:center" />
         <h1>Bonjour, je suis Watson.</h1>
+        <p class="devise">{DEVISE}</p>
         <p class="doux">Je garde la mémoire de tes projets : les règles métier, les décisions, et d'où elles viennent. Chaque projet vit dans un dépôt GitHub : connecte ton compte pour que je puisse les ouvrir. Je ne vois ni ne garde ton mot de passe.</p>
         {!code && <button class="bouton principal-b" onClick={demarrer}><LogIn size={18} /> Se connecter avec GitHub</button>}
         {code && (

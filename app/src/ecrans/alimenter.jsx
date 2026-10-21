@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { Check, ClipboardPaste, FileText, Quote, Trash2, Upload, X } from 'lucide-preact';
 import { appel } from '../api.js';
-import { ConnexionClaude, Entete } from './commun.jsx';
-import mascotte from '../images/mascotte.png';
+import { ConnexionClaude, DEVISE, Entete, Watson } from './commun.jsx';
 
 const FORMATS = '.pdf,.docx,.pptx,.txt,.md,.vtt,.srt,.html,.csv,.json';
 const MAX = 40 * 1024 * 1024;
@@ -160,7 +159,7 @@ function Tri({ projet, lot, fini, abandonner }) {
         <span class="doux petit">Lu par {lot.modele || 'Claude'}{lot.duree_s ? ` en ${lot.duree_s} s` : ''} · {lot.documents.map((d) => d.titre).join(', ')}</span>
         <p>{lot.resume}</p>
       </div>
-      {lot.propositions.length === 0 && <div class="vide">Claude n'a rien trouvé de nouveau dans ces documents par rapport à la base.</div>}
+      {lot.propositions.length === 0 && <div class="vide pile" style="align-items:center"><Watson humeur="reflechit" hauteur={170} />Rien de nouveau dans ces documents par rapport à ce que je sais déjà.</div>}
       {lot.propositions.length > 0 && (
         <div class="ligne"><span class="doux espace">Tout est accepté par défaut : décoche ce que tu écartes, corrige le reste.</span>
           <button class="bouton" onClick={() => tout(true)}>Tout accepter</button><button class="bouton" onClick={() => tout(false)}>Tout écarter</button></div>
@@ -188,8 +187,11 @@ function Tri({ projet, lot, fini, abandonner }) {
 
 function Bilan({ r, recommencer, aller }) {
   return (
-    <div class="carte pile">
-      <h2>{r.ecrits.length ? 'C\'est enregistré' : 'Documents gardés, rien d\'ajouté'}</h2>
+    <div class="carte ligne" style="align-items:flex-start;gap:24px;flex-wrap:nowrap">
+    <Watson humeur={r.ecrits.length ? 'ecrit' : 'reflechit'} hauteur={210} />
+    <div class="pile espace">
+      <h2>{r.ecrits.length ? 'C\'est noté.' : 'Documents gardés, rien d\'ajouté'}</h2>
+      {r.ecrits.some((e) => e.type === 'regle') && <p class="devise" style="text-align:left">{DEVISE}</p>}
       <p class="doux">{r.envoye ? 'Envoyé sur GitHub, à ton nom.' : 'Enregistré sur ce poste : partira sur GitHub à la prochaine synchronisation.'}</p>
       {r.ecrits.map((e) => <span key={e.id} class="ligne"><Check size={15} color="#166534" /> {e.titre} <span class="doux petit">({e.action})</span></span>)}
       {r.questions > 0 && <span class="ligne"><Check size={15} color="#166534" /> {r.questions} question{r.questions > 1 ? 's' : ''} ouverte{r.questions > 1 ? 's' : ''} notée{r.questions > 1 ? 's' : ''}</span>}
@@ -197,6 +199,7 @@ function Bilan({ r, recommencer, aller }) {
       {r.refus.map((x, i) => <p key={i} class="encart e-orange"><span><strong>{x.titre}</strong> n'a pas été enregistré : {x.raison}</span></p>)}
       <div class="ligne"><button class="bouton principal-b" onClick={recommencer}>Ajouter d'autres documents</button>
         <button class="bouton" onClick={() => aller('synthese')}>Voir la synthèse</button><button class="bouton" onClick={() => aller('catalogue')}>Voir le catalogue</button></div>
+    </div>
     </div>
   );
 }
@@ -224,7 +227,7 @@ export function Alimenter({ projet, etat, aller }) {
       {phase.nom === 'depot' && <Depot projet={projet} lancer={lancer} reprendre={reprendre} />}
       {phase.nom === 'lecture' && (
         <div class="carte pile" style="align-items:center;padding:40px;text-align:center">
-          <img class="mascotte" src={mascotte} alt="" style="width:96px;height:96px" />
+          <Watson humeur="lit" hauteur={200} />
           <strong>Claude lit {phase.noms.length > 1 ? `${phase.noms.length} documents` : `« ${phase.noms[0]} »`}</strong>
           <span class="doux">Avec la base actuelle, pour ne proposer que ce qui est nouveau. Compte de trente secondes à deux minutes.</span>
         </div>

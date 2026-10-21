@@ -446,13 +446,18 @@ def appliquer(pid: str, racine: Path, lot_id: str, decisions: list[dict], auteur
     ecrits, refus, questions, retouches = [], [], [], []
     p = charger(racine)
     connus = set(p.fichiers) | set(p.transitions)
+    noms = {i: (e.get("titre") or e.get("nom") or i) for col in (p.acteurs, p.regles, p.entites) for i, e in col.items()}
+    for pr in lot["propositions"] + acceptees:  # écartées comprises, pour nommer ce qui est retiré
+        c = pr.get("contenu") or {}
+        if pr.get("type") in TYPES_ELEMENTS and c.get("id"):
+            noms[c["id"]] = c.get("titre") or c.get("nom") or pr.get("titre")
     for pr in acceptees:
         if pr["type"] in TYPES_ELEMENTS:
             connus.add(pr["contenu"].get("id"))
     for pr in acceptees:
         c = pr["contenu"]
         if pr["type"] == "regle" and c.get("entite") and c["entite"] not in connus:
-            pr["refus"] = f"Elle porte sur un objet métier qui n'est ni dans la base ni accepté ({c['entite']})."
+            pr["refus"] = "Elle porte sur un objet métier qui n'est ni dans la base ni parmi ce que tu as accepté."
         if pr["type"] == "entite":
             for tr in c.get("transitions") or []:
                 for cle in ("acteurs", "regles"):
@@ -461,7 +466,8 @@ def appliquer(pid: str, racine: Path, lot_id: str, decisions: list[dict], auteur
                         tr[cle] = [x for x in tr[cle] if x in connus]
                         if not tr[cle]:
                             tr.pop(cle)
-                        retouches.append(f"{pr['titre']} : {', '.join(absents)} retiré de l'étape « {tr.get('nom')} » (écarté).")
+                        lib = ", ".join(f"« {noms.get(x, 'élément écarté')} »" for x in absents)
+                        retouches.append(f"{pr['titre']} : {lib} n'est plus rattaché à l'étape « {tr.get('nom')} », puisque tu l'as écarté.")
     for pr in acceptees:
         if pr.get("refus"):
             refus.append({"titre": pr["titre"], "raison": pr["refus"]})

@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'preact/hooks';
 import { Sparkles } from 'lucide-preact';
 import { appel } from '../api.js';
+import imgSalue from '../images/watson-salue.png';
+import imgSalueBuste from '../images/watson-salue-buste.png';
+import imgLit from '../images/watson-lit.png';
+import imgLitBuste from '../images/watson-lit-buste.png';
+import imgEcrit from '../images/watson-ecrit.png';
+import imgNote from '../images/watson-note.png';
+import imgReflechit from '../images/watson-reflechit.png';
+import imgReflechitBuste from '../images/watson-reflechit-buste.png';
 
 // Charge une vue du moteur et gère l'attente et l'erreur.
 export function useVue(chemin, deps = []) {
@@ -62,4 +70,21 @@ export function ConnexionClaude({ claude, setClaude, usage }) {
       <button class="bouton" disabled={attente} onClick={connecter}>{attente ? 'En attente de la connexion…' : 'Connecter mon compte Claude'}</button>
     </div>
   );
+}
+
+// Watson, la mascotte, selon ce qui se passe dans l'application.
+
+const HUMEURS = {
+  salue: [imgSalue, imgSalueBuste],      // accueil, connexion, bienvenue
+  lit: [imgLit, imgLitBuste],            // Claude lit des documents
+  ecrit: [imgEcrit, imgEcrit],           // c'est noté, enregistré
+  note: [imgNote, imgNote],              // carnet en main : invitation à alimenter, page vide
+  reflechit: [imgReflechit, imgReflechitBuste] // il cherche, il manque quelque chose, une erreur
+};
+
+export const DEVISE = 'Réglementaire, mon cher Watson.';
+
+export function Watson({ humeur = 'salue', hauteur = 160, buste = false, flotte = true, style = '' }) {
+  const [entier, haut] = HUMEURS[humeur] || HUMEURS.salue;
+  return <img class={`watson ${flotte ? 'flotte' : ''}`} src={buste ? haut : entier} alt="" aria-hidden="true" style={`height:${hauteur}px;${style}`} />;
 }

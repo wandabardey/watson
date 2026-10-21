@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { ArrowUp, Scale, Sparkles } from 'lucide-preact';
 import { appel } from '../api.js';
-import { ConnexionClaude, Entete } from './commun.jsx';
+import { ConnexionClaude, Entete, Watson } from './commun.jsx';
 
 const VERDICT = { oui: 'b-vert', non: 'b-rouge', depend: 'b-violet', partiel: 'b-ambre', inconnu: 'b-ambre', resume: 'b-indigo' };
 
@@ -31,10 +31,14 @@ export function Demander({ projet, etat, questionInitiale }) {
         <select class="saisie" value={portee} onChange={(e) => setPortee(e.target.value)}><option value="travail">Version de travail</option><option value="production">Production</option><option value="histoire">Toute l'histoire</option></select>
         <button class="bouton principal-b" aria-label="Envoyer"><ArrowUp size={18} /></button>
       </form>
+      {fil.length === 0 && (
+        <div class="vide pile" style="align-items:center;gap:10px"><Watson humeur="note" hauteur={190} />
+          <span>Je réponds à partir de la base du projet, et je te dis toujours d'où vient la réponse.</span></div>
+      )}
       {fil.map((x) => (
         <section key={x.id} class="pile">
           <p style="align-self:flex-end;max-width:80%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:#18181B;color:#fff">{x.question}</p>
-          {!x.r && !x.erreur && <p class="doux">Claude lit la base…</p>}
+          {!x.r && !x.erreur && <p class="ligne doux"><Watson humeur="reflechit" buste hauteur={56} />Je cherche dans la base du projet…</p>}
           {x.erreur && <p class="encart e-rouge">{x.erreur}</p>}
           {x.r && (
             <div class="carte pile">
@@ -47,7 +51,7 @@ export function Demander({ projet, etat, questionInitiale }) {
                   <span class="pile espace" style="gap:2px"><span><span class="petit doux">{s.type}</span> <strong>{s.nom}</strong> {s.statut && <span class="badge b-gris">{s.statut}</span>} {s.verifiee === false && <span class="badge b-rouge">introuvable dans la base</span>}</span><span class="petit doux">{s.trace}</span></span>
                 </div>
               ))}
-              {x.r.trou && <p class="encart e-orange">{x.r.trou}</p>}
+              {x.r.trou && <p class="encart e-orange ligne" style="flex-wrap:nowrap"><Watson humeur="reflechit" buste hauteur={44} flotte={false} /><span>{x.r.trou}</span></p>}
               <span class="petit doux">Répondu par {x.r.modele} en {Math.round(x.r.duree_ms / 1000)} s.</span>
             </div>
           )}

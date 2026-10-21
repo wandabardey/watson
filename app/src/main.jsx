@@ -7,6 +7,7 @@ import {
 import { appel, attendreMoteur, installerMiseAJour, verifierMiseAJour } from './api.js';
 import { ConnexionGitHub } from './ecrans/connexion.jsx';
 import { Accueil, Tuile } from './ecrans/accueil.jsx';
+import { DEVISE, Watson } from './ecrans/commun.jsx';
 import logo from './images/logo.png';
 import { Synthese } from './ecrans/synthese.jsx';
 import { Catalogue } from './ecrans/catalogue.jsx';
@@ -128,8 +129,8 @@ function App() {
     appel(`/projets/${p.id}/visite`, { corps: {} }).catch(() => {});
   };
 
-  if (erreur) return <div class="coquille"><div class="panneau principal"><h1>Watson ne démarre pas</h1><pre class="encart e-rouge" style="white-space:pre-wrap;font-size:12px">{erreur}</pre><p class="doux">Envoie ce message à la personne qui maintient Watson.</p></div></div>;
-  if (!etat) return <div class="demarrage"><img src={logo} alt="" /><span class="doux">Watson arrive…</span></div>;
+  if (erreur) return <div class="coquille"><div class="panneau principal"><Watson humeur="reflechit" hauteur={180} /><h1>Watson ne démarre pas</h1><pre class="encart e-rouge" style="white-space:pre-wrap;font-size:12px">{erreur}</pre><p class="doux">Envoie ce message à la personne qui maintient Watson.</p></div></div>;
+  if (!etat) return <div class="demarrage"><img src={logo} alt="" /><span class="doux">Watson arrive…</span><span class="devise">{DEVISE}</span></div>;
   if (!etat.github.connecte) return <ConnexionGitHub version={etat.version} connecte={charger} />;
   if (parametres) {
     return (

@@ -1,6 +1,6 @@
 import { ExternalLink, FilePlus2, Sparkles } from 'lucide-preact';
 import { ouvrirLien } from '../api.js';
-import { Attente, Entete, GRAVITE, useVue } from './commun.jsx';
+import { Attente, Entete, GRAVITE, useVue, Watson } from './commun.jsx';
 
 export function Synthese({ projet, aller }) {
   const { donnees: d, erreur } = useVue(`/projets/${projet.id}/synthese`);
@@ -15,8 +15,9 @@ export function Synthese({ projet, aller }) {
     <>
       {vide && (
         <section class="pile">
+          <div class="ligne" style="gap:20px;flex-wrap:nowrap"><Watson humeur="note" hauteur={180} />
           <div class="pile" style="gap:4px"><h1>Par où commencer ?</h1>
-            <p class="doux">Le projet est vide. Le plus rapide : donner à Claude ce qui existe déjà, il en tire une première base que tu valides.</p></div>
+            <p class="doux">Le projet est vide. Le plus rapide : donne-moi ce qui existe déjà (comptes rendus, notes, spécifications). Je le lis et je t'en tire une première base, que tu valides.</p></div></div>
           <div class="depart">
             <button class="carte mis-en-avant" onClick={() => aller('alimenter')}><FilePlus2 size={22} color="#4F46E5" /><strong>Alimenter avec des documents</strong>
               <span class="doux">Comptes rendus, transcriptions Meet, notes Gemini, spécifications, mails : Claude propose les objets métier, étapes et règles.</span></button>
