@@ -18,7 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import __version__, alimentation, application, depot, github
+from . import __version__, alimentation, application, depot, github, reglages
 from .chargement import charger
 from .contexte import STATUTS
 from .controles import ERREUR, analyser, couverture
@@ -205,7 +205,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             claude = etat_connexion()
         except Exception:  # noqa: BLE001
             claude = {"connecte": False}
-        return {"version": __version__, "github": {"connecte": bool(compte), "compte": compte}, "claude": claude}
+        return {"version": __version__, "github": {"connecte": bool(compte), "compte": compte}, "claude": claude,
+                "modele": reglages.nom_modele(reglages.modele()), "donnees": str(application.dossier_donnees())}
     if morceaux[:1] == ["github"]:
         if methode == "POST" and morceaux[1:] == ["connexion"]:
             return github.demarrer_connexion()
@@ -218,6 +219,13 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return github.proprietaires()
         if methode == "GET" and morceaux[1:] == ["depots"]:
             return {"depots": github.depots(requete.get("q", [""])[0])}
+    if morceaux == ["reglages"]:
+        if methode == "POST":
+            reglages.ecrire(corps)
+        return reglages.vue()
+    if morceaux == ["reglages", "tester"] and methode == "POST":
+        from .assistant import tester
+        return tester()
     if morceaux[:1] == ["claude"] and methode == "POST" and morceaux[1:] == ["connexion"]:
         from .assistant import lancer_connexion
         lancer_connexion()
@@ -314,7 +322,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

@@ -156,7 +156,7 @@ function Tri({ projet, lot, fini, abandonner }) {
   return (
     <>
       <div class="carte pile" style="gap:6px">
-        <span class="doux petit">Lu par Claude{lot.duree_s ? ` en ${lot.duree_s} s` : ''} · {lot.documents.map((d) => d.titre).join(', ')}</span>
+        <span class="doux petit">Lu par {lot.modele || 'Claude'}{lot.duree_s ? ` en ${lot.duree_s} s` : ''} · {lot.documents.map((d) => d.titre).join(', ')}</span>
         <p>{lot.resume}</p>
       </div>
       {lot.propositions.length === 0 && <div class="vide">Claude n'a rien trouvé de nouveau dans ces documents par rapport à la base.</div>}

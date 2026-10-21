@@ -14,6 +14,7 @@ import { Regles } from './ecrans/regles.jsx';
 import { Versions } from './ecrans/versions.jsx';
 import { Demander } from './ecrans/demander.jsx';
 import { Alimenter } from './ecrans/alimenter.jsx';
+import { Parametres } from './ecrans/parametres.jsx';
 import './styles.css';
 
 const MENU = [
@@ -31,7 +32,7 @@ const MENU = [
 
 const ECRANS = { synthese: Synthese, catalogue: Catalogue, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
 
-function Lateral({ projet, ecran, choisir, quitter, compte }) {
+function Lateral({ projet, ecran, choisir, quitter, compte, parametres }) {
   return (
     <nav class="panneau lateral" aria-label="Navigation du projet">
       <button class="marque" onClick={quitter} title="Mes projets">
@@ -57,7 +58,8 @@ function Lateral({ projet, ecran, choisir, quitter, compte }) {
       {compte && (
         <div class="profil">
           {compte.avatar ? <img class="avatar" src={compte.avatar} alt="" /> : <span class="avatar" />}
-          <span style="display:flex;flex-direction:column"><span style="font-weight:500">{compte.nom}</span><span class="petit doux">@{compte.login}</span></span>
+          <span style="display:flex;flex-direction:column;flex:1;min-width:0"><span style="font-weight:500">{compte.nom}</span><span class="petit doux">@{compte.login}</span></span>
+          <button class="bouton icone" title="Paramètres" aria-label="Paramètres" onClick={parametres}><Settings size={16} /></button>
         </div>
       )}
     </nav>
@@ -88,6 +90,7 @@ function App() {
   const [ecran, setEcran] = useState('synthese');
   const [maj, setMaj] = useState(null);
   const [synchro, setSynchro] = useState(null);
+  const [parametres, setParametres] = useState(false);
 
   const charger = async () => {
     try {
@@ -105,18 +108,26 @@ function App() {
   if (erreur) return <div class="coquille"><div class="panneau principal"><h1>Watson ne démarre pas</h1><pre class="encart e-rouge" style="white-space:pre-wrap;font-size:12px">{erreur}</pre><p class="doux">Envoie ce message à la personne qui maintient Watson.</p></div></div>;
   if (!etat) return <div class="chargement">Démarrage de Watson…</div>;
   if (!etat.github.connecte) return <ConnexionGitHub version={etat.version} connecte={charger} />;
+  if (parametres) {
+    return (
+      <div style="padding:12px;display:flex;flex-direction:column;gap:12px">
+        <BandeauMiseAJour maj={maj} />
+        <Parametres etat={etat} retour={() => { setParametres(false); charger(); }} deconnecte={() => { setParametres(false); setProjet(null); charger(); }} signalerMaj={setMaj} />
+      </div>
+    );
+  }
   if (!projet) {
     return (
       <div style="padding:12px;display:flex;flex-direction:column;gap:12px">
         <BandeauMiseAJour maj={maj} />
-        <MesProjets compte={etat.github.compte} version={etat.version} ouvrir={ouvrir} deconnecte={charger} />
+        <MesProjets compte={etat.github.compte} version={etat.version} ouvrir={ouvrir} deconnecte={charger} parametres={() => setParametres(true)} />
       </div>
     );
   }
   const Ecran = ECRANS[ecran];
   return (
     <div class="coquille">
-      <Lateral projet={projet} ecran={ecran} choisir={setEcran} quitter={() => setProjet(null)} compte={etat.github.compte} />
+      <Lateral projet={projet} ecran={ecran} choisir={setEcran} quitter={() => setProjet(null)} compte={etat.github.compte} parametres={() => setParametres(true)} />
       <main class="panneau principal">
         <BandeauMiseAJour maj={maj} />
         <div class="ligne petit doux">

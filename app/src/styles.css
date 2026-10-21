@@ -95,3 +95,8 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .depart { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
 .depart button { text-align: left; border: 0; cursor: pointer; display: flex; flex-direction: column; gap: 6px; }
 .depart button.mis-en-avant { box-shadow: 0 0 0 2px var(--indigo), 0 4px 14px rgba(79,70,229,.12); }
+.choix { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--bord); background: #fff; cursor: pointer; text-align: left; width: 100%; }
+.choix:hover { border-color: var(--bord2); }
+.choix.actif { border-color: var(--indigo); box-shadow: 0 0 0 1px var(--indigo); background: #FCFCFF; }
+.pastille { flex: 0 0 20px; height: 20px; margin-top: 1px; border-radius: 50%; border: 1.5px solid var(--bord2); display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+.choix.actif .pastille { background: var(--indigo); border-color: var(--indigo); }

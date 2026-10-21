@@ -267,10 +267,12 @@ async def _lire_par_claude(systeme: str, message: str, requete=None) -> dict:
             raise ErreurAlimentation("Le kit d'agents Claude n'est pas disponible sur ce poste.") from e
     from claude_agent_sdk import ClaudeAgentOptions, ResultMessage
 
+    from . import reglages
+
     env = {"ANTHROPIC_API_KEY": os.environ["REFERENTIEL_CLE_API"]} if mode_auth() == "cle" else {"ANTHROPIC_API_KEY": ""}
     options = ClaudeAgentOptions(tools=[], allowed_tools=[], mcp_servers={}, strict_mcp_config=True, setting_sources=[],
                                  system_prompt=systeme, max_turns=1, env=env, cli_path=chemin_claude_code(),
-                                 model=os.environ.get("REFERENTIEL_MODELE"))
+                                 model=reglages.modele(), effort=reglages.effort())
     resultat = None
     async for m in requete(prompt=message, options=options):
         if isinstance(m, ResultMessage):
@@ -376,7 +378,9 @@ def analyser(pid: str, racine: Path, documents: list[dict], requete=None) -> dic
     reponse = asyncio.run(_lire_par_claude(consignes(contexte), _message(docs), requete))
     propositions = reponse.get("propositions") or []
     p = charger(racine)
-    lot = {"id": lot_id, "date": aujourdhui(), "duree_s": round(time.time() - debut), "resume": reponse.get("resume", ""),
+    from . import reglages
+
+    lot = {"id": lot_id, "date": aujourdhui(), "duree_s": round(time.time() - debut), "modele": reglages.nom_modele(reglages.modele()), "resume": reponse.get("resume", ""),
            "documents": docs, "propositions": _verifier(p, propositions)}
     _ecrire_lot(pid, lot)
     return lot

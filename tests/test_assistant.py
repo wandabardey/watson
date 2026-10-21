@@ -185,3 +185,26 @@ def test_interface_web(monkeypatch):
         assert e.value.code == 403
     finally:
         serveur.shutdown()
+
+
+def test_reglages_modele_et_effort(monkeypatch):
+    from referentiel import reglages
+    monkeypatch.delenv("REFERENTIEL_MODELE", raising=False)
+    monkeypatch.delenv("REFERENTIEL_EFFORT", raising=False)
+    assert reglages.lire() == {"modele": "claude-opus-5-5", "effort": "medium"}
+    o = assistant.options(FRET)
+    assert o.model == "claude-opus-5-5" and o.effort == "medium"
+    reglages.ecrire({"modele": "claude-sonnet-5-5", "effort": "high"})
+    o = assistant.options(FRET)
+    assert o.model == "claude-sonnet-5-5" and o.effort == "high"
+    with pytest.raises(reglages.ErreurReglages):
+        reglages.ecrire({"effort": "extreme"})
+    monkeypatch.setenv("REFERENTIEL_MODELE", "haiku")
+    assert assistant.options(FRET).model == "haiku" and reglages.vue()["impose_par_variable"]
+    assert reglages.nom_modele("claude-opus-5-5-20261001") == "Opus 5.5"
+
+
+def test_modele_indisponible():
+    requete, _ = faux_kit(resultat(is_error=True, statut=404))
+    with pytest.raises(ErreurAssistant, match="pas disponible avec ce compte"):
+        assistant.demander("Question ?", FRET, requete=requete)

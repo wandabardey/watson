@@ -21,8 +21,11 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from . import reglages
 
 MOTEUR = Path(__file__).resolve().parent.parent  # dossier qui contient le paquet `referentiel`
 SERVEUR = "referentiel"
@@ -34,8 +37,6 @@ OUTILS_LECTURE = [
 OUTILS_ECRITURE = ["enregistrer_element", "remplacer_regle", "decider_trou", "creer_projet", "generer_spec", "figer_version", "enregistrer_tests",
                     "creer_evolution", "cibler_evolution", "valider_evolution"]
 SEUIL_INDEX = 60_000  # jetons : au-delà, le contexte ne garde que le titre des règles
-MODELE = os.environ.get("REFERENTIEL_MODELE")  # facultatif, par exemple « sonnet » ou « haiku »
-EFFORT = os.environ.get("REFERENTIEL_EFFORT", "low")
 VERDICTS = ["oui", "non", "depend", "partiel", "inconnu", "resume"]
 LIBELLES_VERDICT = {
     "oui": "Oui", "non": "Non", "depend": "Ça dépend", "partiel": "Oui, mais pas formalisé",
@@ -115,6 +116,7 @@ class Reponse:
     usage: dict = field(default_factory=dict)
     cout_usd: float | None = None
     brut: dict = field(default_factory=dict)
+    modele: str = ""
 
     @property
     def libelle_verdict(self) -> str:
@@ -124,6 +126,7 @@ class Reponse:
         return {
             "verdict": self.verdict, "libelle_verdict": self.libelle_verdict, "paragraphes": self.paragraphes,
             "sources": self.sources, "trou": self.trou, "mode": self.mode, "duree_ms": self.duree_ms,
+            "modele": reglages.nom_modele(self.modele),
         }
 
 
@@ -235,8 +238,8 @@ def options(projet: Path, portee: str = "travail"):
         setting_sources=[],
         system_prompt=consignes,
         **outils,
-        effort=EFFORT or None,
-        model=MODELE,
+        effort=reglages.effort(),
+        model=reglages.modele(),
         env=env,
         cli_path=chemin_claude_code(),
     )
@@ -290,7 +293,9 @@ def _message_erreur(resultat) -> str:
     if statut == 429:
         return "Limite d'usage Claude atteinte pour votre compte. Réessayez plus tard, ou passez par la clé de secours."
     if statut in (401, 403):
-        return "Compte Claude non connecté ou sans accès à Claude Code. Lancer : python -m referentiel connexion --login"
+        return "Compte Claude non connecté ou sans accès à Claude Code. Le connecter dans les paramètres de Watson (en ligne de commande : python -m referentiel connexion --login)."
+    if statut in (400, 404):
+        return f"Le modèle « {reglages.modele()} » n'est pas disponible avec ce compte : en choisir un autre dans les paramètres."
     if getattr(resultat, "subtype", "") == "error_max_turns":
         return "La recherche dans la base a été trop longue. Reformulez la question plus précisément."
     erreurs = getattr(resultat, "errors", None) or []
@@ -361,10 +366,13 @@ async def demander_async(question: str, projet: Path, portee: str = "travail", r
             from claude_agent_sdk import query as requete
         except ImportError as e:
             raise ErreurAssistant("Le kit d'agents n'est pas installé : pip install claude-agent-sdk") from e
-    from claude_agent_sdk import ResultMessage
+    from claude_agent_sdk import AssistantMessage, ResultMessage
 
     resultat = None
+    modele = reglages.modele()
     async for message in requete(prompt=question, options=options(projet, portee)):
+        if isinstance(message, AssistantMessage) and getattr(message, "model", None):
+            modele = message.model
         if isinstance(message, ResultMessage):
             resultat = message
     if resultat is None:
@@ -376,8 +384,33 @@ async def demander_async(question: str, projet: Path, portee: str = "travail", r
         verdict=donnees["verdict"], paragraphes=donnees["paragraphes"],
         sources=sources_verifiees(projet, donnees["sources"]), trou=donnees.get("trou", ""),
         mode=mode_auth(), duree_ms=resultat.duration_ms, tours=resultat.num_turns, brut=donnees,
-        usage=resultat.usage or {}, cout_usd=resultat.total_cost_usd,
+        usage=resultat.usage or {}, cout_usd=resultat.total_cost_usd, modele=modele,
     )
+
+
+async def _tester(requete=None) -> dict:
+    if requete is None:
+        from claude_agent_sdk import query as requete
+    from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage
+
+    env = {"ANTHROPIC_API_KEY": os.environ["REFERENTIEL_CLE_API"]} if mode_auth() == "cle" else {"ANTHROPIC_API_KEY": ""}
+    debut = time.time()
+    modele, resultat = reglages.modele(), None
+    async for m in requete(prompt="Réponds seulement : prêt.", options=ClaudeAgentOptions(
+            tools=[], allowed_tools=[], mcp_servers={}, strict_mcp_config=True, setting_sources=[], max_turns=1, env=env,
+            cli_path=chemin_claude_code(), model=reglages.modele(), effort=reglages.effort())):
+        if isinstance(m, AssistantMessage) and getattr(m, "model", None):
+            modele = m.model
+        if isinstance(m, ResultMessage):
+            resultat = m
+    if resultat is None or resultat.is_error:
+        raise ErreurAssistant(_message_erreur(resultat) if resultat else "Claude n'a pas répondu.")
+    return {"modele": reglages.nom_modele(modele), "identifiant": modele, "duree_s": round(time.time() - debut, 1)}
+
+
+def tester(requete=None) -> dict:
+    """Un échange minimal avec les réglages courants : quel modèle répond vraiment, et en combien de temps."""
+    return asyncio.run(_tester(requete))
 
 
 def demander(question: str, projet: Path, portee: str = "travail", requete=None) -> Reponse:
@@ -395,5 +428,5 @@ def formater(r: Reponse) -> str:
             lignes.append(f"  - {s['type']} « {s['nom']} »{statut} : {s['trace']}{alerte}")
     if r.trou:
         lignes += ["", f"Pas défini dans le référentiel : {r.trou}"]
-    lignes += ["", f"Réponse via {'la clé API de secours' if r.mode == 'cle' else 'votre compte Claude'}, en {r.duree_ms / 1000:.0f} s."]
+    lignes += ["", f"Réponse de {reglages.nom_modele(r.modele)} via {'la clé API de secours' if r.mode == 'cle' else 'votre compte Claude'}, en {r.duree_ms / 1000:.0f} s."]
     return "\n".join(lignes)

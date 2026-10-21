@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { FolderGit2, LogOut, Network, Plus, Search } from 'lucide-preact';
+import { FolderGit2, LogOut, Network, Plus, Search, Settings } from 'lucide-preact';
 import { appel } from '../api.js';
 
 function Ouvrir({ fermer, ouvert }) {
@@ -86,7 +86,7 @@ function Creer({ fermer, ouvert, compte, reconnecter }) {
   );
 }
 
-export function MesProjets({ compte, version, ouvrir, deconnecte }) {
+export function MesProjets({ compte, version, ouvrir, deconnecte, parametres }) {
   const [projets, setProjets] = useState(null);
   const [mode, setMode] = useState(null);
   const [message, setMessage] = useState(null);
@@ -100,6 +100,7 @@ export function MesProjets({ compte, version, ouvrir, deconnecte }) {
         <span class="logo"><Network size={18} /></span><strong style="font-size:16px">Watson</strong><span class="petit doux">{version}</span>
         <span class="espace" />
         <span class="doux">{compte.nom}</span>
+        <button class="bouton" onClick={parametres} title="Paramètres"><Settings size={16} /> Paramètres</button>
         <button class="bouton" onClick={deconnecter} title="Se déconnecter de GitHub"><LogOut size={16} /></button>
       </div>
       <div class="ligne" style="align-items:flex-end">

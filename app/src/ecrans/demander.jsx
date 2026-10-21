@@ -47,7 +47,7 @@ export function Demander({ projet, etat }) {
                 </div>
               ))}
               {x.r.trou && <p class="encart e-orange">{x.r.trou}</p>}
-              <span class="petit doux">Répondu en {Math.round(x.r.duree_ms / 1000)} s.</span>
+              <span class="petit doux">Répondu par {x.r.modele} en {Math.round(x.r.duree_ms / 1000)} s.</span>
             </div>
           )}
         </section>
