@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.20.0 (2026-10-22)
+
+- Accueil du projet : synthèse, question à Watson et dépôt de documents sur une seule page ; menu repliable qui défile ; Questions ouvertes avec compteur ; cycle de vie des objets dans Référentiels ; listes déroulantes au design de l'app ; la mise à jour continue de se télécharger quand on change d'écran et son bandeau reste en haut.
+
 ## 0.19.0 (2026-10-22)
 
 - Comité d'experts : n'importe quel élément du projet (règle, scénario, écran, objet métier, question ouverte, cahier des charges, piste, maquette, proposition) ou une question libre peut être soumis à un panel d'experts fictifs ; trois intensités, avis dans leur voix, débat, recommandation unique ; journal des décisions, comité du projet, application à la base après validation.
