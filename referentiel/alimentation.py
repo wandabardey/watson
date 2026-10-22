@@ -211,7 +211,7 @@ de la demande concernée. Si la demande est ambiguë ou impossible, propose une 
 
 
 def consignes(contexte_base: str, mode: str = "documents", element: str | None = None) -> str:
-    from . import schemas
+    from . import methode, schemas
 
     formats = {"acteur": _sans_historique(schemas.ACTEUR), "liste": schemas.LISTE, "entite": _sans_historique(schemas.ENTITE),
                "regle": _sans_historique(schemas.REGLE), "ecran": schemas.ECRAN, "scenario": schemas.SCENARIO}
@@ -275,6 +275,7 @@ Formats des contenus (schémas JSON) :
 FORMAT DE SORTIE : réponds uniquement par un objet JSON, sans texte autour ni bloc de code, conforme à ce schéma :
 {json.dumps(_schema_reponse(), ensure_ascii=False)}
 {MODE_MODIFICATION if mode == "consigne" else ""}{f"La demande porte d'abord sur l'élément [{element}]." if element else ""}
+{methode.consignes("commun")}
 # Base actuelle du projet
 {contexte_base}
 """
@@ -477,6 +478,18 @@ def _index_sources(racine: Path) -> list[dict]:
     return yaml.safe_load(f.read_text(encoding="utf-8")) or []
 
 
+def noter_questions(racine: Path, questions: list[dict], auteur: str, date: str):
+    """Ajoute des questions ouvertes à sujets.yaml (question, contexte, source, extrait)."""
+    f = racine / "sujets.yaml"
+    sujets = (yaml.safe_load(f.read_text(encoding="utf-8")) or []) if f.exists() else []
+    k = _prochain([s.get("id") for s in sujets], "Q-")
+    for q in questions:
+        sujets.append({"id": f"Q-{k:03d}", "question": q["question"], "contexte": q.get("contexte", ""),
+                       "source": q.get("source", ""), "extrait": q.get("extrait", ""), "statut": "ouvert", "date": date, "par": auteur})
+        k += 1
+    f.write_text("# Questions ouvertes relevées dans les documents. statut : ouvert | tranche\n" + dump(sujets), encoding="utf-8")
+
+
 def _prochain(existants, prefixe: str) -> int:
     n = [int(m.group(1)) for x in existants for m in [re.match(rf"^{prefixe}(\d+)$", str(x))] if m]
     return max(n, default=0) + 1
@@ -605,14 +618,7 @@ def appliquer(pid: str, racine: Path, lot_id: str, decisions: list[dict], auteur
 
     # 3. Les questions ouvertes, dans sujets.yaml.
     if questions:
-        f = racine / "sujets.yaml"
-        sujets = (yaml.safe_load(f.read_text(encoding="utf-8")) or []) if f.exists() else []
-        k = _prochain([s.get("id") for s in sujets], "Q-")
-        for q in questions:
-            sujets.append({"id": f"Q-{k:03d}", "question": q["question"], "contexte": q.get("contexte", ""),
-                           "source": q["source"], "extrait": q["extrait"], "statut": "ouvert", "date": lot["date"], "par": auteur})
-            k += 1
-        f.write_text("# Questions ouvertes relevées dans les documents. statut : ouvert | tranche\n" + dump(sujets), encoding="utf-8")
+        noter_questions(racine, questions, auteur, lot["date"])
 
     if lot.get("mode") != "consigne":
         (sources / "index.yaml").write_text("# Documents lus par Watson.\n" + dump(index), encoding="utf-8")

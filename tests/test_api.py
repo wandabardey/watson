@@ -314,3 +314,17 @@ def test_vue_scenarios_et_edition(serveur):
     with pytest.raises(Exception):
         appel(base, f"/api/projets/{pid}/elements", {"type": "scenario", "contenu": {
             "id": "SCN-011", "nom": "Cassé", "etapes": [{"id": "A", "libelle": "Majuscule interdite"}]}})
+
+
+def test_cahier_des_charges_par_l_api(serveur):
+    base, _ = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    v = appel(base, f"/api/projets/{pid}/avant-projet/cahier")
+    assert not v["existe"] and v["perimetre"] and v["proposition"] is None
+    cahier = v["cahier"]
+    cahier["sections"][0]["contenu"] = "Le client expédie à l'international."
+    r = appel(base, f"/api/projets/{pid}/avant-projet/cahier", {"cahier": cahier})
+    assert r["existe"] and r["commit"] and r["cahier"]["sections"][0]["contenu"].startswith("Le client")
+    with pytest.raises(urllib.error.HTTPError) as e:
+        appel(base, f"/api/projets/{pid}/avant-projet/cahier/garder", {"sections": ["contexte"]})
+    assert e.value.code == 400

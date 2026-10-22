@@ -19,6 +19,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import __version__, alimentation, application, depot, github, reglages
+from .avant_projet import ErreurAvantProjet
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -321,6 +322,31 @@ def _p(pid):
     return racine, p
 
 
+def _avant_projet(methode, pid, reste, corps):
+    from . import avant_projet as ap
+
+    racine = application.chemin(pid)
+    if reste == ["cahier"] and methode == "GET":
+        return ap.vue_cahier(racine, pid)
+    if reste == ["cahier"] and methode == "POST":
+        ap.enregistrer_cahier(racine, corps.get("cahier") or {})
+        envoi = application.enregistrer_et_envoyer(pid, corps.get("message") or "Cahier des charges : mise à jour")
+        return {**ap.vue_cahier(racine, pid), **envoi}
+    if reste == ["cahier", "rediger"] and methode == "POST":
+        sections = [str(x) for x in corps.get("sections") or []] or None
+        return ap.rediger_cahier(pid, racine, sections, str(corps.get("demande") or "")[:4000] or None)
+    if reste == ["cahier", "garder"] and methode == "POST":
+        r = ap.garder_proposition(pid, racine, [str(x) for x in corps.get("sections") or []],
+                                  [int(x) for x in corps.get("questions") or []], github.compte()["nom"])
+        morceaux = ", ".join(r["sections"]) or "questions"
+        envoi = application.enregistrer_et_envoyer(pid, f"Cahier des charges : {morceaux} (rédigé avec Claude)")
+        return {**ap.vue_cahier(racine, pid), **envoi, "garde": r}
+    if reste == ["cahier", "proposition"] and methode == "DELETE":
+        ap.ecarter_proposition(pid)
+        return ap.vue_cahier(racine, pid)
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _alimenter(methode, pid, reste, corps):
     racine = application.chemin(pid)
     if methode == "GET" and not reste:
@@ -432,6 +458,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _alimenter(methode, pid, reste[1:], corps)
         if reste[:1] == ["elements"]:
             return _elements(methode, pid, reste[1:], corps)
+        if reste[:1] == ["avant-projet"]:
+            return _avant_projet(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
             from .ecriture import enregistrer_versions_produit
             enregistrer_versions_produit(application.chemin(pid), corps.get("versions") or [])
@@ -521,7 +549,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

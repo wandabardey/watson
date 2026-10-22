@@ -219,7 +219,9 @@ def options(projet: Path, portee: str = "travail"):
         return PermissionResultDeny(message="Lecture seule : seuls les outils de lecture du référentiel sont permis.")
 
     contexte, complet = construire_contexte(Path(projet), portee)
-    consignes = CONSIGNES + "\n\n" + contexte
+    from . import methode
+
+    consignes = CONSIGNES + "\n\n" + methode.consignes("commun") + "\n\n" + contexte
     if complet:
         # Toute la base est dans les consignes : une seule passe, sans outil ni aller-retour (le plus rapide
         # et le moins cher ; les consignes, identiques d'une question à l'autre, sont servies par le cache).

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { ArrowLeft, Check, LogOut, RefreshCw, Sparkles } from 'lucide-preact';
+import { ArrowLeft, BookOpen, Check, LogOut, RefreshCw, Sparkles } from 'lucide-preact';
 import { appel, verifierMiseAJour } from '../api.js';
 import { ConnexionClaude } from './commun.jsx';
 
@@ -19,6 +19,7 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
   const [message, setMessage] = useState(null);
   const [claude, setClaude] = useState(etat.claude);
   const [maj, setMaj] = useState(undefined);
+  const [dossier, setDossier] = useState('');
   useEffect(() => { appel('/reglages').then((x) => { setR(x); if (!x.modeles.some((m) => m.id === x.modele)) setAutre(x.modele); }); }, []);
   const changer = async (c) => {
     setMessage(null); setTest(null);
@@ -68,6 +69,15 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
           {test?.modele && <span class="badge b-vert">{test.modele} a répondu en {test.duree_s} s</span>}
           {test?.erreur && <span class="encart e-rouge">{test.erreur}</span>}
         </div>
+      </Section>
+
+ <Section titre="Méthode 4ward" description="Quand le studio 4ward de 4SH est installé sur ce poste, Watson en suit les compétences à chaque appel à Claude : cadrage, direction artistique, maquettes, deck commercial. Rien de 4ward n'est copié dans Watson ni dans les dépôts.">
+        {r.methode.trouve
+          ? <div class="ligne"><BookOpen size={18} color="#4F46E5" /><span class="pile espace" style="gap:2px"><strong>4ward {r.methode.version} {r.methode.choisi ? '(dossier choisi)' : '(trouvé automatiquement)'}</strong><span class="doux petit tronque">{r.methode.chemin}</span></span>
+              {r.methode.choisi && <button class="bouton" onClick={() => changer({ dossier_4ward: '' })}>Détection automatique</button>}</div>
+          : <p class="encart e-orange">{r.methode.choisi_introuvable ? 'Le dossier choisi ne contient plus 4ward.' : '4ward n\'a pas été trouvé sur ce poste.'} Watson applique ses consignes de base. Installe 4ward dans Claude, ou indique son dossier ci-dessous.</p>}
+        <span class="ligne"><input class="saisie espace" placeholder="Dossier du plugin 4ward (celui qui contient « skills »)" value={dossier} onInput={(e) => setDossier(e.target.value)} />
+          <button class="bouton" disabled={!dossier.trim()} onClick={() => changer({ dossier_4ward: dossier.trim() })}>Utiliser ce dossier</button></span>
       </Section>
 
       <Section titre="GitHub" description="Les dépôts de connaissance sont lus et enregistrés avec ce compte.">

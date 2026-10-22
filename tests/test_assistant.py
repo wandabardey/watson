@@ -191,7 +191,7 @@ def test_reglages_modele_et_effort(monkeypatch):
     from referentiel import reglages
     monkeypatch.delenv("REFERENTIEL_MODELE", raising=False)
     monkeypatch.delenv("REFERENTIEL_EFFORT", raising=False)
-    assert reglages.lire() == {"modele": "claude-opus-5-5", "effort": "medium"}
+    assert reglages.lire() == {"modele": "claude-opus-5-5", "effort": "medium", "dossier_4ward": ""}
     o = assistant.options(FRET)
     assert o.model == "claude-opus-5-5" and o.effort == "medium"
     reglages.ecrire({"modele": "claude-sonnet-5-5", "effort": "high"})

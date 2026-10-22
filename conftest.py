@@ -20,3 +20,8 @@ def _donnees_isolees(tmp_path, monkeypatch):
     """Chaque test a son propre dossier de données Watson (réglages, lots), jamais celui du poste."""
     if "WATSON_DONNEES" not in __import__("os").environ:
         monkeypatch.setenv("WATSON_DONNEES", str(tmp_path / "donnees-watson"))
+    # Pas de 4ward du poste dans les tests : seulement celui qu'un test installe lui-même.
+    monkeypatch.setenv("WATSON_4WARD_RACINES", str(tmp_path / "sans-4ward"))
+    from referentiel import methode
+
+    methode.oublier_cache()

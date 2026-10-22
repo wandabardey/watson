@@ -20,7 +20,7 @@ EFFORTS = [
     {"id": "high", "nom": "Élevé", "description": "Réfléchit davantage : documents longs ou ambigus."},
     {"id": "max", "nom": "Maximum", "description": "Réflexion la plus poussée, nettement plus lent."},
 ]
-DEFAUT = {"modele": "claude-opus-5-5", "effort": "medium"}
+DEFAUT = {"modele": "claude-opus-5-5", "effort": "medium", "dossier_4ward": ""}
 
 
 class ErreurReglages(Exception):
@@ -53,6 +53,14 @@ def ecrire(changements: dict) -> dict:
     if effort not in [e["id"] for e in EFFORTS]:
         raise ErreurReglages("Niveau de réflexion inconnu.")
     r.update(modele=modele, effort=effort)
+    if "dossier_4ward" in changements:  # "" : retour à la détection automatique
+        from . import methode
+
+        chemin = os.path.expanduser(str(changements["dossier_4ward"] or "").strip())
+        if chemin and not methode.valide(chemin):
+            raise ErreurReglages("Ce dossier ne contient pas 4ward : choisis le dossier du plugin (celui qui contient « skills »).")
+        r["dossier_4ward"] = chemin
+        methode.oublier_cache()
     _fichier().write_text(json.dumps(r, indent=2), encoding="utf-8")
     return r
 
@@ -75,5 +83,7 @@ def nom_modele(ident: str | None) -> str:
 
 def vue() -> dict:
     r = lire()
-    return {**r, "modeles": MODELES, "efforts": EFFORTS, "nom_modele": nom_modele(r["modele"]),
+    from . import methode
+
+    return {**r, "methode": methode.etat(), "modeles": MODELES, "efforts": EFFORTS, "nom_modele": nom_modele(r["modele"]),
             "impose_par_variable": bool(os.environ.get("REFERENTIEL_MODELE") or os.environ.get("REFERENTIEL_EFFORT"))}
