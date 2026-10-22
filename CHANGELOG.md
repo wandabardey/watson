@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.12.0 (2026-10-22)
+
+- Onglet Scénarios : parcours en diagramme de processus, un couloir par application, décisions, refus et retours, statuts apposés, versions MVP, édition et Demander à Watson
+
 ## 0.11.0 (2026-10-22)
 
 - Onglet Écrans : carte des écrans par application, contenu, routages et échanges, versions MVP, édition et Demander à Watson
