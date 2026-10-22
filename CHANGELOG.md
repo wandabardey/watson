@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.21.0 (2026-10-22)
+
+- Ateliers client : Watson prépare le kit (objectifs, trame minutée, questions issues de ce que la base ne sait pas encore, décisions à prendre, supports), mode séance en plein écran pour cocher et noter, compte rendu rédigé depuis les notes et une transcription, qui tranche les questions ouvertes et met la base à jour après validation. Administration du projet : consommation de Claude par projet, avec la session de 5 heures et la part du projet. Cahier des charges : trois sections de plus. Signature macOS stable : le trousseau ne redemande plus l'accès à chaque version.
+
 ## 0.20.0 (2026-10-22)
 
 - Accueil du projet : synthèse, question à Watson et dépôt de documents sur une seule page ; menu repliable qui défile ; Questions ouvertes avec compteur ; cycle de vie des objets dans Référentiels ; listes déroulantes au design de l'app ; la mise à jour continue de se télécharger quand on change d'écran et son bandeau reste en haut.
