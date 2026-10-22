@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.10.0 (2026-10-22)
+
+- Référentiels éditables : créer, modifier, supprimer une entité ou une liste de valeurs depuis sa fiche ; « Demander à Watson » prépare un changement décrit en langage naturel, visible sur le schéma avant d'être enregistré. Versions produit (MVP, V2…) : chaque entité, donnée, valeur ou règle peut en porter une, et le schéma montre en pointillés ce qui vient après la version choisie. Une règle peut porter sur des données précises ; elle apparaît en pastille sur le schéma.
+
 ## 0.9.1 (2026-10-22)
 
 - Référentiels : le schéma prend le style du Workflow (briques blanches avec icône parlante et résumé, liens vers d'autres entités en pastilles, flèches indigo, listes de valeurs en ambre, légende en pilules) et s'ouvre à une taille lisible.
