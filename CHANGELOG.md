@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.25.0 (2026-10-22)
+
+- Documentation utilisateur : Watson propose le sommaire du guide (par tâche, par profil, par écran ou par grande fonction), rédige chaque rubrique en mode d'emploi depuis la base (au « vous », étapes numérotées, libellés réels, encadrés, sans code interne) et le glossaire ; une rubrique est signalée à mettre à jour quand la base bouge ; export HTML avec les captures des maquettes, prêt à imprimer en PDF.
+
 ## 0.24.0 (2026-10-22)
 
 - Recette et TNR : le cahier de recette se remplit des cas tirés de la base (chemin normal, droits, règles, tables de décision) et des critères d'acceptation des évolutions, se relit et se valide ; un cas est signalé à revoir quand la base bouge. Les campagnes jouent les cas d'une version, ou ceux que touche une évolution : résultats au fil de l'eau, anomalies prêtes pour un ticket, avis go / no-go argumenté, rapport à copier.
