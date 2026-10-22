@@ -1,6 +1,9 @@
 id: FRET-DEMO
 nom: Fret international (démo fictive)
 description: Projet fictif pour tester le format de la base sur une entité Expédition.
+versions_produit:
+  - {id: MVP, nom: MVP, description: Première mise en service}
+  - {id: V2, nom: V2, description: Seconde livraison}
 glossaire:
   - terme: Expédition
     definition: Envoi d'une ou plusieurs marchandises d'un expéditeur vers un destinataire, suivi de la création à la livraison.

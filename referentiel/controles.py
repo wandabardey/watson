@@ -87,6 +87,29 @@ def controler_references(p: Projet, trous: list):
         )
 
     transitions = p.transitions
+    versions = {v["id"] for v in p.meta.get("versions_produit") or []}
+
+    def verifier_version(source, valeur, ou):
+        if valeur and valeur not in versions:
+            inconnu(source, "version", valeur, "la version produit")
+
+    for col in (p.entites, p.listes, p.regles, p.ecrans, p.cas_usage):
+        for el in col.values():
+            verifier_version(el["id"], el.get("version"), "")
+            for a in el.get("attributs") or []:
+                verifier_version(el["id"], a.get("version"), a["nom"])
+            for v in (el.get("valeurs") or []) if col is p.listes else []:
+                verifier_version(el["id"], v.get("version"), v["nom"])
+            for x in (el.get("statuts") or []) + (el.get("transitions") or []):
+                verifier_version(x["id"], x.get("version"), "")
+    for r in p.regles.values():
+        for cible in r.get("porte_sur") or []:
+            ident, _, donnee = cible.partition(".")
+            connu = ident in p.fichiers or ident in transitions
+            if not connu:
+                inconnu(r["id"], "porte_sur", ident, "l'élément")
+            elif donnee and donnee not in {a["nom"] for a in (p.entites.get(ident) or {}).get("attributs") or []}:
+                inconnu(r["id"], "porte_sur", cible, "la donnée")
     for ent in p.entites.values():
         statuts = {s["id"] for s in ent["statuts"]}
         if statuts and ent.get("statut_initial") not in statuts:

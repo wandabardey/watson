@@ -1,5 +1,6 @@
 id: ENT-PERSONNE
 nom: Personne
+version: V2
 attributs:
   - {nom: prenom, libelle: Prénom, type: texte}
   - {nom: nom, libelle: Nom, type: texte}

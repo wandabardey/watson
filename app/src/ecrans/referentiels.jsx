@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   BadgeCheck, Building2, CreditCard, Database, IdCard, KeyRound, LayoutList, Link2, List as IconeListe, MapPin, Maximize2, Minus, Package, Plus,
-  Search, Send, Shield, Truck, User, Workflow as IconeSchema, X
+  Check, Pencil, Scale, Search, Send, Shield, Sparkles, Truck, User, Workflow as IconeSchema, X
 } from 'lucide-preact';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
+import { appel } from '../api.js';
+import { DemandeWatson, Edition, GererVersions, LotEnCours } from './edition.jsx';
 
 const TYPES = { enum: 'Choix', booleen: 'Oui ou non', texte: 'Texte', nombre: 'Nombre', date: 'Date', reference: 'Lien', liste: 'Liste de valeurs' };
 const L = 300; // largeur d'une brique
@@ -23,6 +25,14 @@ const ICONES = [
 ];
 const icone = (n) => (n.genre === 'liste' ? IconeListe : (ICONES.find(([re]) => re.test(n.nom)) || [null, Database])[1]);
 const elk = new ELK();
+
+// Versions produit : un élément d'une version postérieure à celle choisie est « hors version » (en pointillés).
+export function horsVersion(versions, choisie, v) {
+  if (!choisie || choisie === 'toutes' || !v) return false;
+  const rang = (x) => versions.findIndex((y) => y.id === x);
+  return rang(v) > rang(choisie);
+}
+const nomVersion = (versions, v) => versions.find((x) => x.id === v)?.nom || v;
 
 // Lignes d'une liste de valeurs, avec les intertitres de groupe (Traçable, Non traçable…).
 function lignesListe(liste) {
@@ -96,31 +106,39 @@ function trace(pts, r = 8) {
   return d + ` L${z.x},${z.y}`;
 }
 
-function Brique({ n, choisi, attenue, choisir }) {
+function Brique({ n, choisi, attenue, choisir, versions, version, marque }) {
   const liste = n.genre === 'liste';
+  const hors = (v) => horsVersion(versions, version, v);
+  const pastilleVersion = (v) => (v && (version === 'toutes' || hors(v)) ? <span class="pastille-version">{nomVersion(versions, v)}</span> : null);
+  const nbRegles = liste ? 0 : n.regles.length;
   const Icone = icone(n);
   const liens = liste ? 0 : n.donnees.filter((d) => d.cible).length;
   const sous = liste ? `Liste de valeurs · ${n.valeurs.length} valeur${n.valeurs.length > 1 ? 's' : ''}`
-    : [`${n.donnees.length} donnée${n.donnees.length > 1 ? 's' : ''}`, liens && `${liens} lien${liens > 1 ? 's' : ''}`, n.cycle.length && `${n.cycle.length} statuts`].filter(Boolean).join(' · ');
+    : [`${n.donnees.length} donnée${n.donnees.length > 1 ? 's' : ''}`, liens && `${liens} lien${liens > 1 ? 's' : ''}`,
+      nbRegles && `${nbRegles} règle${nbRegles > 1 ? 's' : ''}`, n.cycle.length && `${n.cycle.length} statuts`].filter(Boolean).join(' · ');
   return (
-    <div class={`brique ${liste ? 'brique-liste' : ''} ${choisi ? 'choisie' : ''} ${attenue ? 'attenuee' : ''}`}
+    <div class={`brique ${liste ? 'brique-liste' : ''} ${choisi ? 'choisie' : ''} ${attenue ? 'attenuee' : ''} ${hors(n.version) ? 'hors-version' : ''} ${marque ? `marque-${marque}` : ''}`}
       style={`left:${n.x}px;top:${n.y}px;width:${L}px;height:${n.h}px`} onClick={(e) => { e.stopPropagation(); choisir(n.id); }}>
       <div class="brique-tete" style={`height:${ENTETE}px`}>
         <span class="brique-icone"><Icone size={20} strokeWidth={1.8} /></span>
         <span class="pile espace" style="gap:2px;min-width:0">
-          <strong class="tronque brique-titre">{n.nom}</strong>
+          <span class="ligne" style="gap:6px;flex-wrap:nowrap;min-width:0"><strong class="tronque brique-titre">{n.nom}</strong>{pastilleVersion(n.version)}
+            {marque && <span class={`pastille-marque ${marque}`}>{marque === 'nouveau' ? 'proposé' : 'modifié'}</span>}</span>
           <span class="brique-sous tronque"><i class="point-couleur" />{sous}</span>
         </span>
       </div>
       {liste
         ? lignesListe(n).map((l, i) => (l.entete
           ? <div key={i} class="brique-groupe" style={`height:${GROUPE}px`}>{l.groupe}</div>
-          : <div key={i} class="brique-ligne" style={`height:${LIGNE}px`}><span class="espace tronque">{l.nom}</span>{l.note && <span class="brique-note tronque">{l.note}</span>}</div>))
+          : <div key={i} class={`brique-ligne ${hors(l.version) ? 'hors-version' : ''}`} style={`height:${LIGNE}px`}><span class="espace tronque">{l.nom}</span>
+            {l.version !== n.version && pastilleVersion(l.version)}{l.note && <span class="brique-note tronque">{l.note}</span>}</div>))
         : n.donnees.length === 0
           ? <div class="brique-ligne doux" style={`height:${LIGNE}px`}>Aucune donnée décrite</div>
           : n.donnees.map((d) => (
-            <div key={d.nom} class={`brique-ligne ${d.cible ? 'lien' : ''} ${d.optionnel ? 'optionnelle' : ''}`} style={`height:${LIGNE}px`}>
+            <div key={d.nom} class={`brique-ligne ${d.cible ? 'lien' : ''} ${d.optionnel ? 'optionnelle' : ''} ${hors(d.version) ? 'hors-version' : ''}`} style={`height:${LIGNE}px`}>
               <span class="espace tronque">{d.libelle}{d.multiple && <span class="multiple" title="Plusieurs valeurs possibles"> [ ]</span>}</span>
+              {d.version_propre && pastilleVersion(d.version_propre)}
+              {d.regles.length > 0 && <span class="pastille-regle" title={d.regles.map((r) => r.titre).join(', ')}><Scale size={11} />{d.regles.length}</span>}
               {d.cible ? <span class={`brique-cible ${d.cible_genre}`}>{d.cible_nom}</span>
                 : d.optionnel ? <span class="brique-note">optionnel</span> : <span class="brique-type">{TYPES[d.type] || d.type}</span>}
             </div>
@@ -129,7 +147,7 @@ function Brique({ n, choisi, attenue, choisir }) {
   );
 }
 
-function Schema({ entites, listes, choisi, choisir, filtre }) {
+function Schema({ entites, listes, choisi, choisir, filtre, versions = [], version = 'toutes', marques = {} }) {
   const [plan, setPlan] = useState(null);
   const [vue, setVue] = useState({ x: 24, y: 24, k: 1 });
   const cadre = useRef(null);
@@ -196,13 +214,17 @@ function Schema({ entites, listes, choisi, choisir, filtre }) {
           {plan.aretes.map((a) => {
             const [src, cible] = a.id.split('>');
             const actif = !choisi || src.startsWith(`${choisi}:`) || cible === choisi;
+            const [srcId, donnee] = src.split(':');
+            const d = plan.noeuds.find((x) => x.id === srcId)?.donnees?.find((x) => x.nom === donnee);
+            const horsV = horsVersion(versions, version, d?.version) || horsVersion(versions, version, plan.noeuds.find((x) => x.id === cible)?.version);
             const debut = actif ? (a.double ? 'url(#fleche-debut)' : 'url(#point)') : undefined;
-            return <path key={a.id} d={trace(a.points)} class={`lien-schema ${a.liste ? 'vers-liste' : ''} ${actif ? '' : 'pale'}`}
+            return <path key={a.id} d={trace(a.points)} class={`lien-schema ${a.liste ? 'vers-liste' : ''} ${actif ? '' : 'pale'} ${horsV ? 'hors-version' : ''}`}
               marker-start={a.liste ? undefined : debut} marker-end={actif ? (a.liste ? 'url(#fleche-liste)' : 'url(#fleche)') : 'url(#fleche-pale)'} />;
           })}
         </svg>
         {plan.noeuds.map((n) => (
-          <Brique key={n.id} n={n} choisi={choisi === n.id} attenue={(choisi && choisi !== n.id && !voisins.has(n.id)) || !correspond(n)} choisir={choisir} />
+          <Brique key={n.id} n={n} choisi={choisi === n.id} attenue={(choisi && choisi !== n.id && !voisins.has(n.id)) || !correspond(n)} choisir={choisir}
+            versions={versions} version={version} marque={marques[n.id]} />
         ))}
       </div>
       <div class="schema-outils" onMouseDown={(e) => e.stopPropagation()}>
@@ -217,17 +239,22 @@ function Schema({ entites, listes, choisi, choisir, filtre }) {
         <span class="pilule pilule-lien"><Link2 size={14} /> Lien vers une entité</span>
         <span class="pilule"><b>[ ]</b> Plusieurs</span>
         <span class="pilule"><em>optionnel</em></span>
+        <span class="pilule"><Scale size={13} /> Règle</span>
+        {version !== 'toutes' && versions.length > 0 && <span class="pilule pilule-hors">Après {nomVersion(versions, version)}</span>}
       </div>
     </div>
   );
 }
 
-function Fiche({ el, tout, choisir, aller, fermer }) {
+function Fiche({ el, tout, choisir, aller, fermer, modifier, versions, projet, lance }) {
   if (!el) return null;
   const liste = el.genre === 'liste';
+  const nomV = (v) => versions.find((x) => x.id === v)?.nom || v;
   return (
     <aside class="fiche" onMouseDown={(e) => e.stopPropagation()}>
-      <div class="ligne"><span class="petit doux espace">{liste ? 'Liste de valeurs' : 'Entité'}</span><button class="bouton icone" aria-label="Fermer" onClick={fermer}><X size={15} /></button></div>
+      <div class="ligne"><span class="petit doux espace">{liste ? 'Liste de valeurs' : 'Entité'}{el.version && ` · ${nomV(el.version)}`}</span>
+        <button class="bouton" onClick={modifier}><Pencil size={14} /> Modifier</button>
+        <button class="bouton icone" aria-label="Fermer" onClick={fermer}><X size={15} /></button></div>
       <h2>{el.nom}</h2>
       {el.description && <p class="doux">{el.description}</p>}
       {!liste && (
@@ -237,13 +264,14 @@ function Fiche({ el, tout, choisir, aller, fermer }) {
           {el.donnees.map((d) => (
             <div key={d.nom} class="fiche-donnee">
               <div class="ligne" style="gap:6px"><strong>{d.libelle}</strong>
-                {d.multiple && <span class="badge b-gris">plusieurs</span>}{d.optionnel && <span class="badge b-gris">optionnel</span>}</div>
+                {d.multiple && <span class="badge b-gris">plusieurs</span>}{d.optionnel && <span class="badge b-gris">optionnelle</span>}
+                {d.version_propre && <span class="pastille-version">{nomV(d.version_propre)}</span>}</div>
               <span class="petit doux">
                 {d.cible ? <>{d.cible_genre === 'liste' ? 'Valeur de la liste ' : 'Désigne '}<button class="lien" onClick={() => choisir(d.cible)}>{d.cible_nom}</button></> : TYPES[d.type] || d.type}
                 {d.valeurs.length > 0 && ` : ${d.valeurs.join(', ')}`}
               </span>
               {d.description && <span class="petit">{d.description}</span>}
-              {d.regles.length > 0 && <span class="petit">Utilisée par {d.regles.length} règle{d.regles.length > 1 ? 's' : ''}</span>}
+              {d.regles.map((r) => <span key={r.id} class="petit ligne" style="gap:4px;color:#4338CA"><Scale size={12} /> {r.titre}</span>)}
             </div>
           ))}
         </section>
@@ -252,7 +280,7 @@ function Fiche({ el, tout, choisir, aller, fermer }) {
         <section class="pile" style="gap:4px">
           <h3>Valeurs</h3>
           {lignesListe(el).map((l, i) => (l.entete ? <span key={i} class="petit doux" style="margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">{l.groupe}</span>
-            : <span key={i}>{l.nom}{l.note && <span class="doux petit"> · {l.note}</span>}</span>))}
+            : <span key={i}>{l.nom}{l.note && <span class="doux petit"> · {l.note}</span>}{l.version && l.version !== el.version && <span class="pastille-version" style="margin-left:6px">{nomV(l.version)}</span>}</span>))}
         </section>
       )}
       {!liste && el.cycle.length > 0 && (
@@ -273,6 +301,7 @@ function Fiche({ el, tout, choisir, aller, fermer }) {
         {el.utilisee_par.length === 0 && <p class="doux">Aucune autre entité n'y fait référence.</p>}
         {el.utilisee_par.map((u, i) => <button key={i} class="lien" style="justify-content:flex-start" onClick={() => choisir(u.id)}>{tout[u.id]?.nom || u.nom} <span class="doux petit">· {u.donnee}</span></button>)}
       </section>
+      <section class="encadre-watson"><DemandeWatson projet={projet} element={el.id} nomElement={el.nom} lance={lance} /></section>
     </aside>
   );
 }
@@ -324,39 +353,91 @@ function VueListe({ entites, listes, acteurs, choisir, filtre }) {
 }
 
 export function Referentiels({ projet, aller }) {
-  const { donnees: d, erreur } = useVue(`/projets/${projet.id}/referentiels`);
+  const { donnees: base, erreur, recharger } = useVue(`/projets/${projet.id}/referentiels`);
   const { donnees: cat } = useVue(`/projets/${projet.id}/catalogue`);
-  const [vue, setVue] = useState(() => { try { return localStorage.getItem('watson.referentiels.vue') || 'schema'; } catch { return 'schema'; } });
+  const lire = (k, defaut) => { try { return localStorage.getItem(k) || defaut; } catch { return defaut; } };
+  const ecrire = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sans importance */ } };
+  const [vue, setVue] = useState(() => lire('watson.referentiels.vue', 'schema'));
+  const [version, setVersion] = useState(() => lire(`watson.version.${projet.id}`, 'toutes'));
   const [choisi, setChoisi] = useState(null);
+  const [panneau, setPanneau] = useState(null); // null | {mode: 'edition', id, genre} | {mode: 'demande'} | {mode: 'versions'} | {mode: 'bilan', r}
+  const [lot, setLot] = useState(null);
+  const [apercu, setApercu] = useState(null);
   const [recherche, setRecherche] = useState('');
+  const d = apercu ? { ...apercu.referentiels } : base;
   const tout = useMemo(() => (d ? Object.fromEntries([...d.entites.map((e) => [e.id, { ...e, genre: 'entite' }]), ...d.listes.map((l) => [l.id, { ...l, genre: 'liste' }])]) : {}), [d]);
   if (!d) return <Attente erreur={erreur} />;
-  const changerVue = (v) => { setVue(v); try { localStorage.setItem('watson.referentiels.vue', v); } catch { /* sans importance */ } };
+  const versions = d.versions_produit || [];
+  const changerVue = (v) => { setVue(v); ecrire('watson.referentiels.vue', v); };
+  const changerVersion = (v) => { if (v === '__gerer') { setPanneau({ mode: 'versions' }); return; } setVersion(v); ecrire(`watson.version.${projet.id}`, v); };
   const filtre = recherche.trim().toLowerCase();
   const vide = d.entites.length === 0 && d.listes.length === 0;
+  const marques = apercu ? Object.fromEntries([...apercu.nouveaux.map((i) => [i, 'nouveau']), ...apercu.modifies.map((i) => [i, 'modifie'])]) : {};
+  const lancerLot = async (l) => {
+    setLot(l); setPanneau(null);
+    try { setApercu(await appel(`/projets/${projet.id}/alimenter/${l.id}/apercu`)); } catch { setApercu(null); }
+    setChoisi(null);
+  };
+  const finirLot = (r) => { setLot(null); setApercu(null); recharger(); setPanneau({ mode: 'bilan', r }); };
+  const abandonnerLot = async () => { await appel(`/projets/${projet.id}/alimenter/${lot.id}`, { methode: 'DELETE', corps: {} }).catch(() => {}); setLot(null); setApercu(null); };
+  const finiEdition = (id) => { setPanneau(null); recharger(); setChoisi(id); };
+
+  let cote = null;
+  if (lot) cote = <aside class="fiche"><LotEnCours projet={projet} lot={lot} fini={finirLot} abandonner={abandonnerLot} /></aside>;
+  else if (panneau?.mode === 'edition') cote = <aside class="fiche"><Edition key={panneau.id || panneau.genre} projet={projet} id={panneau.id} genre={panneau.genre} d={d} fini={finiEdition} annuler={() => setPanneau(null)} /></aside>;
+  else if (panneau?.mode === 'demande') cote = <aside class="fiche"><DemandeWatson projet={projet} lance={lancerLot} fermer={() => setPanneau(null)} /></aside>;
+  else if (panneau?.mode === 'versions') cote = <aside class="fiche"><GererVersions projet={projet} versions={versions} fini={() => { setPanneau(null); recharger(); }} fermer={() => setPanneau(null)} /></aside>;
+  else if (panneau?.mode === 'bilan') {
+    const r = panneau.r;
+    cote = (
+      <aside class="fiche"><div class="ligne" style="gap:10px;flex-wrap:nowrap"><Watson humeur="ecrit" hauteur={90} flotte={false} />
+        <span class="espace"><strong>C'est noté.</strong><br /><span class="petit doux">{r.envoye ? 'Envoyé sur GitHub, à ton nom.' : 'Partira sur GitHub à la prochaine synchronisation.'}</span></span>
+        <button class="bouton icone" aria-label="Fermer" onClick={() => setPanneau(null)}><X size={15} /></button></div>
+        {r.ecrits.map((e) => <span key={e.id} class="ligne petit"><Check size={14} color="#166534" /> {e.titre} <span class="doux">({e.action})</span></span>)}
+        {(r.retouches || []).map((t, i) => <p key={i} class="encart e-indigo petit">{t}</p>)}
+        {(r.refus || []).map((x, i) => <p key={i} class="encart e-orange petit">{x.titre} : {x.raison}</p>)}
+      </aside>
+    );
+  } else if (choisi && tout[choisi]) {
+    cote = <Fiche el={tout[choisi]} tout={tout} choisir={setChoisi} aller={aller} fermer={() => setChoisi(null)} versions={versions} projet={projet} lance={lancerLot}
+      modifier={() => setPanneau({ mode: 'edition', id: choisi, genre: tout[choisi].genre })} />;
+  }
+
   return (
     <div class="pile referentiels" style="gap:16px">
       <Entete titre="Référentiels" description="L'architecture de données du projet : les entités, les données qu'elles portent, les listes de valeurs et les liens entre elles.">
         <div class="ligne">
-          <label class="ligne saisie" style="gap:6px;min-height:36px"><Search size={15} /><input style="border:0;outline:none;width:170px" placeholder="Chercher une donnée" value={recherche} onInput={(e) => setRecherche(e.target.value)} /></label>
+          <label class="ligne saisie" style="gap:6px;min-height:36px"><Search size={15} /><input style="border:0;outline:none;width:150px" placeholder="Chercher une donnée" value={recherche} onInput={(e) => setRecherche(e.target.value)} /></label>
+          <select class="saisie" value={version} onChange={(e) => changerVersion(e.target.value)} title="Version produit" aria-label="Version produit">
+            <option value="toutes">Toutes les versions</option>
+            {versions.map((v) => <option key={v.id} value={v.id}>Version {v.nom}</option>)}
+            <option value="__gerer">{versions.length ? 'Gérer les versions…' : 'Définir des versions (MVP, V2…)'}</option>
+          </select>
           <div class="segments">
             <button class={`segment ${vue === 'schema' ? 'actif' : ''}`} onClick={() => changerVue('schema')}><IconeSchema size={14} /> Schéma</button>
             <button class={`segment ${vue === 'liste' ? 'actif' : ''}`} onClick={() => changerVue('liste')}><LayoutList size={14} /> Liste</button>
           </div>
         </div>
       </Entete>
-      {vide ? (
+      <div class="ligne barre-edition">
+        <button class="bouton" disabled={!!lot} onClick={() => { setChoisi(null); setPanneau({ mode: 'edition', genre: 'entite' }); }}><Plus size={15} /> Entité</button>
+        <button class="bouton" disabled={!!lot} onClick={() => { setChoisi(null); setPanneau({ mode: 'edition', genre: 'liste' }); }}><Plus size={15} /> Liste de valeurs</button>
+        <button class="bouton bouton-watson" disabled={!!lot} onClick={() => { setChoisi(null); setPanneau({ mode: 'demande' }); }}><Sparkles size={15} /> Demander à Watson</button>
+        {lot && <span class="badge b-violet">Aperçu : les changements proposés sont marqués sur le schéma</span>}
+      </div>
+      {vide && !cote ? (
         <div class="vide pile" style="align-items:center"><Watson humeur="note" hauteur={180} />
-          <span>Aucune entité pour l'instant. Donne-moi une spécification ou un schéma de données dans Alimenter, je t'en propose le modèle.</span>
-          <button class="bouton principal-b" onClick={() => aller('alimenter')}>Alimenter le projet</button></div>
+          <span>Aucune entité pour l'instant. Crée-en une, demande-moi de le faire, ou donne-moi une spécification dans Alimenter.</span>
+          <div class="ligne"><button class="bouton principal-b" onClick={() => setPanneau({ mode: 'demande' })}><Sparkles size={15} /> Demander à Watson</button>
+            <button class="bouton" onClick={() => aller('alimenter')}>Alimenter le projet</button></div></div>
       ) : (
         <div class="ligne" style="align-items:stretch;gap:14px;flex-wrap:nowrap;flex:1;min-height:0">
           <div style={`flex:1;min-width:0;display:flex;flex-direction:column;${vue === 'liste' ? 'overflow:auto' : ''}`}>
             {vue === 'schema'
-              ? <Schema entites={d.entites} listes={d.listes} choisi={choisi} choisir={setChoisi} filtre={filtre} />
-              : <VueListe entites={d.entites} listes={d.listes} acteurs={cat?.acteurs} choisir={setChoisi} filtre={filtre} />}
+              ? <Schema entites={d.entites} listes={d.listes} choisi={choisi} choisir={(id) => { setChoisi(id); if (id && !lot) setPanneau(null); }} filtre={filtre} versions={versions} version={version} marques={marques} />
+              : <VueListe entites={d.entites} listes={d.listes} acteurs={cat?.acteurs} choisir={(id) => { setChoisi(id); setPanneau(null); }} filtre={filtre} />}
           </div>
-          {choisi && tout[choisi] && <Fiche el={tout[choisi]} tout={tout} choisir={setChoisi} aller={aller} fermer={() => setChoisi(null)} />}
+          {cote}
         </div>
       )}
     </div>

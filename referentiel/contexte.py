@@ -77,6 +77,11 @@ def generer_contexte(p: Projet, sections: list[str] | None = None, trous=None, i
     if m.get("description"):
         l += [m["description"], ""]
 
+    if p.meta.get("versions_produit"):
+        l.append("Versions produit, dans l'ordre : " + ", ".join(f"{v['nom']} [{v['id']}]" for v in p.meta["versions_produit"])
+                 + ". Un élément sans version n'est rattaché à aucune en particulier.")
+        l.append("")
+
     if "glossaire" in sections and m.get("glossaire"):
         l.append("## Glossaire")
         l += [f"- {g.get('terme')} : {g.get('definition', '')}" for g in m["glossaire"]]

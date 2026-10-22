@@ -62,11 +62,11 @@ def test_parcours_complet(serveur):
     p = appel(base, "/api/projets", {"depot": "wandabardey/fret-connaissance"})
     assert p["id"] == "wandabardey-fret-connaissance"
     liste = appel(base, "/api/projets")["projets"]
-    assert liste[0]["nom"].startswith("Fret") and liste[0]["regles"] == 7
+    assert liste[0]["nom"].startswith("Fret") and liste[0]["regles"] == 8
 
     pid = p["id"]
     s = appel(base, f"/api/projets/{pid}/synthese")
-    assert s["compteurs"]["regles"] == 7 and s["versions"]["derniere"] == "1.0" and s["points"]
+    assert s["compteurs"]["regles"] == 8 and s["versions"]["derniere"] == "1.0" and s["points"]
     c = appel(base, f"/api/projets/{pid}/catalogue")
     exp = next(e for e in c["entites"] if e["id"] == "ENT-EXPEDITION")
     assert exp["nom"] == "Expédition" and any(a["nom"] == "marchandise_dangereuse" and a["regles"] for a in exp["attributs"])
@@ -159,7 +159,7 @@ def test_accueil_nouveautes_depuis_la_visite(serveur, tmp_path):
     base, nu = serveur
     pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
     a = appel(base, "/api/accueil")["projets"][0]
-    assert a["regles"] == 7 and a["derniere"]["message"] == "Projet fret" and a["nouveautes"]["total"] == 0
+    assert a["regles"] == 8 and a["derniere"]["message"] == "Projet fret" and a["nouveautes"]["total"] == 0
     appel(base, f"/api/projets/{pid}/visite", {})
     time.sleep(1.1)
     # Paul enregistre ailleurs une question ouverte, puis on synchronise
@@ -191,3 +191,85 @@ def test_vue_referentiels(serveur):
     assert paiement["valeurs"][0]["groupe"] == "Traçable" and paiement["utilisee_par"][0]["id"] == "ENT-EXPEDITEUR"
     # Le workflow ne garde que les entités qui ont un cycle de vie
     assert [e["id"] for e in appel(base, f"/api/projets/{pid}/workflow")["entites"]] == ["ENT-EXPEDITION"]
+
+
+def test_editer_un_element(serveur):
+    base, nu = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    lieu = appel(base, f"/api/projets/{pid}/elements/ENT-LIEU")
+    assert lieu["type"] == "entite" and lieu["contenu"]["nom"] == "Lieu"
+    c = lieu["contenu"]
+    c["attributs"].append({"nom": "code_iata", "libelle": "Code IATA", "type": "texte", "optionnel": True})
+    r = appel(base, f"/api/projets/{pid}/elements", {"type": "entite", "contenu": c})
+    assert r["envoye"]
+    log = subprocess.run(["git", "-C", str(nu), "log", "-1", "--format=%an|%s"], capture_output=True, text=True).stdout.strip()
+    assert log == "Wanda Bardey|Modification : Lieu"
+    v = appel(base, f"/api/projets/{pid}/referentiels")
+    assert any(d["nom"] == "code_iata" and d["optionnel"] for d in next(e for e in v["entites"] if e["id"] == "ENT-LIEU")["donnees"])
+    # Création, puis suppression refusée tant qu'elle est citée
+    appel(base, f"/api/projets/{pid}/elements", {"type": "entite", "contenu": {"id": "ENT-VEHICULE", "nom": "Véhicule",
+          "attributs": [{"nom": "societe", "libelle": "Société", "type": "reference", "cible": "ENT-SOCIETE"}]}})
+    with pytest.raises(urllib.error.HTTPError) as e:
+        appel(base, f"/api/projets/{pid}/elements/ENT-SOCIETE", {}, methode="DELETE")
+    assert "Encore utilisé par" in json.loads(e.value.read())["erreur"]
+    appel(base, f"/api/projets/{pid}/elements/ENT-VEHICULE", {}, methode="DELETE")
+    assert "ENT-VEHICULE" not in {e["id"] for e in appel(base, f"/api/projets/{pid}/referentiels")["entites"]}
+
+
+def test_demande_de_modification_et_apercu(serveur, monkeypatch):
+    base, nu = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    vus = {}
+
+    async def lire(systeme, message, requete=None):
+        vus["systeme"], vus["message"] = systeme, message
+        return {"resume": "Ajout du véhicule.", "propositions": [
+            {"type": "entite", "action": "creer", "titre": "Véhicule", "pourquoi": "Demandé.", "conflit": "",
+             "citation": {"document": "DOC-1", "extrait": "ajoute un véhicule"},
+             "contenu": {"id": "ENT-VEHICULE", "nom": "Véhicule", "attributs": [
+                 {"nom": "immatriculation", "libelle": "Immatriculation", "type": "texte"},
+                 {"nom": "societe", "libelle": "Société", "type": "reference", "cible": "ENT-SOCIETE"}]}}]}
+
+    monkeypatch.setattr("referentiel.alimentation._lire_par_claude", lire)
+    lot = appel(base, f"/api/projets/{pid}/modifier", {"consigne": "Ajoute un véhicule rattaché à la société", "element": "ENT-SOCIETE"})
+    assert "MODE MODIFICATION" in vus["systeme"] and "[ENT-SOCIETE]" in vus["systeme"] and lot["mode"] == "consigne"
+    ap = appel(base, f"/api/projets/{pid}/alimenter/{lot['id']}/apercu")
+    assert ap["nouveaux"] == ["ENT-VEHICULE"] and "ENT-VEHICULE" in {e["id"] for e in ap["referentiels"]["entites"]}
+    soc = next(e for e in ap["referentiels"]["entites"] if e["id"] == "ENT-SOCIETE")
+    assert "ENT-VEHICULE" in {u["id"] for u in soc["utilisee_par"]}
+    r = appel(base, f"/api/projets/{pid}/alimenter/{lot['id']}/appliquer", {"decisions": [{"index": 0, "accepte": True}]})
+    assert r["envoye"] and r["message"].startswith("Modification : Ajoute un véhicule") and r["sources"] == []
+    fichiers = subprocess.run(["git", "-C", str(nu), "show", "--name-only", "--format=%s", "HEAD"], capture_output=True, text=True).stdout
+    assert "entites/ENT-VEHICULE.yaml" in fichiers and "sources/" not in fichiers
+
+
+def test_regle_qui_porte_sur_une_donnee(tmp_path):
+    from referentiel.chargement import charger
+    from referentiel.controles import analyser
+    racine = tmp_path / "fret"
+    shutil.copytree(FRET, racine, ignore=shutil.ignore_patterns("sortie"))
+    (racine / "regles" / "RG-050.yaml").write_text(
+        "id: RG-050\ntitre: SIRET sur 14 chiffres\nstatut: validee\ntype: contrainte\nenonce: Le SIRET compte 14 chiffres.\n"
+        "porte_sur: [ENT-SOCIETE.siret, ENT-EXPEDITEUR.siret, ENT-SOCIETE.inexistant]\n", encoding="utf-8")
+    p = charger(racine)
+    assert not p.erreurs
+    assert any("inexistant" in t.message for t in analyser(p))
+    _, par_donnee = api.regles_par_cible(p)
+    assert "RG-050" in {r["id"] for r in par_donnee[("ENT-SOCIETE", "siret")]} and ("ENT-EXPEDITEUR", "siret") in par_donnee
+
+
+def test_versions_produit(serveur):
+    base, _ = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    v = appel(base, f"/api/projets/{pid}/referentiels")
+    assert [x["id"] for x in v["versions_produit"]] == ["MVP", "V2"]
+    pers = next(e for e in v["entites"] if e["id"] == "ENT-PERSONNE")
+    assert pers["version"] == "V2" and all(d["version"] == "V2" for d in pers["donnees"])  # les données héritent
+    exp = next(e for e in v["entites"] if e["id"] == "ENT-EXPEDITEUR")
+    assert next(d for d in exp["donnees"] if d["nom"] == "telephone")["version"] == "V2"
+    # Ajouter une V3 ; retirer V2 est refusé tant qu'elle est portée
+    appel(base, f"/api/projets/{pid}/versions-produit", {"versions": v["versions_produit"] + [{"id": "V3", "nom": "V3"}]})
+    with pytest.raises(urllib.error.HTTPError) as e:
+        appel(base, f"/api/projets/{pid}/versions-produit", {"versions": [{"id": "MVP", "nom": "MVP"}]})
+    assert "encore portée" in json.loads(e.value.read())["erreur"]
+    assert [x["id"] for x in appel(base, f"/api/projets/{pid}/referentiels")["versions_produit"]] == ["MVP", "V2", "V3"]

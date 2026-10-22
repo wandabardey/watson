@@ -199,3 +199,28 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .pilule-lien { background: #F5F6FF; border-color: #C7CBF6; color: #4338CA; }
 .fiche { flex: 0 0 340px; overflow: auto; background: #fff; border-radius: 16px; box-shadow: 0 0 0 1px var(--bord); padding: 18px; display: flex; flex-direction: column; gap: 16px; }
 .fiche-donnee { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: #FAFAFC; }
+
+/* Édition, versions, aperçu */
+.barre-edition { gap: 8px; margin-top: -6px; }
+.bouton-watson { background: linear-gradient(135deg, #EEF2FF, #FAF5FF); color: var(--indigo-fonce); border-color: #C7D2FE; font-weight: 600; }
+.bouton.danger { background: #FEF2F2; border-color: #FCA5A5; color: #991B1B; }
+.ligne-edition { padding: 10px; border-radius: 12px; background: #FAFAFC; box-shadow: inset 0 0 0 1px #EEEEF4; }
+.edition select.saisie, .ligne-edition select.saisie { min-height: 34px; padding: 0 8px; font-size: 13px; }
+.ligne-edition input.saisie { min-height: 34px; font-size: 13.5px; }
+.encadre-watson { margin-top: 4px; padding: 14px; border-radius: 14px; background: linear-gradient(160deg, #F5F3FF, #FFF7ED); }
+.proposition-courte { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 12px; background: #FAFAFC; cursor: pointer; }
+.proposition-courte.ecartee { opacity: .5; }
+.pastille-version { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 999px; background: #F3F4F6; border: 1px dashed #A1A1AA; font-size: 10.5px; font-weight: 700; color: #52525B; white-space: nowrap; font-style: normal; letter-spacing: .02em; }
+.pastille-regle { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 999px; background: #EEF0FF; color: #4338CA; font-size: 10.5px; font-weight: 700; font-style: normal; }
+.pastille-marque { padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+.pastille-marque.nouveau { background: #DCFCE7; color: #166534; }
+.pastille-marque.modifie { background: #F3E8FF; color: #7E22CE; }
+.brique.marque-nouveau { border: 2px solid #22C55E; box-shadow: 0 0 0 5px rgba(34,197,94,.14), 0 10px 26px rgba(22,101,52,.1); }
+.brique.marque-modifie { border: 2px solid #A855F7; box-shadow: 0 0 0 5px rgba(168,85,247,.14), 0 10px 26px rgba(126,34,206,.1); }
+.brique.hors-version { border-style: dashed; border-color: #B8B8C6; background: #FBFBFD; box-shadow: none; }
+.brique.hors-version .brique-icone { background: #F1F1F5; color: #9CA3AF; }
+.brique.hors-version .brique-titre { color: #6B7280; }
+.brique-ligne.hors-version { color: #A1A1AA; font-style: italic; }
+.brique-ligne.hors-version .brique-cible { opacity: .6; }
+.lien-schema.hors-version { stroke: #B8B8C6; stroke-dasharray: 4 5; }
+.pilule-hors { border-style: dashed; color: #6B7280; }

@@ -272,3 +272,87 @@ def creer_projet(dossier, ident: str, nom: str, description: str = "À compléte
     (racine / "trous.yaml").write_text("[]\n", encoding="utf-8")
     (racine / ".gitignore").write_text("sortie/\n", encoding="utf-8")
     return {"projet": str(racine.resolve()), "id": ident, "nom": nom}
+
+
+def references(p: Projet, ident: str) -> list[dict]:
+    """Ce qui, dans la base, fait référence à cet élément (avant de le supprimer, par exemple)."""
+    trouves = []
+
+    def ajout(el, comment):
+        trouves.append({"id": el["id"], "nom": el.get("titre") or el.get("nom") or el["id"], "comment": comment})
+
+    for e in p.entites.values():
+        for a in e.get("attributs") or []:
+            if a.get("cible") == ident and e["id"] != ident:
+                ajout(e, f"sa donnée « {a.get('libelle') or a['nom']} »")
+        for tr in e.get("transitions") or []:
+            if ident in (tr.get("regles") or []) or ident in (tr.get("acteurs") or []):
+                ajout(e, f"l'étape « {tr.get('nom', tr['id'])} »")
+    for r in p.regles.values():
+        if r["id"] != ident and (r.get("entite") == ident or any(c.split(".")[0] == ident for c in r.get("porte_sur") or [])):
+            ajout(r, "porte sur lui")
+    for uc in p.cas_usage.values():
+        if uc.get("acteur_principal") == ident or any(ident in (et.get("acteur"), et.get("ecran"), et.get("transition")) for et in uc.get("etapes") or []):
+            ajout(uc, "une de ses étapes")
+    for ec in p.ecrans.values():
+        if ec["id"] != ident and (ident in (ec.get("acteurs") or []) or ident in str(ec.get("routages") or "") or ident in (ec.get("regles") or [])):
+            ajout(ec, "le cite")
+    return trouves
+
+
+def supprimer_element(racine, ident: str) -> dict:
+    """Supprime un élément s'il n'est plus cité nulle part ; sinon dit qui le cite."""
+    p = charger(racine)
+    if ident not in p.fichiers:
+        raise ErreurEcriture("Élément inconnu.")
+    refs = references(p, ident)
+    if refs:
+        raise ErreurEcriture("Encore utilisé par : " + " ; ".join(f"{r['nom']} ({r['comment']})" for r in refs[:6])
+                             + ". Retirer ces liens d'abord.")
+    chemin = p.racine / p.fichiers[ident]
+    ancien = chemin.read_text(encoding="utf-8")
+    chemin.unlink()
+    apres = charger(racine)
+    if apres.erreurs:
+        chemin.write_text(ancien, encoding="utf-8")
+        raise ErreurEcriture("La base serait devenue invalide, rien n'a été supprimé.")
+    return {"supprime": ident}
+
+
+def lire_element(racine, ident: str) -> dict:
+    """L'élément tel qu'il est écrit (sans son historique), et son type."""
+    p = charger(racine)
+    if ident not in p.fichiers:
+        raise ErreurEcriture("Élément inconnu.")
+    dossier = p.fichiers[ident].split("/")[0]
+    type_element = next(t for t, (d, _) in TYPES.items() if d == dossier)
+    with (p.racine / p.fichiers[ident]).open(encoding="utf-8") as f:
+        from .chargement import _Chargeur
+        contenu = yaml.load(f, Loader=_Chargeur)
+    contenu.pop("historique", None)
+    return {"type": type_element, "contenu": contenu}
+
+
+def enregistrer_versions_produit(racine, versions: list[dict]) -> dict:
+    """Déclare les versions produit (MVP, V2…) dans projet.yaml, dans l'ordre de livraison. Une version encore
+    portée par un élément ne peut pas être retirée."""
+    p = charger(racine)
+    ids = [v.get("id") for v in versions]
+    if len(set(ids)) != len(ids):
+        raise ErreurEcriture("Deux versions portent le même identifiant.")
+    retirees = {v["id"] for v in p.meta.get("versions_produit") or []} - set(ids)
+    for col in (p.entites, p.listes, p.regles, p.ecrans, p.cas_usage):
+        for el in col.values():
+            utilisees = {el.get("version")} | {a.get("version") for a in el.get("attributs") or []} | \
+                {v.get("version") for v in (el.get("valeurs") or []) if isinstance(v, dict)}
+            if utilisees & retirees:
+                raise ErreurEcriture(f"La version « {', '.join(utilisees & retirees)} » est encore portée par « {el.get('nom') or el.get('titre')} ».")
+    meta = dict(p.meta)
+    meta["versions_produit"] = [{k: v[k] for k in ("id", "nom", "description", "date") if v.get(k)} for v in versions]
+    if not meta["versions_produit"]:
+        meta.pop("versions_produit")
+    errs = erreurs_schema(meta, schemas.PROJET)
+    if errs:
+        raise ErreurEcriture("Versions invalides : " + "; ".join(m for _, m in errs))
+    _ecrire_transaction(p.racine, {p.racine / "projet.yaml": dump(meta)})
+    return {"versions_produit": meta.get("versions_produit", [])}

@@ -6,4 +6,4 @@ attributs:
   - {nom: adresse, libelle: Adresse, type: texte}
   - {nom: modes_paiement, libelle: Modes de paiement, type: liste, cible: LST-MODE-PAIEMENT, multiple: true}
   - {nom: siret, libelle: N° SIRET, type: texte, optionnel: true}
-  - {nom: telephone, libelle: Téléphone, type: texte, optionnel: true}
+  - {nom: telephone, libelle: Téléphone, type: texte, optionnel: true, version: V2}

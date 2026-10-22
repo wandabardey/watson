@@ -7,4 +7,4 @@ valeurs:
   - {nom: RIB, groupe: Traçable, note: IBAN / BIC ou pièce jointe}
   - {nom: Espèces, groupe: Non traçable}
   - {nom: Carte bleue prépayée, groupe: Non traçable}
-  - {nom: Virement bancaire anonyme, groupe: Non traçable}
+  - {nom: Virement bancaire anonyme, groupe: Non traçable, version: V2}

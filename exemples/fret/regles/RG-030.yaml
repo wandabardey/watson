@@ -1,0 +1,12 @@
+id: RG-030
+titre: N° SIRET sur 14 chiffres
+statut: validee
+type: contrainte
+entite: ENT-SOCIETE
+enonce: Un numéro SIRET compte exactement 14 chiffres ; un numéro mal formé est refusé à la saisie.
+source: Atelier référentiels du 2026-10-15
+porte_sur: [ENT-SOCIETE.siret, ENT-EXPEDITEUR.siret]
+historique:
+  - date: 2026-10-15
+    auteur: Wanda Bardey
+    changement: Création

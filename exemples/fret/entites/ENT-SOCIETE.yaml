@@ -7,4 +7,4 @@ attributs:
   - {nom: lieux, libelle: Lieux, type: reference, cible: ENT-LIEU, multiple: true}
   - {nom: siret, libelle: N° SIRET, type: texte}
   - {nom: agrement, libelle: Agrément, type: reference, cible: ENT-AGREMENT, optionnel: true}
-  - {nom: personnes, libelle: Personnes, type: reference, cible: ENT-PERSONNE, multiple: true}
+  - {nom: personnes, libelle: Personnes, type: reference, cible: ENT-PERSONNE, multiple: true, version: V2}

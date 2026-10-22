@@ -12,6 +12,8 @@ ID = {"type": "string", "pattern": r"^[A-Z0-9][A-Z0-9_-]*$"}
 DATE = {"type": "string", "pattern": r"^\d{4}-\d{2}-\d{2}$"}
 TEXTE = {"type": "string", "minLength": 1}
 LISTE_ID = {"type": "array", "items": ID}
+# Version produit (MVP, V2…) à laquelle un élément appartient ; déclarée dans projet.yaml (versions_produit).
+VERSION = {"type": "string", "pattern": r"^[A-Za-z0-9][A-Za-z0-9._-]*$"}
 
 HISTORIQUE = {
     "type": "array",
@@ -35,6 +37,16 @@ PROJET = {
         "id": ID,
         "nom": TEXTE,
         "description": TEXTE,
+        # Versions produit, dans l'ordre de livraison : MVP, V2… Chaque élément peut en porter une (« version »).
+        "versions_produit": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "nom"],
+                "properties": {"id": VERSION, "nom": TEXTE, "description": TEXTE, "date": DATE},
+                "additionalProperties": False,
+            },
+        },
         "glossaire": {
             "type": "array",
             "items": {
@@ -85,6 +97,7 @@ ATTRIBUT = {
         "cible": ID,
         "multiple": {"type": "boolean"},   # plusieurs valeurs possibles
         "optionnel": {"type": "boolean"},
+        "version": VERSION,
         "description": TEXTE,
     },
     "additionalProperties": False,
@@ -99,6 +112,7 @@ ENTITE = {
         "id": ID,
         "nom": TEXTE,
         "description": TEXTE,
+        "version": VERSION,
         "attributs": {"type": "array", "items": ATTRIBUT},
         "statut_initial": ID,
         "statuts": {
@@ -112,6 +126,7 @@ ENTITE = {
                     "nom": TEXTE,
                     "description": TEXTE,
                     "final": {"type": "boolean"},
+                    "version": VERSION,
                 },
                 "additionalProperties": False,
             },
@@ -130,6 +145,7 @@ ENTITE = {
                     "regles": LISTE_ID,
                     "condition": TEXTE,
                     "applications": LISTE_ID,
+                    "version": VERSION,
                 },
                 "additionalProperties": False,
             },
@@ -145,13 +161,14 @@ LISTE = {
         "id": ID,
         "nom": TEXTE,
         "description": TEXTE,
+        "version": VERSION,
         "valeurs": {
             "type": "array",
             "minItems": 1,
             "items": {
                 "type": "object",
                 "required": ["nom"],
-                "properties": {"nom": TEXTE, "note": TEXTE, "groupe": TEXTE},
+                "properties": {"nom": TEXTE, "note": TEXTE, "groupe": TEXTE, "version": VERSION},
                 "additionalProperties": False,
             },
         },
@@ -172,6 +189,10 @@ REGLE = {
         "source": TEXTE,
         "remplace": ID,
         "applications": LISTE_ID,
+        "version": VERSION,
+        # Ce sur quoi la règle porte : une entité, une de ses données (ENT-SOCIETE.siret), une étape
+        # (transition), un écran ou un parcours. « entite » reste le rattachement principal.
+        "porte_sur": {"type": "array", "items": {"type": "string", "pattern": r"^[A-Z0-9][A-Z0-9_-]*(\.[a-z][a-z0-9_]*)?$"}},
         # Table de décision : conditions croisées et résultat de chaque ligne.
         "conditions": {
             "type": "array",
@@ -208,6 +229,7 @@ CAS_USAGE = {
         "nom": TEXTE,
         "description": TEXTE,
         "acteur_principal": ID,
+        "version": VERSION,
         "etapes": {
             "type": "array",
             "minItems": 1,
@@ -236,6 +258,7 @@ ECRAN = {
         "description": TEXTE,
         "acteurs": LISTE_ID,
         "applications": LISTE_ID,
+        "version": VERSION,
         "captures": {
             "type": "array",
             "items": {

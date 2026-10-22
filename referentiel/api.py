@@ -99,12 +99,30 @@ def vue_catalogue(p) -> dict:
     return {"entites": entites, "acteurs": acteurs, "glossaire": p.meta.get("glossaire") or []}
 
 
+def regles_par_cible(p) -> tuple:
+    """Règles rattachées à chaque entité et à chaque donnée (entité, nom) : par « entite », par les conditions d'une
+    table de décision, et par « porte_sur »."""
+    par_entite, par_donnee = {}, {}
+    for rid, r in p.regles.items():
+        info = {"id": rid, "titre": r["titre"], "statut": r["statut"]}
+        entites = set()
+        if r.get("entite"):
+            entites.add(r["entite"])
+            for c in r.get("conditions") or []:
+                par_donnee.setdefault((r["entite"], c.get("attribut")), []).append(info)
+        for cible in r.get("porte_sur") or []:
+            ident, _, donnee = cible.partition(".")
+            entites.add(ident)
+            if donnee and info not in par_donnee.get((ident, donnee), []):
+                par_donnee.setdefault((ident, donnee), []).append(info)
+        for e in entites:
+            par_entite.setdefault(e, []).append(info)
+    return par_entite, par_donnee
+
+
 def vue_referentiels(p) -> dict:
     """Architecture de données : entités, données (avec liens vers d'autres entités ou listes), listes de valeurs."""
-    regles_par_attribut = {}
-    for rid, r in p.regles.items():
-        for c in r.get("conditions") or []:
-            regles_par_attribut.setdefault(c.get("attribut"), []).append({"id": rid, "titre": r["titre"], "statut": r["statut"]})
+    regles_entite, regles_donnee = regles_par_cible(p)
     utilisations = {}
     for eid, e in p.entites.items():
         for a in e.get("attributs") or []:
@@ -117,22 +135,24 @@ def vue_referentiels(p) -> dict:
     entites = []
     for eid, e in p.entites.items():
         entites.append({
-            "id": eid, "nom": e["nom"], "description": e.get("description", ""),
+            "id": eid, "nom": e["nom"], "description": e.get("description", ""), "version": e.get("version"),
             "donnees": [{
                 "nom": a["nom"], "libelle": a.get("libelle") or a["nom"], "type": a["type"], "description": a.get("description", ""),
                 "cible": a.get("cible"), "cible_nom": nom_cible(a["cible"]) if a.get("cible") else None,
                 "cible_genre": ("entite" if a.get("cible") in p.entites else "liste" if a.get("cible") in p.listes else "inconnue") if a.get("cible") else None,
                 "multiple": bool(a.get("multiple")), "optionnel": bool(a.get("optionnel")), "valeurs": a.get("valeurs") or [],
-                "regles": regles_par_attribut.get(a["nom"], []),
+                "version": a.get("version") or e.get("version"), "version_propre": a.get("version"),
+                "regles": regles_donnee.get((eid, a["nom"]), []),
             } for a in e.get("attributs") or []],
             "cycle": [{"id": s["id"], "nom": s.get("nom", s["id"])} for s in e.get("statuts", [])],
             "actions": len(e.get("transitions", [])),
-            "regles": [{"id": rid, "titre": r["titre"], "statut": r["statut"]} for rid, r in p.regles.items() if r.get("entite") == eid],
+            "regles": regles_entite.get(eid, []),
             "utilisee_par": utilisations.get(eid, []),
         })
-    listes = [{"id": lid, "nom": li["nom"], "description": li.get("description", ""), "valeurs": li["valeurs"],
+    listes = [{"id": lid, "nom": li["nom"], "description": li.get("description", ""), "version": li.get("version"),
+               "valeurs": [{**v, "version": v.get("version") or li.get("version")} for v in li["valeurs"]],
                "utilisee_par": utilisations.get(lid, [])} for lid, li in p.listes.items()]
-    return {"entites": entites, "listes": listes}
+    return {"entites": entites, "listes": listes, "versions_produit": p.meta.get("versions_produit") or []}
 
 
 def vue_workflow(p) -> dict:
@@ -218,6 +238,9 @@ def _alimenter(methode, pid, reste, corps):
         return alimentation.analyser(pid, racine, corps.get("documents") or [])
     if methode == "GET" and len(reste) == 1:
         return alimentation.lire_lot(pid, reste[0])
+    if methode == "GET" and len(reste) == 2 and reste[1] == "apercu":
+        changes, p = alimentation.apercu(pid, racine, reste[0])
+        return {**changes, "referentiels": vue_referentiels(p)}
     if methode == "DELETE" and len(reste) == 1:
         alimentation.abandonner(pid, reste[0])
         return {"ok": True}
@@ -225,6 +248,29 @@ def _alimenter(methode, pid, reste, corps):
         compte = github.compte()
         r = alimentation.appliquer(pid, racine, reste[0], corps.get("decisions") or [], compte["nom"])
         return {**r, **application.enregistrer_et_envoyer(pid, r["message"])}
+    raise Erreur("Introuvable.", 404)
+
+
+def _elements(methode, pid, reste, corps):
+    """Édition directe d'un élément de la base, depuis l'application. Chaque changement part sur GitHub à ton nom."""
+    from .ecriture import lire_element, supprimer_element
+
+    racine = application.chemin(pid)
+    if methode == "GET" and len(reste) == 1:
+        return lire_element(racine, reste[0])
+    compte = github.compte()
+    if methode == "POST" and not reste:
+        type_element, contenu = corps.get("type"), corps.get("contenu") or {}
+        nouveau = contenu.get("id") not in charger(racine).fichiers
+        bilan = enregistrer_element(racine, type_element, contenu, compte["nom"], "Création" if nouveau else "Mise à jour",
+                                    corps.get("raison"))
+        nom = contenu.get("nom") or contenu.get("titre") or contenu.get("id")
+        envoi = application.enregistrer_et_envoyer(pid, f"{'Création' if nouveau else 'Modification'} : {nom}")
+        return {"bilan": bilan, **envoi}
+    if methode == "DELETE" and len(reste) == 1:
+        nom = lire_element(racine, reste[0])["contenu"].get("nom") or reste[0]
+        supprimer_element(racine, reste[0])
+        return application.enregistrer_et_envoyer(pid, f"Suppression : {nom}")
     raise Erreur("Introuvable.", 404)
 
 
@@ -293,6 +339,15 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return {"ok": True}
         if reste[:1] == ["alimenter"]:
             return _alimenter(methode, pid, reste[1:], corps)
+        if reste[:1] == ["elements"]:
+            return _elements(methode, pid, reste[1:], corps)
+        if methode == "POST" and reste == ["versions-produit"]:
+            from .ecriture import enregistrer_versions_produit
+            enregistrer_versions_produit(application.chemin(pid), corps.get("versions") or [])
+            return application.enregistrer_et_envoyer(pid, "Versions produit : " + ", ".join(v.get("nom", "") for v in corps.get("versions") or []))
+        if methode == "POST" and reste == ["modifier"]:
+            compte = github.compte()
+            return alimentation.modifier(pid, application.chemin(pid), str(corps.get("consigne", ""))[:4000], compte["nom"], corps.get("element"))
         racine, p = _p(pid)
         if methode == "GET":
             if reste == ["synthese"]:
