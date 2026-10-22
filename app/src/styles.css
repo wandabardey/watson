@@ -634,3 +634,17 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .tableau-criteres { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tableau-criteres th { text-align: left; font-weight: 600; color: #71717A; padding: 8px 10px; border-bottom: 1px solid #ECEBF3; }
 .tableau-criteres td { padding: 10px; border-bottom: 1px solid #F4F4F5; vertical-align: top; }
+
+/* Recette */
+.cas-test.a-revoir { box-shadow: inset 3px 0 0 #F97316, inset 0 0 0 1px #FED7AA; }
+.entete-cas { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; padding: 0; cursor: pointer; font: inherit; color: inherit; width: 100%; }
+.gherkin { padding: 10px 12px; border-radius: 12px; background: #FAFAFC; line-height: 1.6; }
+.gherkin b { color: var(--indigo-fonce); }
+.proposition-cas { padding: 8px 10px; border-radius: 10px; background: #FAFAFC; cursor: pointer; }
+.barre-campagne { display: flex; height: 10px; border-radius: 999px; background: #F1F0F7; overflow: hidden; }
+.barre-campagne.petite { height: 6px; max-width: 320px; }
+.barre-campagne .seg-ok { background: #22C55E; } .barre-campagne .seg-ko { background: #EF4444; } .barre-campagne .seg-bloque { background: #F97316; }
+.ligne-campagne.res-ok { box-shadow: inset 3px 0 0 #22C55E, inset 0 0 0 1px #ECEBF3; }
+.ligne-campagne.res-ko { box-shadow: inset 3px 0 0 #EF4444, inset 0 0 0 1px #FECACA; }
+.ligne-campagne.res-bloque { box-shadow: inset 3px 0 0 #F97316, inset 0 0 0 1px #ECEBF3; }
+.anomalie { white-space: pre-wrap; font: inherit; font-size: 13px; margin: 0; padding: 10px 12px; border-radius: 10px; background: #FEF2F2; color: #7F1D1D; }

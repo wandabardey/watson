@@ -161,6 +161,11 @@ function Fiche({ projet, d, faire, occupe, attente, claude, aller, retour }) {
             </table>
           </section>
           <Impact e={e} aller={aller} faire={faire} occupe={occupe} />
+          <section class="carte ligne" style="gap:10px">
+            <span class="pile espace" style="gap:2px"><strong>Recette</strong><span class="petit doux">Un cas de test par critère d'acceptation, puis une campagne avec ces cas et ceux de la non-régression.</span></span>
+            <button class="bouton" disabled={occupe} onClick={async () => { try { await appel(`/projets/${projet.id}/recette/evolution`, { corps: { evolution: e.id } }); aller('recette'); } catch (x) { setMessage(x.message); } }}>Créer les cas de test</button>
+            <button class="bouton" disabled={occupe} onClick={async () => { try { await appel(`/projets/${projet.id}/recette/campagnes`, { corps: { nom: `TNR ${e.titre}`, genre: 'tnr', evolution: e.id } }); aller('recette'); } catch (x) { setMessage(x.message); } }}>Ouvrir une campagne</button>
+          </section>
           <section class="carte pile" style="gap:10px">
             <div class="ligne"><h2 class="espace">Mettre la base à jour</h2>
               {e.base?.etat === 'appliquee' && <span class="badge b-vert">Base mise à jour le {date(e.base.le)}</span>}

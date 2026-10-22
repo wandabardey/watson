@@ -24,6 +24,7 @@ from .comite import ErreurComite
 from .ateliers import ErreurAtelier
 from .studio import ErreurStudio
 from .backlog import ErreurEvolution
+from .campagnes import ErreurRecette
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -366,6 +367,51 @@ def _comite(methode, pid, reste, corps):
         d["membres"] = []
         co._ecrire_comite(racine, d)
         return {**co.vue(pid, racine), **application.enregistrer_et_envoyer(pid, "Comité du projet : panel retiré")}
+    raise Erreur("Ressource inconnue.", 404)
+
+
+def _recette(methode, pid, reste, corps):
+    from . import campagnes as ca
+
+    racine = application.chemin(pid)
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    auteur = lambda: github.compte()["nom"]  # noqa: E731
+    if not reste and methode == "GET":
+        return ca.vue_cahier(racine)
+    if reste == ["propositions"] and methode == "GET":
+        return ca.propositions(racine)
+    if reste == ["garder"] and methode == "POST":
+        r = ca.garder_propositions(racine, [str(x) for x in corps.get("ids") or []], auteur())
+        return {**ca.vue_cahier(racine), **envoyer(f"Cahier de recette : {len(r['ecrits'])} cas ajoutés"), "ajout": r}
+    if reste == ["evolution"] and methode == "POST":
+        r = ca.cas_depuis_evolution(racine, str(corps.get("evolution") or ""), auteur())
+        return {**ca.vue_cahier(racine), **envoyer(f"Cahier de recette : cas de l'évolution {corps.get('evolution')}"), "ajout": r}
+    if len(reste) == 2 and reste[0] == "cas" and methode == "POST":
+        c = ca.modifier_cas(racine, reste[1], corps, auteur())
+        return {**ca.vue_cahier(racine), **envoyer(f"Cas de test modifié : {c.get('titre', reste[1])[:80]}")}
+    if len(reste) == 2 and reste[0] == "cas" and methode == "DELETE":
+        ca.supprimer_cas(racine, reste[1])
+        return {**ca.vue_cahier(racine), **envoyer("Cas de test retiré")}
+    if reste == ["campagnes"] and methode == "GET":
+        return ca.vue_campagnes(racine)
+    if reste == ["campagnes"] and methode == "POST":
+        c = ca.creer_campagne(racine, corps, auteur())
+        envoyer(f"Campagne de test : {c['nom'][:80]}")
+        return ca.lire_campagne(pid, racine, c["id"])
+    if len(reste) >= 2 and reste[0] == "campagnes":
+        cid = reste[1]
+        if len(reste) == 2 and methode == "GET":
+            return ca.lire_campagne(pid, racine, cid)
+        if len(reste) == 2 and methode == "DELETE":
+            ca.supprimer_campagne(pid, racine, cid)
+            envoyer("Campagne de test retirée")
+            return ca.vue_campagnes(racine)
+        if reste[2:] == ["noter"] and methode == "POST":
+            return ca.noter(pid, racine, cid, str(corps.get("cas") or ""), corps)
+        if reste[2:] == ["enregistrer"] and methode == "POST":
+            c = ca.enregistrer_campagne(pid, racine, cid, bool(corps.get("cloturer")))
+            envoyer(f"Campagne {c['nom'][:60]} : " + ("close, " + c["rapport"]["raison"] if corps.get("cloturer") else "résultats enregistrés"))
+            return c
     raise Erreur("Ressource inconnue.", 404)
 
 
@@ -725,6 +771,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _ateliers(methode, pid, reste[1:], corps)
         if reste[:1] == ["evolutions"]:
             return _evolutions(methode, pid, reste[1:], corps)
+        if reste[:1] == ["recette"]:
+            return _recette(methode, pid, reste[1:], corps)
         if reste[:1] == ["studio"]:
             return _studio(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
@@ -824,7 +872,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant
