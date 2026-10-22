@@ -328,3 +328,18 @@ def test_cahier_des_charges_par_l_api(serveur):
     with pytest.raises(urllib.error.HTTPError) as e:
         appel(base, f"/api/projets/{pid}/avant-projet/cahier/garder", {"sections": ["contexte"]})
     assert e.value.code == 400
+
+
+def test_maquettes_par_l_api(serveur):
+    import base64
+    base, _ = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    v = appel(base, f"/api/projets/{pid}/avant-projet/maquettes")
+    assert v["maquettes"] == [] and v["ecrans"]
+    html = base64.b64encode(b"<h1>Liste</h1>").decode()
+    r = appel(base, f"/api/projets/{pid}/avant-projet/maquettes/importer", {"nom": "liste.html", "contenu_base64": html, "ecran": "SCR-011"})
+    assert r["commit"] and r["maquettes"][0]["ecran"] == "SCR-011"
+    assert "Liste" in appel(base, f"/api/projets/{pid}/avant-projet/maquettes/contenu", {"id": r["gardee"]})["html"]
+    ec = {e["id"]: e for e in appel(base, f"/api/projets/{pid}/ecrans")["ecrans"]}
+    assert ec["SCR-011"]["maquettes"] == [r["gardee"]]
+    assert "Mes expéditions" in appel(base, f"/api/projets/{pid}/avant-projet/maquettes/brief", {"ecrans": ["SCR-011"]})["brief"]

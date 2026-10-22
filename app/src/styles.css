@@ -351,3 +351,27 @@ details summary { cursor: pointer; display: inline-flex; align-items: center; ga
 .inspiration .retirer { position: absolute; top: 6px; right: 6px; min-height: 26px !important; width: 26px; background: rgba(255,255,255,.92); }
 .inspiration.ajout { border: 1.5px dashed #C4C4CF; color: #71717A; cursor: pointer; font: inherit; box-shadow: none; }
 @media (max-width: 1200px) { .planche-bloc { grid-column: span 6; } .planche-bloc.ecran-bloc { grid-column: span 12; } }
+
+/* Maquettes */
+.bandeau-piste { gap: 10px; padding: 10px 14px; border-radius: 12px; background: #FAFAFC; box-shadow: inset 0 0 0 1px #ECEBF3; }
+.mini-nuance { display: inline-block; width: 16px; height: 16px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.rendu { position: relative; overflow: hidden; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px #E4E4EC, 0 6px 18px rgba(24,24,27,.07); flex: 0 0 auto; }
+.rendu iframe { border: 0; display: block; pointer-events: none; background: #fff; }
+.rendu-mobile { border-radius: 22px; box-shadow: 0 0 0 6px #18181B, 0 10px 26px rgba(24,24,27,.18); }
+.vide-rendu { display: flex; align-items: center; justify-content: center; background: #F4F4F6; }
+.galerie { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.vignette-maquette { margin: 0; display: flex; flex-direction: column; gap: 8px; cursor: zoom-in; position: relative; }
+.vignette-maquette:hover .rendu { box-shadow: 0 0 0 2px #A5ABF2, 0 10px 24px rgba(79,70,229,.14); }
+.vignette-maquette figcaption { display: flex; flex-direction: column; max-width: 260px; font-size: 13.5px; }
+.propositions-maquettes { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.proposition-maquette { width: 420px; }
+.choix-ecrans { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.choix-ecran { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px #ECEBF3; cursor: pointer; font-size: 13.5px; }
+.choix-ecran.actif { box-shadow: inset 0 0 0 2px #6D5DF6; background: #F7F6FF; }
+.visionneuse { position: fixed; inset: 0; z-index: 50; background: rgba(24,24,27,.55); display: flex; align-items: center; justify-content: center; padding: 28px; }
+.visionneuse-corps { position: relative; display: flex; gap: 0; width: 100%; height: 100%; max-width: 1600px; background: #F4F4F7; border-radius: 22px; overflow: hidden; }
+.visionneuse-corps.seule { background: #F4F4F7; }
+.visionneuse-scene { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+.visionneuse-cote { width: 320px; flex: 0 0 320px; background: #fff; padding: 18px; overflow: auto; }
+.visionneuse-fermer { position: absolute; top: 14px; right: 14px; background: #fff; }
+.visionneuse .rendu iframe { pointer-events: auto; }

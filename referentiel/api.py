@@ -169,6 +169,11 @@ def vue_ecrans(p) -> dict:
         for et in sc["etapes"]:
             if et.get("ecran"):
                 parcours.setdefault(et["ecran"], {})[sid] = sc["nom"]
+    from .maquettes import lire_index
+    maquettes = {}
+    for m in lire_index(p.racine)["maquettes"]:
+        if m.get("ecran"):
+            maquettes.setdefault(m["ecran"], []).append(m["id"])
     enfants = {}
     for eid, e in p.ecrans.items():
         if e.get("parent"):
@@ -189,6 +194,7 @@ def vue_ecrans(p) -> dict:
             "sous_ecrans": enfants.get(eid, []),
             "parcours": [{"id": k, "nom": v} for k, v in parcours.get(eid, {}).items()],
             "captures": len(e.get("captures") or []),
+            "maquettes": maquettes.get(eid, []),
         })
     return {"ecrans": ecrans, "applications": list(apps.values()), "versions_produit": p.meta.get("versions_produit") or [],
             "acteurs": [{"id": a, "nom": x["nom"]} for a, x in p.acteurs.items()],
@@ -366,8 +372,42 @@ def _avant_projet(methode, pid, reste, corps):
     if reste == ["moodboard", "inspirations"] and methode == "DELETE":
         ap.retirer_inspiration(racine, str(corps.get("fichier", "")))
         return {**ap.vue_moodboard(racine, pid), **application.enregistrer_et_envoyer(pid, "Moodboard : image retirée")}
+    if reste[:1] == ["maquettes"]:
+        return _maquettes(methode, pid, racine, reste[1:], corps)
     if reste == ["image"] and methode == "POST":
         return ap.image(racine, str(corps.get("fichier", "")))
+    raise Erreur("Ressource inconnue.", 404)
+
+
+def _maquettes(methode, pid, racine, reste, corps):
+    from . import maquettes as mq
+
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return mq.vue(racine, pid)
+    if reste == ["dessiner"] and methode == "POST":
+        return mq.dessiner(pid, racine, corps.get("ecran") or None, str(corps.get("description") or "")[:3000] or None,
+                           corps.get("support") or None, str(corps.get("demande") or "")[:3000] or None, corps.get("reprendre") or None)
+    if reste == ["contenu"] and methode == "POST":
+        return mq.contenu(racine, str(corps.get("id", "")), pid if corps.get("proposition") else None)
+    if reste == ["garder"] and methode == "POST":
+        m = mq.garder(pid, racine, str(corps.get("id", "")), github.compte()["nom"])
+        return {**mq.vue(racine, pid), **envoyer(f"Maquette : {m['titre']} (dessinée avec Claude)"), "gardee": m["id"]}
+    if reste == ["ecarter"] and methode == "POST":
+        mq.ecarter(pid, str(corps.get("id", "")))
+        return mq.vue(racine, pid)
+    if reste == ["importer"] and methode == "POST":
+        m = mq.importer(racine, str(corps.get("nom", "")), corps.get("contenu_base64") or "", str(corps.get("titre") or ""),
+                        str(corps.get("ecran") or ""), str(corps.get("support") or "desktop"), str(corps.get("origine") or "import"))
+        return {**mq.vue(racine, pid), **envoyer(f"Maquette importée : {m['titre']}"), "gardee": m["id"]}
+    if reste == ["modifier"] and methode == "POST":
+        m = mq.modifier(racine, str(corps.get("id", "")), corps.get("champs") or {})
+        return {**mq.vue(racine, pid), **envoyer(f"Maquette : {m['titre']}")}
+    if reste == ["supprimer"] and methode == "POST":
+        mq.supprimer(racine, str(corps.get("id", "")))
+        return {**mq.vue(racine, pid), **envoyer("Maquette supprimée")}
+    if reste == ["brief"] and methode == "POST":
+        return {"brief": mq.brief_claude_design(racine, corps.get("ecrans") or None)}
     raise Erreur("Ressource inconnue.", 404)
 
 

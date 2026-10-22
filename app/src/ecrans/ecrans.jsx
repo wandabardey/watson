@@ -224,6 +224,7 @@ function FicheEcran({ e, tout, choisir, aller, fermer, modifier, versions, proje
           {e.regles.map((r) => <button key={r.id} class="bouton" style="justify-content:space-between" onClick={() => aller('regles')}><span class="tronque">{r.titre}</span><Statut s={r.statut} /></button>)}
         </section>
       )}
+      {e.maquettes?.length > 0 && <button class="bouton" style="align-self:flex-start" onClick={() => aller('maquettes')}>Voir {e.maquettes.length > 1 ? `les ${e.maquettes.length} maquettes` : 'la maquette'}</button>}
       {e.parcours.length > 0 && <section class="pile" style="gap:6px"><h3>Parcours qui l'utilisent</h3>{e.parcours.map((u) => <span key={u.id}>{u.nom}</span>)}</section>}
       <section class="encadre-watson"><DemandeWatson projet={projet} element={e.id} nomElement={e.nom} lance={lance} exemple="ajoute un onglet Historique, prévu en V2" /></section>
     </aside>
