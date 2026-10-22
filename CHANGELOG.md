@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.13.0 (2026-10-22)
+
+- Alimenter lit les images : captures d'écran, maquettes, schémas de parcours ou de données, photos de tableau blanc. Une capture se colle directement. Les écrans et scénarios proposés apparaissent dans le tri.
+
 ## 0.12.0 (2026-10-22)
 
 - Onglet Scénarios : parcours en diagramme de processus, un couloir par application, décisions, refus et retours, statuts apposés, versions MVP, édition et Demander à Watson
