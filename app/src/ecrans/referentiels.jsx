@@ -1,13 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { Database, LayoutList, Link2, List as IconeListe, Maximize2, Minus, Plus, Search, Workflow as IconeSchema, X } from 'lucide-preact';
+import {
+  BadgeCheck, Building2, CreditCard, Database, IdCard, KeyRound, LayoutList, Link2, List as IconeListe, MapPin, Maximize2, Minus, Package, Plus,
+  Search, Send, Shield, Truck, User, Workflow as IconeSchema, X
+} from 'lucide-preact';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
 
 const TYPES = { enum: 'Choix', booleen: 'Oui ou non', texte: 'Texte', nombre: 'Nombre', date: 'Date', reference: 'Lien', liste: 'Liste de valeurs' };
-const L = 296; // largeur d'une brique
-const ENTETE = 46;
-const LIGNE = 32;
+const L = 300; // largeur d'une brique
+const ENTETE = 74;
+const LIGNE = 31;
 const GROUPE = 26;
+const PIED = 8;
+
+// Une icône parlante selon le nom de l'entité, sinon une icône générique.
+const ICONES = [
+  [/soci[ée]t|entreprise|organisation|compagnie/i, Building2], [/lieu|site|adresse|entrep[oô]t|magasin/i, MapPin],
+  [/personne|utilisateur|contact|client|chauffeur|agent/i, User], [/agr[ée]ment|certificat|habilitation|validation/i, BadgeCheck],
+  [/v[ée]hicule|camion|transport/i, Truck], [/exp[ée]dition|colis|marchandise|lot|envoi/i, Package], [/exp[ée]diteur|destinataire/i, Send],
+  [/pi[eè]ce|identit[ée]|badge|carte d'/i, IdCard], [/r[ôo]le|s[ûu]ret[ée]|s[ée]curit/i, Shield], [/droit|acc[eè]s|permission/i, KeyRound],
+  [/paiement|facture|tarif|prix/i, CreditCard]
+];
+const icone = (n) => (n.genre === 'liste' ? IconeListe : (ICONES.find(([re]) => re.test(n.nom)) || [null, Database])[1]);
 const elk = new ELK();
 
 // Lignes d'une liste de valeurs, avec les intertitres de groupe (Traçable, Non traçable…).
@@ -22,8 +36,8 @@ function lignesListe(liste) {
 }
 
 function hauteur(el) {
-  if (el.genre === 'liste') return ENTETE + lignesListe(el).reduce((h, l) => h + (l.entete ? GROUPE : LIGNE), 0);
-  return ENTETE + Math.max(1, el.donnees.length) * LIGNE;
+  if (el.genre === 'liste') return ENTETE + lignesListe(el).reduce((h, l) => h + (l.entete ? GROUPE : LIGNE), 0) + PIED;
+  return ENTETE + Math.max(1, el.donnees.length) * LIGNE + PIED;
 }
 
 async function disposer(entites, listes) {
@@ -84,14 +98,19 @@ function trace(pts, r = 8) {
 
 function Brique({ n, choisi, attenue, choisir }) {
   const liste = n.genre === 'liste';
+  const Icone = icone(n);
+  const liens = liste ? 0 : n.donnees.filter((d) => d.cible).length;
+  const sous = liste ? `Liste de valeurs · ${n.valeurs.length} valeur${n.valeurs.length > 1 ? 's' : ''}`
+    : [`${n.donnees.length} donnée${n.donnees.length > 1 ? 's' : ''}`, liens && `${liens} lien${liens > 1 ? 's' : ''}`, n.cycle.length && `${n.cycle.length} statuts`].filter(Boolean).join(' · ');
   return (
     <div class={`brique ${liste ? 'brique-liste' : ''} ${choisi ? 'choisie' : ''} ${attenue ? 'attenuee' : ''}`}
       style={`left:${n.x}px;top:${n.y}px;width:${L}px;height:${n.h}px`} onClick={(e) => { e.stopPropagation(); choisir(n.id); }}>
       <div class="brique-tete" style={`height:${ENTETE}px`}>
-        {liste ? <IconeListe size={15} /> : <Database size={15} />}
-        <strong class="espace tronque">{n.nom}</strong>
-        {liste && <span class="pastille-liste">LISTE</span>}
-        {!liste && n.cycle.length > 0 && <span class="pastille-cycle" title="Cette entité a un cycle de vie">{n.cycle.length} statuts</span>}
+        <span class="brique-icone"><Icone size={20} strokeWidth={1.8} /></span>
+        <span class="pile espace" style="gap:2px;min-width:0">
+          <strong class="tronque brique-titre">{n.nom}</strong>
+          <span class="brique-sous tronque"><i class="point-couleur" />{sous}</span>
+        </span>
       </div>
       {liste
         ? lignesListe(n).map((l, i) => (l.entete
@@ -102,7 +121,7 @@ function Brique({ n, choisi, attenue, choisir }) {
           : n.donnees.map((d) => (
             <div key={d.nom} class={`brique-ligne ${d.cible ? 'lien' : ''} ${d.optionnel ? 'optionnelle' : ''}`} style={`height:${LIGNE}px`}>
               <span class="espace tronque">{d.libelle}{d.multiple && <span class="multiple" title="Plusieurs valeurs possibles"> [ ]</span>}</span>
-              {d.cible ? <span class={`brique-cible ${d.cible_genre}`}>{d.cible_genre === 'liste' ? <IconeListe size={12} /> : <Link2 size={12} />}{d.cible_nom}</span>
+              {d.cible ? <span class={`brique-cible ${d.cible_genre}`}>{d.cible_nom}</span>
                 : d.optionnel ? <span class="brique-note">optionnel</span> : <span class="brique-type">{TYPES[d.type] || d.type}</span>}
             </div>
           ))}
@@ -119,10 +138,17 @@ function Schema({ entites, listes, choisi, choisir, filtre }) {
   const ajuster = () => {
     if (!plan || !cadre.current) return;
     const { clientWidth: w, clientHeight: h } = cadre.current;
-    const k = Math.min(1.1, (w - 48) / plan.largeur, (h - 48) / plan.hauteur);
-    setVue({ k, x: (w - plan.largeur * k) / 2, y: Math.max(24, (h - plan.hauteur * k) / 2) });
+    const k = Math.min(1.1, (w - 48) / plan.largeur, (h - 130) / plan.hauteur);
+    setVue({ k, x: (w - plan.largeur * k) / 2, y: Math.max(68, (h - plan.hauteur * k) / 2 + 20) });
   };
-  useEffect(() => { ajuster(); }, [plan]);
+  // À l'ouverture : tout voir si ça reste lisible, sinon une taille confortable en partant du haut à gauche.
+  useEffect(() => {
+    if (!plan || !cadre.current) return;
+    const { clientWidth: w, clientHeight: h } = cadre.current;
+    const k = Math.min(1.1, (w - 48) / plan.largeur, (h - 130) / plan.hauteur);
+    if (k >= 0.72) ajuster();
+    else setVue({ k: 0.85, x: 32, y: 72 });
+  }, [plan]);
   // Centrer la brique choisie si elle sort du cadre.
   useEffect(() => {
     if (!plan || !choisi || !cadre.current) return;
@@ -130,7 +156,7 @@ function Schema({ entites, listes, choisi, choisir, filtre }) {
     if (!n) return;
     const { clientWidth: w, clientHeight: h } = cadre.current;
     const sx = vue.x + n.x * vue.k, sy = vue.y + n.y * vue.k;
-    if (sx < 0 || sy < 0 || sx + L * vue.k > w || sy + 60 > h) setVue({ ...vue, x: w / 2 - (n.x + L / 2) * vue.k, y: 60 - n.y * vue.k });
+    if (sx < 0 || sy < 0 || sx + L * vue.k > w || sy + 60 > h) setVue({ ...vue, x: w / 2 - (n.x + L / 2) * vue.k, y: 90 - n.y * vue.k });
   }, [choisi]);
   if (!plan) return <div class="schema-cadre"><p class="chargement">Mise en page…</p></div>;
   const zoom = (f, cx, cy) => {
@@ -161,17 +187,18 @@ function Schema({ entites, listes, choisi, choisir, filtre }) {
       <div class="schema-plan" style={`transform:translate(${vue.x}px,${vue.y}px) scale(${vue.k});width:${plan.largeur}px;height:${plan.hauteur}px`}>
         <svg class="schema-liens" width={plan.largeur + 20} height={plan.hauteur + 20}>
           <defs>
-            <marker id="fleche" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB" /></marker>
+            <marker id="fleche" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4F46E5" /></marker>
+            <marker id="fleche-liste" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B45309" /></marker>
             <marker id="fleche-pale" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#CBD5E1" /></marker>
-            <marker id="point" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"><circle cx="5" cy="5" r="4" fill="#2563EB" /></marker>
-            <marker id="fleche-debut" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#2563EB" /></marker>
+            <marker id="point" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"><circle cx="5" cy="5" r="3.6" fill="#4F46E5" /></marker>
+            <marker id="fleche-debut" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#4F46E5" /></marker>
           </defs>
           {plan.aretes.map((a) => {
             const [src, cible] = a.id.split('>');
             const actif = !choisi || src.startsWith(`${choisi}:`) || cible === choisi;
             const debut = actif ? (a.double ? 'url(#fleche-debut)' : 'url(#point)') : undefined;
             return <path key={a.id} d={trace(a.points)} class={`lien-schema ${a.liste ? 'vers-liste' : ''} ${actif ? '' : 'pale'}`}
-              marker-start={debut} marker-end={actif ? 'url(#fleche)' : 'url(#fleche-pale)'} />;
+              marker-start={a.liste ? undefined : debut} marker-end={actif ? (a.liste ? 'url(#fleche-liste)' : 'url(#fleche)') : 'url(#fleche-pale)'} />;
           })}
         </svg>
         {plan.noeuds.map((n) => (
@@ -185,8 +212,11 @@ function Schema({ entites, listes, choisi, choisir, filtre }) {
         <button class="bouton icone" title="Tout voir" onClick={ajuster}><Maximize2 size={15} /></button>
       </div>
       <div class="schema-legende" onMouseDown={(e) => e.stopPropagation()}>
-        <span><i class="leg-entite" /> Entité</span><span><i class="leg-liste" /> Liste de valeurs</span>
-        <span><Link2 size={12} color="#2563EB" /> Lien vers une autre entité</span><span><b>[ ]</b> Plusieurs valeurs</span><span><em>optionnel</em></span>
+        <span class="pilule"><Database size={14} /> Entité</span>
+        <span class="pilule pilule-liste"><IconeListe size={14} /> Liste de valeurs</span>
+        <span class="pilule pilule-lien"><Link2 size={14} /> Lien vers une entité</span>
+        <span class="pilule"><b>[ ]</b> Plusieurs</span>
+        <span class="pilule"><em>optionnel</em></span>
       </div>
     </div>
   );
