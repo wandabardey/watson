@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.24.0 (2026-10-22)
+
+- Recette et TNR : le cahier de recette se remplit des cas tirés de la base (chemin normal, droits, règles, tables de décision) et des critères d'acceptation des évolutions, se relit et se valide ; un cas est signalé à revoir quand la base bouge. Les campagnes jouent les cas d'une version, ou ceux que touche une évolution : résultats au fil de l'eau, anomalies prêtes pour un ticket, avis go / no-go argumenté, rapport à copier.
+
 ## 0.23.0 (2026-10-22)
 
 - Évolutions : chaque changement demandé sur le produit est rédigé par Watson (constat, attendu, règles testables, critères d'acceptation nominaux, d'erreur, de limite et de droits, questions au client) ; l'analyse d'impact suit la base à l'envers (ce qui cite chaque élément, les scénarios et écrans concernés, leurs maquettes) et donne la non-régression à rejouer ; la base se met à jour par une demande à Watson, validée comme toujours. Copie en Markdown pour Confluence, relecture par Watson.
