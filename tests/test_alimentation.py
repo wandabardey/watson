@@ -81,6 +81,8 @@ def faux_claude(reponse):
     vus = {}
 
     async def requete(prompt, options):
+        if not isinstance(prompt, str):  # message avec images : flux de messages
+            prompt = [m async for m in prompt]
         vus["prompt"], vus["options"] = prompt, options
         yield sdk.ResultMessage(subtype="success", duration_ms=1, duration_api_ms=1, is_error=False, num_turns=1,
                                 session_id="s", result=json.dumps(reponse))
@@ -201,3 +203,26 @@ def test_scenario_propose_et_nettoye(projet):
     p = charger(projet)
     assert not p.erreurs and "ecran" not in p.scenarios[sc["contenu"]["id"]]["etapes"][0]
     assert any("Relevé" in t for t in r["retouches"])
+
+
+PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+
+
+def test_image_lue_par_claude(projet):
+    reponse = {"resume": "Une maquette d'écran.", "images": {"DOC-1": "Maquette « Relevé » : un tableau, un bouton Valider."},
+               "propositions": [{"type": "ecran", "action": "creer", "titre": "Relevé", "pourquoi": "Vu sur la maquette.", "conflit": "",
+                                 "citation": {"document": "DOC-1", "extrait": "Valider"},
+                                 "contenu": {"id": "SCR-050", "nom": "Relevé", "sections": [{"titre": "Tableau"}]}}]}
+    requete, vus = faux_claude(reponse)
+    lot = alimentation.analyser("fret", projet, [{"nom": "maquette.png", "contenu_base64": base64.b64encode(PNG).decode()},
+                                                 {"titre": "Notes", "texte": "Le relevé se valide."}], requete=requete)
+    blocs = vus["prompt"][0]["message"]["content"]
+    assert [b["type"] for b in blocs] == ["text", "image", "text"] and blocs[1]["source"]["media_type"] == "image/png"
+    assert "Notes" in blocs[2]["text"] and "maquette" not in blocs[2]["text"]
+    assert lot["documents"][0]["type"] == "image" and "bouton Valider" in lot["documents"][0]["texte"]
+    alimentation.appliquer("fret", projet, lot["id"], [{"index": 0, "accepte": True}], "W")
+    index = yaml.safe_load((projet / "sources" / "index.yaml").read_text(encoding="utf-8"))
+    assert index[0]["fichier"].endswith(".png") and "bouton Valider" in (projet / "sources" / index[0]["texte"]).read_text()
+    assert "SCR-050" in charger(projet).ecrans
+    with pytest.raises(alimentation.ErreurAlimentation, match="5 Mo"):
+        alimentation.analyser("fret", projet, [{"nom": "grande.jpg", "contenu_base64": base64.b64encode(b"x" * 5_000_001).decode()}], requete=requete)

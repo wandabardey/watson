@@ -279,3 +279,7 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .edition input, .edition select, .edition textarea { min-width: 0; max-width: 100%; box-sizing: border-box; }
 .edition .ligne > .champ.espace { flex: 1 1 0; }
 .etape-pied .a-trancher-txt { white-space: nowrap; }
+.vignette { width: 44px; height: 32px; object-fit: cover; border-radius: 6px; border: 1px solid #E4E4EC; }
+.texte-rouge { color: var(--rouge); font-weight: 600; }
+.badge.b-noir { background: #18181B; color: #fff; }
+details summary { cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }

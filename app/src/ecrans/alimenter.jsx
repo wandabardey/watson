@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'preact/hooks';
-import { Check, ClipboardPaste, FileText, Quote, Trash2, Upload, X } from 'lucide-preact';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { Check, ClipboardPaste, FileText, Image as IconeImage, Quote, Trash2, Upload, X } from 'lucide-preact';
 import { appel } from '../api.js';
 import { ConnexionClaude, DEVISE, Entete, Watson } from './commun.jsx';
 
-const FORMATS = '.pdf,.docx,.pptx,.txt,.md,.vtt,.srt,.html,.csv,.json';
+const FORMATS = '.pdf,.docx,.pptx,.txt,.md,.vtt,.srt,.html,.csv,.json,.png,.jpg,.jpeg,.webp,.gif';
+const estImage = (f) => /^image\/(png|jpeg|webp|gif)$/.test(f.type) || /\.(png|jpe?g|webp|gif)$/i.test(f.name);
+const MAX_IMAGE = 5 * 1000 * 1000;
 const MAX = 40 * 1024 * 1024;
 const GROUPES = [
-  ['entite', 'Objets métier et données'], ['liste', 'Listes de valeurs'], ['regle', 'Règles'], ['acteur', 'Acteurs'], ['question', 'Questions ouvertes']
+  ['entite', 'Objets métier et données'], ['liste', 'Listes de valeurs'], ['ecran', 'Écrans'], ['scenario', 'Scénarios'], ['regle', 'Règles'], ['acteur', 'Acteurs'],
+  ['question', 'Questions ouvertes']
 ];
 
 function lireFichier(f) {
@@ -25,8 +28,24 @@ function Depot({ projet, lancer, reprendre }) {
   const [lots, setLots] = useState([]);
   useEffect(() => { appel(`/projets/${projet.id}/alimenter`).then((d) => setLots(d.lots)).catch(() => {}); }, []);
   const ajouter = (liste) => setFichiers((f) => [...f, ...Array.from(liste)]);
+  // Une capture copiée (⌘⇧4 puis ⌘V) se colle directement ici.
+  useEffect(() => {
+    const coller = (e) => {
+      if (e.target.closest?.('input, textarea')) return;
+      const images = Array.from(e.clipboardData?.files || []).filter(estImage);
+      if (!images.length) return;
+      e.preventDefault();
+      const date = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+      ajouter(images.map((f, i) => new File([f], `Capture ${date}${images.length > 1 ? ` ${i + 1}` : ''}.${(f.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`, { type: f.type })));
+    };
+    window.addEventListener('paste', coller);
+    return () => window.removeEventListener('paste', coller);
+  }, []);
+  const apercus = useMemo(() => fichiers.map((f) => (estImage(f) ? URL.createObjectURL(f) : null)), [fichiers]);
+  useEffect(() => () => apercus.forEach((u) => u && URL.revokeObjectURL(u)), [apercus]);
   const taille = fichiers.reduce((t, f) => t + f.size, 0);
-  const pret = (fichiers.length || textes.some((t) => t.texte.trim())) && taille <= MAX;
+  const tropGrandes = fichiers.filter((f) => estImage(f) && f.size > MAX_IMAGE);
+  const pret = (fichiers.length || textes.some((t) => t.texte.trim())) && taille <= MAX && !tropGrandes.length;
   const envoyer = async () => {
     const documents = [...await Promise.all(fichiers.map(lireFichier)), ...textes.filter((t) => t.texte.trim())];
     lancer(documents, [...fichiers.map((f) => f.name), ...textes.filter((t) => t.texte.trim()).map((t) => t.titre || 'Texte collé')]);
@@ -51,13 +70,16 @@ function Depot({ projet, lancer, reprendre }) {
         onDrop={(e) => { e.preventDefault(); setSurvol(false); ajouter(e.dataTransfer.files); }}
       >
         <Upload size={26} />
-        <strong>Dépose ici des documents, ou clique pour les choisir</strong>
-        <span class="doux petit">Comptes rendus, transcriptions Meet, notes Gemini, spécifications, présentations, mails.
-          PDF, Word, PowerPoint, texte, sous-titres .vtt. Un document Google s'exporte en .docx ou .pdf (Fichier, Télécharger).</span>
+        <strong>Dépose ici des documents ou des captures, ou clique pour les choisir</strong>
+        <span class="doux petit">Comptes rendus, transcriptions Meet, notes Gemini, spécifications, présentations, mails, et aussi maquettes,
+          schémas, captures d'écran ou photos de tableau blanc. PDF, Word, PowerPoint, texte, .vtt, PNG, JPG. Une capture copiée se colle ici (⌘V).
+          Un document Google s'exporte en .docx ou .pdf (Fichier, Télécharger).</span>
         <input type="file" multiple accept={FORMATS} style="display:none" onChange={(e) => { ajouter(e.target.files); e.target.value = ''; }} />
       </label>
       {fichiers.map((f, i) => (
-        <div key={i} class="ligne fichier"><FileText size={16} /><span class="espace">{f.name}</span><span class="doux petit">{Math.ceil(f.size / 1024)} Ko</span>
+        <div key={i} class="ligne fichier">{apercus[i] ? <img class="vignette" src={apercus[i]} alt="" /> : <FileText size={16} />}
+          <span class="espace">{f.name}{apercus[i] && <span class="doux petit"> · image</span>}</span>
+          <span class={`petit ${apercus[i] && f.size > MAX_IMAGE ? 'texte-rouge' : 'doux'}`}>{Math.ceil(f.size / 1024)} Ko</span>
           <button class="bouton icone" aria-label="Retirer" onClick={() => setFichiers(fichiers.filter((_, j) => j !== i))}><X size={14} /></button></div>
       ))}
       {textes.map((t, i) => (
@@ -70,6 +92,7 @@ function Depot({ projet, lancer, reprendre }) {
         </div>
       ))}
       {taille > MAX && <p class="encart e-rouge">Plus de 40 Mo de documents : en envoyer une partie, puis le reste.</p>}
+      {tropGrandes.length > 0 && <p class="encart e-rouge">Une image dépasse 5 Mo ({tropGrandes.map((f) => f.name).join(', ')}) : recadre-la ou exporte-la en JPG.</p>}
       <div class="ligne">
         <button class="bouton" onClick={() => setTextes([...textes, { titre: '', texte: '' }])}><ClipboardPaste size={16} /> Coller du texte</button>
         <span class="espace" />
@@ -144,6 +167,17 @@ function Proposition({ pr, choix, changer, documents }) {
       {!invalide && pr.type === 'acteur' && <label class="champ">Nom<input value={c.nom} onInput={(e) => maj('nom', e.target.value)} /></label>}
       {!invalide && pr.type === 'question' && <label class="champ">Question<textarea value={c.question} onInput={(e) => maj('question', e.target.value)} /></label>}
       {!invalide && pr.type === 'entite' && <Resume c={c} avant={pr.action === 'modifier' ? pr.avant : null} />}
+      {!invalide && pr.type === 'ecran' && (
+        <div class="pile" style="gap:6px">
+          <div class="ligne" style="gap:6px">{(c.sections || []).map((x, i) => <span key={i} class={`badge ${x.genre === 'variante' ? 'b-orange' : 'b-gris'}`} style="font-weight:500">{x.genre === 'onglet' ? 'Onglet ' : x.genre === 'variante' ? '◇ ' : ''}{x.titre}{x.version ? ` (${x.version})` : ''}</span>)}</div>
+          {(c.routages || []).length > 0 && <span class="petit doux">Mène à : {c.routages.map((r) => `${r.libelle ? `${r.libelle} → ` : ''}${r.vers}`).join(', ')}</span>}
+        </div>
+      )}
+      {!invalide && pr.type === 'scenario' && (
+        <div class="ligne" style="gap:4px">{(c.etapes || []).map((x, i) => (
+          <span key={i} class="ligne" style="gap:4px">{i > 0 && <span class="doux">→</span>}
+            <span class={`badge ${x.genre === 'statut' ? 'b-noir' : x.genre === 'decision' ? 'b-orange' : 'b-gris'}`} style="font-weight:500">{x.libelle}{x.version ? ` (${x.version})` : ''}</span></span>))}</div>
+      )}
       {!invalide && pr.type === 'liste' && <div class="ligne" style="gap:6px">{(c.valeurs || []).map((v, i) => <span key={i} class="badge b-gris" style="font-weight:500">{v.groupe ? `${v.groupe} · ` : ''}{v.nom}</span>)}</div>}
     </div>
   );
@@ -165,6 +199,9 @@ function Tri({ projet, lot, fini, abandonner }) {
       <div class="carte pile" style="gap:6px">
         <span class="doux petit">Lu par {lot.modele || 'Claude'}{lot.duree_s ? ` en ${lot.duree_s} s` : ''} · {lot.documents.map((d) => d.titre).join(', ')}</span>
         <p>{lot.resume}</p>
+        {lot.documents.filter((d) => d.type === 'image').map((d) => (
+          <details key={d.ref} class="petit"><summary class="doux"><IconeImage size={13} /> Ce que Claude a vu sur « {d.titre} »</summary><p style="white-space:pre-line;margin:6px 0 0">{d.texte}</p></details>
+        ))}
       </div>
       {lot.propositions.length === 0 && <div class="vide pile" style="align-items:center"><Watson humeur="reflechit" hauteur={170} />Rien de nouveau dans ces documents par rapport à ce que je sais déjà.</div>}
       {lot.propositions.length > 0 && (
@@ -205,7 +242,9 @@ function Bilan({ r, recommencer, aller }) {
       {r.retouches.map((t, i) => <p key={i} class="encart e-indigo">{t}</p>)}
       {r.refus.map((x, i) => <p key={i} class="encart e-orange"><span><strong>{x.titre}</strong> n'a pas été enregistré : {x.raison}</span></p>)}
       <div class="ligne"><button class="bouton principal-b" onClick={recommencer}>Ajouter d'autres documents</button>
-        <button class="bouton" onClick={() => aller('synthese')}>Voir la synthèse</button><button class="bouton" onClick={() => aller('referentiels')}>Voir les référentiels</button></div>
+        <button class="bouton" onClick={() => aller('synthese')}>Voir la synthèse</button><button class="bouton" onClick={() => aller('referentiels')}>Voir les référentiels</button>
+        {r.ecrits.some((e) => e.type === 'ecran') && <button class="bouton" onClick={() => aller('ecrans')}>Voir les écrans</button>}
+        {r.ecrits.some((e) => e.type === 'scenario') && <button class="bouton" onClick={() => aller('scenarios')}>Voir les scénarios</button>}</div>
     </div>
     </div>
   );
@@ -228,7 +267,7 @@ export function Alimenter({ projet, etat, aller }) {
   };
   return (
     <>
-      <Entete titre="Alimenter le projet" description="Donne à Claude ce qui existe déjà : comptes rendus, transcriptions, notes, spécifications. Il propose les objets métier, étapes, règles et questions qu'il y trouve ; tu choisis ce qui entre dans la base." />
+      <Entete titre="Alimenter le projet" description="Donne à Claude ce qui existe déjà : comptes rendus, transcriptions, notes, spécifications, maquettes et schémas. Il propose les objets métier, écrans, scénarios, règles et questions qu'il y trouve ; tu choisis ce qui entre dans la base." />
       <ConnexionClaude claude={claude} setClaude={setClaude} usage="La lecture des documents" />
       {erreur && <p class="encart e-rouge">{erreur}</p>}
       {phase.nom === 'depot' && <Depot projet={projet} lancer={lancer} reprendre={reprendre} />}
