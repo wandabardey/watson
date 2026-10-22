@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.18.0 (2026-10-22)
+
+- Sujets en attente : les questions ouvertes du projet (documents, cahier des charges, moodboard, maquettes, ajout à la main) se tranchent ici ; une réponse peut ensuite mettre la base à jour par une demande à Watson, à valider ; ce que la base marque « à trancher » est rappelé.
+
 ## 0.17.0 (2026-10-22)
 
 - Proposition commerciale : Watson écrit le deck de soutenance (trame du deck commercial 4ward) avec le cahier des charges, la piste retenue, les maquettes et le périmètre ; mise en page charte 4SH affinée et couverture Nuit ; relecture slide par slide, mode présentation, exports PDF et PowerPoint avec les notes de l'orateur.
