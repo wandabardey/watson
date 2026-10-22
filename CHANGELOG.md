@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.17.0 (2026-10-22)
+
+- Proposition commerciale : Watson écrit le deck de soutenance (trame du deck commercial 4ward) avec le cahier des charges, la piste retenue, les maquettes et le périmètre ; mise en page charte 4SH affinée et couverture Nuit ; relecture slide par slide, mode présentation, exports PDF et PowerPoint avec les notes de l'orateur.
+
 ## 0.16.0 (2026-10-22)
 
 - Maquettes : Watson dessine les écrans du projet avec la piste retenue du moodboard et un jeu de données fictives commun, tu gardes ou écartes ; brief prêt à coller dans Claude Design et import de ses exports HTML ou de captures ; chaque maquette se rattache à un écran.
