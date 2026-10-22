@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { Check, Copy, Download, Frame, Maximize2, Monitor, Pencil, Smartphone, Sparkles, Trash2, Upload, X } from 'lucide-preact';
 import { appel } from '../api.js';
 import { BoutonComite } from './comite.jsx';
+import { BoutonRevue } from './studio.jsx';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 
 const LARGEURS = { desktop: 1280, tablette: 900, mobile: 390 };
@@ -66,6 +67,14 @@ function Visionneuse({ projet, m, d, fermer, faire, reprendre, occupe }) {
             ? <button class="bouton bouton-watson" disabled={occupe} onClick={() => setDem('')}><Sparkles size={15} /> Reprendre avec Watson</button>
             : <div class="pile" style="gap:6px"><textarea class="saisie" style="min-height:70px;padding:8px 10px" autoFocus placeholder="Ce qui doit changer : mettre l'historique en avant, plus dense, ajouter un filtre…" value={dem} onInput={(e) => setDem(e.target.value)} />
                 <div class="ligne"><button class="bouton principal-b" onClick={() => { reprendre(m, dem); fermer(); }}><Sparkles size={14} /> Proposer</button><button class="bouton" onClick={() => setDem(null)}>Annuler</button></div></div>)}
+          <BoutonRevue projet={projet} cible={{ type: 'maquette', id: m.id }} titre={m.titre}
+            capturer={async () => {
+              const c = await appel(`/projets/${projet.id}/avant-projet/maquettes/contenu`, { corps: { id: m.id } });
+              if (c.image) return c.image;
+              const { capturerMaquette } = await import('./deck.jsx');
+              return capturerMaquette(c.html, support);
+            }}
+            corriger={m.fichier?.endsWith('.html') ? (consigne) => reprendre(m, consigne) : null} />
           <BoutonComite projet={projet} cible={{ type: 'maquette', id: m.id }} libelle="Faire évaluer par un comité" />
           <span class="espace" />
           {confirmer ? <button class="bouton danger" disabled={occupe} onClick={async () => { if (await faire(() => appel(`/projets/${projet.id}/avant-projet/maquettes/supprimer`, { corps: { id: m.id } }))) fermer(); }}>Confirmer la suppression</button>

@@ -10,6 +10,7 @@ import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 import { LotEnCours } from './edition.jsx';
 import { Rendu } from './maquettes.jsx';
 import { Markdown } from './markdown.jsx';
+import { BoutonMail, BoutonRevue } from './studio.jsx';
 
 const ETAPES = [['kit', 'Préparer'], ['seance', 'Animer'], ['cr', 'Restituer']];
 const COULEUR_STATUT = { prepare: 'b-gris', tenu: 'b-ambre', restitue: 'b-vert' };
@@ -106,6 +107,8 @@ function Kit({ projet, a, faire, occupe, claude, aller, voirSupport, noms }) {
         </> : <>
           <button class="bouton" onClick={async () => { await navigator.clipboard.writeText(versionClient(a)); setCopie(true); setTimeout(() => setCopie(false), 2000); }}>
             <ClipboardCopy size={14} /> {copie ? 'Copiée' : 'Copier la version client'}</button>
+          <BoutonRevue projet={projet} cible={{ type: 'atelier', id: a.id }} titre={`kit de « ${a.titre} »`}
+            corriger={(consigne) => faire(`/ateliers/${a.id}/preparer`, { demande: consigne }, 'POST', true)} />
           <button class="bouton" onClick={() => setEdition(JSON.parse(JSON.stringify(k)))}><Pencil size={14} /> Modifier</button>
           <button class="bouton" disabled={occupe || !claude?.connecte} onClick={() => setDemande(demande === null ? '' : null)}><Sparkles size={14} /> Refaire</button>
         </>}
@@ -318,6 +321,8 @@ function CompteRendu({ projet, a, faire, occupe, claude, aller }) {
       <div class="ligne" style="gap:8px">
         <span class="petit doux espace">Rédigé le {date(cr.redige_le)}{cr.lot ? ' · envoyé à Watson' : ''}</span>
         <button class="bouton" onClick={async () => { await navigator.clipboard.writeText(cr.texte || ''); setCopie(true); setTimeout(() => setCopie(false), 2000); }}><ClipboardCopy size={14} /> {copie ? 'Copié' : 'Copier le compte rendu'}</button>
+        <BoutonRevue projet={projet} cible={{ type: 'compte_rendu', id: a.id }} titre={`compte rendu de « ${a.titre} »`} />
+        <BoutonMail projet={projet} genre="compte_rendu" source={{ type: 'atelier', id: a.id }} libelle="Mail d'envoi" />
         <button class="bouton bouton-watson" disabled={!!lot || envoi === '…' || !claude?.connecte} onClick={versAlimenter}><Sparkles size={14} /> Mettre la base à jour</button>
       </div>
       {envoi === '…' && <div class="carte ligne" style="gap:14px;flex-wrap:nowrap"><Watson humeur="lit" hauteur={70} flotte={false} /><span>Watson lit le compte rendu et prépare les changements de la base, que tu valideras.</span></div>}

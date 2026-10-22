@@ -251,6 +251,10 @@ def rediger_cahier(pid: str, racine: Path, sections: list[str] | None = None, de
     contexte, _ = construire_contexte(racine)
     sources = _sources(racine)
     message = ("Sources du projet :\n\n" + sources) if sources else "Aucun document source pour l'instant : appuie-toi sur la base."
+    from .studio import lire_secteur
+    fiche = lire_secteur(racine)
+    if fiche:
+        message += "\n\nFiche secteur du projet (pour le brief métier et le vocabulaire) :\n" + fiche[:15_000]
     debut = time.time()
     try:
         r = asyncio.run(_lire_par_claude(_consignes_cahier(contexte, cahier, sections, demande), message, requete))

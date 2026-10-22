@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { Attente, Entete, useVue } from './commun.jsx';
+import { BoutonMail } from './studio.jsx';
 
 const GENRES = { 'ajouté': 'b-vert', 'modifié': 'b-violet', 'remplacé': 'b-rouge', 'rendu obsolète': 'b-ambre', 'supprimé': 'b-gris' };
 
@@ -27,7 +28,9 @@ export function Versions({ projet }) {
   const envs = Object.entries(d.environnements);
   return (
     <>
-      <Entete titre="Versions" description="Une version de la spec est une photo figée de la connaissance. Tout le reste est la version de travail. Chaque livraison de code déclare la spec qu'elle applique." />
+      <Entete titre="Versions" description="Une version de la spec est une photo figée de la connaissance. Tout le reste est la version de travail. Chaque livraison de code déclare la spec qu'elle applique.">
+        <BoutonMail projet={projet} genre="livraison" source={{ type: 'version', id: '' }} libelle="Annoncer une version au client" />
+      </Entete>
       {envs.length > 0 && (
         <div class="ligne" style="align-items:stretch;gap:12px">
           {envs.map(([nom, e]) => (

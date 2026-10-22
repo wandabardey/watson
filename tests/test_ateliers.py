@@ -55,6 +55,7 @@ def test_du_kit_au_compte_rendu(projet):
     requete, vus = faux_claude(KIT)
     a = at.preparer("fret", projet, a["id"], "Insister sur les litiges", requete=requete)
     systeme, message = vus[0]
+    assert not message.split("# Base du projet\n")[1].startswith("(")
     assert "Insister sur les litiges" in systeme and "Claire" in systeme and "Q-001" in message and "SCN-001" in message
     assert [q["id"] for th in a["kit"]["themes"] for q in th["questions"]] == ["q1", "q2", "q3"]
     assert "—" not in (projet / "ateliers" / f"{a['id']}.yaml").read_text(encoding="utf-8")

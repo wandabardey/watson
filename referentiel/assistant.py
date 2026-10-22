@@ -247,7 +247,7 @@ def options(projet: Path, portee: str = "travail"):
     )
 
 
-def construire_contexte(projet: Path, portee: str = "travail") -> str:
+def construire_contexte(projet: Path, portee: str = "travail") -> tuple[str, bool]:
     """Ce que Claude lit avant de répondre : la base de la portée demandée, et ce qui la distingue des autres versions."""
     from .contexte import generer_contexte, resume_changements, taille
     from .versions import TRAVAIL, ErreurVersion, charger_version, comparer, environnements, lister_versions

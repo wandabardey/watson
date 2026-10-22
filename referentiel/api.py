@@ -22,6 +22,7 @@ from . import __version__, alimentation, application, depot, github, reglages
 from .avant_projet import ErreurAvantProjet
 from .comite import ErreurComite
 from .ateliers import ErreurAtelier
+from .studio import ErreurStudio
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -367,6 +368,33 @@ def _comite(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _studio(methode, pid, reste, corps):
+    from . import studio as st
+
+    racine = application.chemin(pid)
+    cible = corps.get("cible") or {}
+    if reste == ["relire"] and methode == "POST":
+        return st.relire(pid, racine, {"type": str(cible.get("type", "")), "id": str(cible.get("id", ""))},
+                         str(corps.get("question") or "")[:2000], corps.get("capture") or None)
+    if reste == ["revue"] and methode == "POST":
+        return {"revue": st.lire_revue(pid, {"type": str(cible.get("type", "")), "id": str(cible.get("id", ""))})}
+    if reste == ["secteur"] and methode == "GET":
+        return st.vue_secteur(pid, racine)
+    if reste == ["secteur", "proposer"] and methode == "POST":
+        return st.proposer_secteur(pid, racine, bool(corps.get("complete")), str(corps.get("demande") or "")[:3000])
+    if reste == ["secteur", "garder"] and methode == "POST":
+        v = st.garder_secteur(pid, racine, corps.get("texte"))
+        return {**v, **application.enregistrer_et_envoyer(pid, "Fiche secteur")}
+    if reste == ["secteur", "ecarter"] and methode == "POST":
+        return st.ecarter_secteur(pid, racine)
+    if reste == ["mail"] and methode == "POST":
+        src = corps.get("source") or None
+        return st.ecrire_mail(pid, racine, str(corps.get("genre") or "libre"), str(corps.get("contexte") or "")[:4000],
+                              {"type": str(src.get("type", "")), "id": str(src.get("id", ""))} if isinstance(src, dict) else None,
+                              github.compte()["nom"])
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _ateliers(methode, pid, reste, corps):
     from . import ateliers as at
 
@@ -636,7 +664,7 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
         pid, reste = morceaux[1], morceaux[2:]
         from . import conso
         conso.projet_courant.set(pid)
-        conso.usage_courant.set((reste[1] if reste[:1] == ["avant-projet"] and len(reste) > 1 else reste[0]) if reste else None)
+        conso.usage_courant.set((reste[1] if reste[:1] in (["avant-projet"], ["studio"]) and len(reste) > 1 else reste[0]) if reste else None)
         if reste == ["consommation"] and methode == "GET":
             return conso.vue(pid)
         if methode == "DELETE" and not reste:
@@ -659,6 +687,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _comite(methode, pid, reste[1:], corps)
         if reste[:1] == ["ateliers"]:
             return _ateliers(methode, pid, reste[1:], corps)
+        if reste[:1] == ["studio"]:
+            return _studio(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
             from .ecriture import enregistrer_versions_produit
             enregistrer_versions_produit(application.chemin(pid), corps.get("versions") or [])
@@ -756,7 +786,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

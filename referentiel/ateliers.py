@@ -193,7 +193,7 @@ def preparer(pid: str, racine: Path, aid: str, demande: str | None = None, reque
     from .avant_projet import lire_cahier
 
     a = lire(racine, aid)
-    contexte = construire_contexte(racine)
+    contexte, _ = construire_contexte(racine)
     cahier = lire_cahier(racine)
     cahier_txt = "\n\n".join(f"## {s['titre']}\n{s.get('contenu', '')}" for s in (cahier or {}).get("sections") or [] if s.get("contenu"))[:15_000]
     grille = "\n".join(f"- {t} : " + " | ".join(qs) for t, qs in GRILLE)

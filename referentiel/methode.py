@@ -42,6 +42,11 @@ TACHES = {
     "atelier": ["4SH-preparation-atelier/SKILL.md", "4SH-preparation-atelier/references/kit-atelier.md",
                 "4SH-accueil/references/arbitrer-une-decision.md"],
     "compte_rendu": ["4SH-compte-rendu/SKILL.md", "4SH-compte-rendu/references/gabarit-compte-rendu.md"],
+    "critique": ["4SH-critique-ux/SKILL.md", "4SH-conception-specs/references/regles-ux-applications-metier.md",
+                 "4SH-direction-artistique/references/anti-slop.md"],
+    "relecture": ["4SH-relecture-livrable/SKILL.md", "4SH-relecture-livrable/references/grilles-relecture.md"],
+    "secteur": ["4SH-expert-metier/SKILL.md"],
+    "mail": ["4SH-communication-client/SKILL.md", "4SH-communication-client/references/gabarits-communication.md"],
 }
 LIBELLES = {"cahier": "cadrage de projet et expertise métier", "moodboard": "direction artistique",
             "maquettes": "maquettes et prototypes", "proposition": "deck commercial", "comite_casting": "comité d'experts"}
