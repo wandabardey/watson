@@ -370,13 +370,17 @@ async def demander_async(question: str, projet: Path, portee: str = "travail", r
             raise ErreurAssistant("Le kit d'agents n'est pas installé : pip install claude-agent-sdk") from e
     from claude_agent_sdk import AssistantMessage, ResultMessage
 
-    resultat = None
+    from . import conso
+
+    resultat, depart = None, conso.debut()
     modele = reglages.modele()
     async for message in requete(prompt=question, options=options(projet, portee)):
+        conso.observer(message)
         if isinstance(message, AssistantMessage) and getattr(message, "model", None):
             modele = message.model
         if isinstance(message, ResultMessage):
             resultat = message
+    conso.noter(depart, resultat, modele)
     if resultat is None:
         raise ErreurAssistant("Claude n'a renvoyé aucun résultat.")
     if resultat.is_error:
@@ -396,15 +400,20 @@ async def _tester(requete=None) -> dict:
     from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage
 
     env = {"ANTHROPIC_API_KEY": os.environ["REFERENTIEL_CLE_API"]} if mode_auth() == "cle" else {"ANTHROPIC_API_KEY": ""}
-    debut = time.time()
+    from . import conso
+
+    debut, depart = time.time(), conso.debut()
+    conso.usage_courant.set("test")
     modele, resultat = reglages.modele(), None
     async for m in requete(prompt="Réponds seulement : prêt.", options=ClaudeAgentOptions(
             tools=[], allowed_tools=[], mcp_servers={}, strict_mcp_config=True, setting_sources=[], max_turns=1, env=env,
             cli_path=chemin_claude_code(), model=reglages.modele(), effort=reglages.effort())):
         if isinstance(m, AssistantMessage) and getattr(m, "model", None):
             modele = m.model
+        conso.observer(m)
         if isinstance(m, ResultMessage):
             resultat = m
+    conso.noter(depart, resultat, modele)
     if resultat is None or resultat.is_error:
         raise ErreurAssistant(_message_erreur(resultat) if resultat else "Claude n'a pas répondu.")
     return {"modele": reglages.nom_modele(modele), "identifiant": modele, "duree_s": round(time.time() - debut, 1)}

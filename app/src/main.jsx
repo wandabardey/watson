@@ -22,6 +22,7 @@ import { Moodboard } from './ecrans/moodboard.jsx';
 import { Maquettes } from './ecrans/maquettes.jsx';
 import { Proposition } from './ecrans/proposition.jsx';
 import { Parametres } from './ecrans/parametres.jsx';
+import { Administration } from './ecrans/administration.jsx';
 import './styles.css';
 
 // Catégories repliables de la barre latérale. [clé, libellé, icône, bientôt]
@@ -37,7 +38,7 @@ const GROUPES = [
 
 const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: AccueilProjet, alimenter: AccueilProjet, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
-  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions };
+  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration };
 
 const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
 
@@ -105,7 +106,7 @@ function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerP
           );
         })}
       </div>
-      <button class="menu petit-menu" disabled title="Dans une prochaine version"><Settings size={16} strokeWidth={1.8} /> Administration du projet <span class="compte b-gris">bientôt</span></button>
+      <button class={`menu petit-menu ${ecran === 'administration' ? 'actif' : ''}`} onClick={() => choisir('administration')}><Settings size={16} strokeWidth={1.8} /> Administration du projet</button>
       {compte && (
         <div class="profil">
           {compte.avatar ? <img class="avatar" src={compte.avatar} alt="" /> : <span class="avatar" />}

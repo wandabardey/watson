@@ -567,3 +567,21 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .tuile-chiffre strong { font-size: 22px; }
 @media (max-width: 1100px) { .etapes-avant { grid-template-columns: 1fr 1fr; } .hero-projet .watson { display: none; } }
 .lateral { align-self: flex-start; }
+
+/* Administration : consommation de Claude */
+.chiffre-session { font-size: 34px; letter-spacing: -0.02em; }
+.jauge-session { position: relative; height: 14px; border-radius: 999px; background: #F1F0F7; overflow: hidden; }
+.jauge-session span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+.jauge-compte { background: #C7D2FE; }
+.jauge-session.haute .jauge-compte { background: #F5B9A0; }
+.jauge-projet { background: var(--indigo); }
+.legende-jauge { display: inline-flex; align-items: center; gap: 6px; color: #52525B; }
+.legende-jauge i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.pastille-projet { background: var(--indigo); }
+.pastille-compte { background: #C7D2FE; }
+.tuiles-conso { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.tuiles-conso > div { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 14px; background: #FAFAFC; box-shadow: inset 0 0 0 1px #ECEBF3; }
+.tuiles-conso strong { font-size: 22px; }
+.barre-usage { height: 6px; border-radius: 999px; background: #F1F0F7; overflow: hidden; }
+.barre-usage span { display: block; height: 100%; background: var(--indigo); border-radius: 999px; }
+.appel-conso { padding: 6px 0; border-bottom: 1px solid #F4F4F5; flex-wrap: nowrap; }

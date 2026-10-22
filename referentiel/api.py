@@ -597,6 +597,11 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return application.ajouter(corps["depot"])
     if morceaux[:1] == ["projets"] and len(morceaux) >= 2:
         pid, reste = morceaux[1], morceaux[2:]
+        from . import conso
+        conso.projet_courant.set(pid)
+        conso.usage_courant.set((reste[1] if reste[:1] == ["avant-projet"] and len(reste) > 1 else reste[0]) if reste else None)
+        if reste == ["consommation"] and methode == "GET":
+            return conso.vue(pid)
         if methode == "DELETE" and not reste:
             application.oublier(pid)
             return {"ok": True}

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import contextvars
 import re
 import threading
 import time
@@ -343,7 +344,7 @@ def evaluer(pid: str, racine: Path, cible: dict, question: str, intensite: str =
     if attendre:
         tourner()
     else:
-        threading.Thread(target=tourner, daemon=True).start()
+        threading.Thread(target=contextvars.copy_context().run, args=(tourner,), daemon=True).start()
     return s
 
 

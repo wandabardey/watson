@@ -327,10 +327,14 @@ async def _lire_par_claude(systeme: str, message: str, requete=None) -> dict:
     options = ClaudeAgentOptions(tools=[], allowed_tools=[], mcp_servers={}, strict_mcp_config=True, setting_sources=[],
                                  system_prompt=systeme, max_turns=1, env=env, cli_path=chemin_claude_code(),
                                  model=reglages.modele(), effort=reglages.effort())
-    resultat = None
+    from . import conso
+
+    resultat, depart = None, conso.debut()
     async for m in requete(prompt=_flux(message) if isinstance(message, list) else message, options=options):
+        conso.observer(m)
         if isinstance(m, ResultMessage):
             resultat = m
+    conso.noter(depart, resultat, reglages.modele())
     if resultat is None:
         raise ErreurAlimentation("Claude n'a renvoyé aucun résultat.")
     if resultat.is_error:
