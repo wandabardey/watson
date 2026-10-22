@@ -275,7 +275,7 @@ def _destination(nom: str, ext: str) -> Path:
     dossier = Path.home() / "Downloads"
     if not dossier.is_dir():
         dossier = Path.home()
-    base = re.sub(r"[^\w\- ]+", "", nom).strip()[:80] or "Proposition"
+    base = re.sub(r" {2,}", " ", re.sub(r"[^\w\- ]+", "", re.sub(r"['\u2019]", " ", nom))).strip()[:80] or "Proposition"
     f, n = dossier / f"{base}.{ext}", 2
     while f.exists():
         f, n = dossier / f"{base} ({n}).{ext}", n + 1

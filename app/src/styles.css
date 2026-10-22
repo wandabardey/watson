@@ -648,3 +648,17 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .ligne-campagne.res-ko { box-shadow: inset 3px 0 0 #EF4444, inset 0 0 0 1px #FECACA; }
 .ligne-campagne.res-bloque { box-shadow: inset 3px 0 0 #F97316, inset 0 0 0 1px #ECEBF3; }
 .anomalie { white-space: pre-wrap; font: inherit; font-size: 13px; margin: 0; padding: 10px 12px; border-radius: 10px; background: #FEF2F2; color: #7F1D1D; }
+
+/* Documentation */
+.sommaire-guide { flex: 0 0 300px; position: sticky; top: 16px; max-height: calc(100vh - 140px); overflow: auto; }
+.partie-guide { margin: 10px 0 2px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #71717A; }
+.rubrique-guide { gap: 8px; }
+.pastille-statut { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; padding: 0; }
+.pastille-statut.b-gris { background: #D4D4D8; } .pastille-statut.b-ambre { background: #F59E0B; } .pastille-statut.b-vert { background: #22C55E; }
+.guide-page { padding: 28px 32px; }
+.glossaire dt { font-weight: 600; margin-top: 10px; } .glossaire dd { margin: 2px 0 0; color: #52525B; }
+
+.md-encart { border-radius: 10px; padding: 10px 14px; margin: 10px 0; }
+.md-encart.astuce { background: var(--indigo-pale); box-shadow: inset 3px 0 0 var(--indigo); }
+.md-encart.attention { background: #FFF7ED; box-shadow: inset 3px 0 0 #EA580C; }
+.lien-interne { color: var(--indigo); text-decoration: underline; cursor: pointer; }

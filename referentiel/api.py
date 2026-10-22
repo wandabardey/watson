@@ -25,6 +25,7 @@ from .ateliers import ErreurAtelier
 from .studio import ErreurStudio
 from .backlog import ErreurEvolution
 from .campagnes import ErreurRecette
+from .documentation import ErreurDocumentation
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -367,6 +368,31 @@ def _comite(methode, pid, reste, corps):
         d["membres"] = []
         co._ecrire_comite(racine, d)
         return {**co.vue(pid, racine), **application.enregistrer_et_envoyer(pid, "Comité du projet : panel retiré")}
+    raise Erreur("Ressource inconnue.", 404)
+
+
+def _documentation(methode, pid, reste, corps):
+    from . import documentation as do
+
+    racine = application.chemin(pid)
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return do.vue(racine)
+    if not reste and methode == "POST":
+        return {**do.modifier_guide(racine, corps), **envoyer("Guide utilisateur : sommaire modifié")}
+    if reste == ["sommaire"] and methode == "POST":
+        v = do.proposer_sommaire(racine, str(corps.get("decoupage") or "parcours"), str(corps.get("audience") or "utilisateur"),
+                                 str(corps.get("demande") or "")[:3000])
+        return {**v, **envoyer("Guide utilisateur : sommaire proposé par Watson")}
+    if reste == ["glossaire"] and methode == "POST":
+        return {**do.rediger_glossaire(racine), **envoyer("Guide utilisateur : glossaire")}
+    if reste == ["exporter"] and methode == "POST":
+        return do.exporter(racine, corps.get("images") if isinstance(corps.get("images"), dict) else {})
+    if len(reste) == 2 and reste[0] == "rubriques" and methode == "POST":
+        return {**do.enregistrer_rubrique(racine, reste[1], corps.get("texte"), corps.get("statut")), **envoyer("Guide utilisateur : rubrique modifiée")}
+    if len(reste) == 3 and reste[0] == "rubriques" and reste[2] == "rediger" and methode == "POST":
+        v = do.rediger_rubrique(racine, reste[1], str(corps.get("demande") or "")[:3000])
+        return {**v, **envoyer("Guide utilisateur : rubrique rédigée par Watson")}
     raise Erreur("Ressource inconnue.", 404)
 
 
@@ -773,6 +799,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _evolutions(methode, pid, reste[1:], corps)
         if reste[:1] == ["recette"]:
             return _recette(methode, pid, reste[1:], corps)
+        if reste[:1] == ["documentation"]:
+            return _documentation(methode, pid, reste[1:], corps)
         if reste[:1] == ["studio"]:
             return _studio(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
@@ -872,7 +900,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, ErreurDocumentation, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant
