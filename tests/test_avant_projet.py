@@ -66,3 +66,42 @@ def test_enregistrer_controle(projet):
         ap.enregistrer_cahier(projet, {"statut": "fini", "sections": []})
     c = ap.enregistrer_cahier(projet, {"titre": "CDC", "statut": "partage", "sections": [{"id": "libre", "titre": "Annexe", "contenu": " x "}]})
     assert c["sections"][0]["contenu"] == "x" and ap.vue_cahier(projet)["existe"]
+
+
+PISTE = {"id": "sobre", "nom": "Atelier sobre", "parti_pris": "Un outil de travail calme.", "ambiance": ["calme", "précis"],
+         "dials": {"variance": 3, "motion": 2, "densite": 7},
+         "couleurs": [{"nom": "Bleu acier", "hex": "#1f4e79", "role": "marque"}, {"nom": "Blanc", "hex": "#FFFFFF", "role": "fond"},
+                      {"nom": "Encre", "hex": "#1C1C1E", "role": "texte"}],
+         "typo": {"titres": "Inter", "texte": "Inter", "graisse_titres": 700, "echelle": [32, 24, 19, 16, 14, 12]},
+         "formes": {"rayon": 8, "ombre": "aucune", "bordure": True}, "principes": ["Un point focal par écran"],
+         "ergonomie": ["Une seule colonne"], "references": ["Linear, pour la densité"]}
+
+
+def test_moodboard_propose_avec_inspirations_puis_garde(projet):
+    import base64
+    png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+    ap.ajouter_inspiration(projet, "Ambiance client.PNG", base64.b64encode(png).decode(), "le client aime")
+    assert (projet / "avant-projet" / "inspirations" / "ambiance-client.png").exists()
+    assert ap.image(projet, "inspirations/ambiance-client.png")["data_url"].startswith("data:image/png")
+    with pytest.raises(ap.ErreurAvantProjet):
+        ap.image(projet, "../projet.yaml")
+    mauvaise = {**PISTE, "id": "x", "couleurs": [{"nom": "a", "hex": "rouge", "role": "marque"}]}
+    requete, vus = faux_claude({"resume": "Deux pistes.", "pistes": [PISTE, mauvaise], "questions": [{"question": "Une charte existe ?"}]})
+    sdk = pytest.importorskip("claude_agent_sdk")
+
+    async def requete_flux(prompt, options):  # message avec image : flux
+        vus["blocs"] = [m async for m in prompt]
+        async for m in requete("x", options):
+            yield m
+
+    prop = ap.proposer_moodboard("fret", projet, 2, "plus sobre", requete=requete_flux)
+    blocs = vus["blocs"][0]["message"]["content"]
+    assert blocs[1]["type"] == "image" and "le client aime" in blocs[0]["text"] and "plus sobre" in vus["options"].system_prompt
+    assert [p["id"] for p in prop["pistes"]] == ["sobre"] and prop["ecartees"] == 1
+    ap.garder_moodboard("fret", projet, ["sobre"], [0], "W")
+    mb = ap.lire_moodboard(projet)
+    assert mb["pistes"][0]["couleurs"][0]["hex"] == "#1F4E79" and mb["inspirations"][0]["note"] == "le client aime"
+    mb["retenue"] = "sobre"
+    assert ap.enregistrer_moodboard(projet, mb)["retenue"] == "sobre"
+    ap.retirer_inspiration(projet, "inspirations/ambiance-client.png")
+    assert not (projet / "avant-projet" / "inspirations" / "ambiance-client.png").exists()

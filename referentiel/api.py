@@ -344,6 +344,30 @@ def _avant_projet(methode, pid, reste, corps):
     if reste == ["cahier", "proposition"] and methode == "DELETE":
         ap.ecarter_proposition(pid)
         return ap.vue_cahier(racine, pid)
+    if reste == ["moodboard"] and methode == "GET":
+        return ap.vue_moodboard(racine, pid)
+    if reste == ["moodboard"] and methode == "POST":
+        ap.enregistrer_moodboard(racine, corps.get("moodboard") or {})
+        return {**ap.vue_moodboard(racine, pid), **application.enregistrer_et_envoyer(pid, corps.get("message") or "Moodboard : mise à jour")}
+    if reste == ["moodboard", "proposer"] and methode == "POST":
+        return ap.proposer_moodboard(pid, racine, int(corps.get("nombre") or 3), str(corps.get("demande") or "")[:4000] or None,
+                                     corps.get("piste") or None)
+    if reste == ["moodboard", "garder"] and methode == "POST":
+        r = ap.garder_moodboard(pid, racine, [str(x) for x in corps.get("pistes") or []], [int(x) for x in corps.get("questions") or []],
+                                github.compte()["nom"])
+        envoi = application.enregistrer_et_envoyer(pid, f"Moodboard : {', '.join(r['pistes']) or 'questions'} (proposé avec Claude)")
+        return {**ap.vue_moodboard(racine, pid), **envoi}
+    if reste == ["moodboard", "proposition"] and methode == "DELETE":
+        ap.ecarter_proposition(pid, "moodboard")
+        return ap.vue_moodboard(racine, pid)
+    if reste == ["moodboard", "inspirations"] and methode == "POST":
+        ap.ajouter_inspiration(racine, str(corps.get("nom", "")), corps.get("contenu_base64") or "", str(corps.get("note") or "")[:300])
+        return {**ap.vue_moodboard(racine, pid), **application.enregistrer_et_envoyer(pid, "Moodboard : image d'inspiration")}
+    if reste == ["moodboard", "inspirations"] and methode == "DELETE":
+        ap.retirer_inspiration(racine, str(corps.get("fichier", "")))
+        return {**ap.vue_moodboard(racine, pid), **application.enregistrer_et_envoyer(pid, "Moodboard : image retirée")}
+    if reste == ["image"] and methode == "POST":
+        return ap.image(racine, str(corps.get("fichier", "")))
     raise Erreur("Ressource inconnue.", 404)
 
 
