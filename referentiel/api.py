@@ -19,6 +19,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import __version__, alimentation, application, depot, github, reglages
+from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
 from .controles import ERREUR, analyser, couverture
@@ -111,7 +112,7 @@ def regles_par_cible(p) -> tuple:
             for c in r.get("conditions") or []:
                 par_donnee.setdefault((r["entite"], c.get("attribut")), []).append(info)
         for cible in r.get("porte_sur") or []:
-            ident, _, donnee = cible.partition(".")
+            ident, donnee = cible_et_donnee(cible)
             entites.add(ident)
             if donnee and info not in par_donnee.get((ident, donnee), []):
                 par_donnee.setdefault((ident, donnee), []).append(info)
@@ -153,6 +154,40 @@ def vue_referentiels(p) -> dict:
                "valeurs": [{**v, "version": v.get("version") or li.get("version")} for v in li["valeurs"]],
                "utilisee_par": utilisations.get(lid, [])} for lid, li in p.listes.items()]
     return {"entites": entites, "listes": listes, "versions_produit": p.meta.get("versions_produit") or []}
+
+
+def vue_ecrans(p) -> dict:
+    """Écrans : contenu, application, version, routages, et parcours qui les utilisent."""
+    apps = {a["id"]: a for a in p.meta.get("applications") or []}
+    parcours = {}
+    for uid, uc in p.cas_usage.items():
+        for et in uc.get("etapes") or []:
+            if et.get("ecran"):
+                parcours.setdefault(et["ecran"], {})[uid] = uc["nom"]
+    enfants = {}
+    for eid, e in p.ecrans.items():
+        if e.get("parent"):
+            enfants.setdefault(e["parent"], []).append(eid)
+    ecrans = []
+    for eid, e in p.ecrans.items():
+        ecrans.append({
+            "id": eid, "nom": e["nom"], "description": e.get("description", ""), "type": e.get("type"),
+            "version": e.get("version"), "a_trancher": bool(e.get("a_trancher")), "parent": e.get("parent"),
+            "applications": [{"id": a, "nom": apps.get(a, {}).get("nom", a), "couleur": apps.get(a, {}).get("couleur"),
+                              "support": apps.get(a, {}).get("support")} for a in e.get("applications") or []],
+            "acteurs": [{"id": a, "nom": _nom(p, a)} for a in e.get("acteurs") or []],
+            "cas_usage": e.get("cas_usage") or [],
+            "sections": [{**s_, "version": s_.get("version") or e.get("version")} for s_ in e.get("sections") or []],
+            "routages": [{**r, "genre": r.get("genre", "navigation"), "vers_nom": (p.ecrans.get(r["vers"]) or {}).get("nom", r["vers"]),
+                          "version": r.get("version")} for r in e.get("routages") or []],
+            "regles": [{"id": r, "titre": _nom(p, r), "statut": p.regles.get(r, {}).get("statut", "introuvable")} for r in e.get("regles") or []],
+            "sous_ecrans": enfants.get(eid, []),
+            "parcours": [{"id": k, "nom": v} for k, v in parcours.get(eid, {}).items()],
+            "captures": len(e.get("captures") or []),
+        })
+    return {"ecrans": ecrans, "applications": list(apps.values()), "versions_produit": p.meta.get("versions_produit") or [],
+            "acteurs": [{"id": a, "nom": x["nom"]} for a, x in p.acteurs.items()],
+            "regles": [{"id": r, "titre": x["titre"], "statut": x["statut"]} for r, x in p.regles.items()]}
 
 
 def vue_workflow(p) -> dict:
@@ -240,7 +275,7 @@ def _alimenter(methode, pid, reste, corps):
         return alimentation.lire_lot(pid, reste[0])
     if methode == "GET" and len(reste) == 2 and reste[1] == "apercu":
         changes, p = alimentation.apercu(pid, racine, reste[0])
-        return {**changes, "referentiels": vue_referentiels(p)}
+        return {**changes, "referentiels": vue_referentiels(p), "ecrans": vue_ecrans(p)}
     if methode == "DELETE" and len(reste) == 1:
         alimentation.abandonner(pid, reste[0])
         return {"ok": True}
@@ -356,6 +391,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
                 return vue_catalogue(p)
             if reste == ["referentiels"]:
                 return vue_referentiels(p)
+            if reste == ["ecrans"]:
+                return vue_ecrans(p)
             if reste == ["workflow"]:
                 return vue_workflow(p)
             if reste == ["regles"]:

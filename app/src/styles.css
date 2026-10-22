@@ -224,3 +224,21 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .brique-ligne.hors-version .brique-cible { opacity: .6; }
 .lien-schema.hors-version { stroke: #B8B8C6; stroke-dasharray: 4 5; }
 .pilule-hors { border-style: dashed; color: #6B7280; }
+
+/* Écrans : carte de navigation */
+.couloir { position: absolute; left: 0; border-radius: 22px; border: 1px solid; }
+.couloir-nom { position: absolute; left: 22px; bottom: 16px; display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; }
+.brique.ecran { background: #fff; }
+.brique.a-trancher { border-style: dashed !important; border-color: #F59E0B !important; }
+.a-trancher-txt { color: #B45309; font-weight: 700; }
+.ecran-section { display: flex; align-items: center; gap: 9px; margin: 0 12px; padding: 0 6px; border-top: 1px solid #F1F1F6; font-size: 13px; color: #3F3F46; }
+.ecran-section.es-variante { font-style: italic; color: #71717A; }
+.ecran-section.es-onglet { color: #3F3F46; }
+.ecran-section.hors-version { color: #A1A1AA; font-style: italic; }
+.num-section { flex: 0 0 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 10.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-style: normal; }
+.marque-onglet { flex: 0 0 16px; height: 11px; border: 1.6px solid #6B7280; border-bottom: 0; border-radius: 4px 4px 0 0; display: inline-block; }
+.ecran-pied { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 6px 12px 0; padding-top: 8px; border-top: 1px solid #F1F1F6; }
+.puce-uc { display: inline-flex; padding: 1px 7px; border-radius: 6px; background: #F4F4F6; color: #52525B; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+.etiquette-lien { position: absolute; display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 12px; border-radius: 999px; background: #fff; border: 1px solid #E4E4EC; font-size: 12.5px; font-weight: 600; white-space: nowrap; box-shadow: 0 1px 3px rgba(24,24,27,.06); pointer-events: none; }
+.etiquette-lien.echange { background: #18181B; color: #fff; border-color: #18181B; }
+.pilule-echange { background: #18181B; color: #fff; border-color: #18181B; }

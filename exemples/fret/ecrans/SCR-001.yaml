@@ -1,6 +1,18 @@
 id: SCR-001
 nom: Saisie d'une expédition
+type: formulaire
 acteurs: [ACT-EXPEDITEUR]
+applications: [APP-PORTAIL]
+cas_usage: [UC 04, UC 05]
+sections:
+  - {titre: Données de l'expédition}
+  - {titre: Marchandises}
+  - {titre: Documents douaniers}
+  - {titre: Revue}
+  - {titre: Plusieurs colis dans une même expédition, genre: variante, version: V2}
+routages:
+  - {vers: SCR-002, genre: routage, libelle: Soumettre}
+regles: [RG-001, RG-030]
 captures:
   - fichier: captures/SCR-001-expediteur.png
     date: 2026-09-20

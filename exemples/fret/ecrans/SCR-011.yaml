@@ -1,0 +1,16 @@
+id: SCR-011
+nom: Mes expéditions
+type: liste
+acteurs: [ACT-EXPEDITEUR, ACT-AGENT-TRANSIT]
+applications: [APP-PORTAIL]
+cas_usage: [UC 02, UC 03]
+sections:
+  - {titre: Brouillons, genre: onglet}
+  - {titre: En attente de documents, genre: onglet}
+  - {titre: En contrôle, genre: onglet}
+  - {titre: Prêtes à expédier, genre: onglet}
+  - {titre: Archivées, genre: onglet, version: V2}
+routages:
+  - {vers: SCR-001, genre: navigation, libelle: Nouvelle expédition}
+  - {vers: SCR-002, genre: navigation, libelle: Ouvrir}
+  - {vers: SCR-004, genre: navigation, libelle: Factures, version: V2}

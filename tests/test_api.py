@@ -273,3 +273,20 @@ def test_versions_produit(serveur):
         appel(base, f"/api/projets/{pid}/versions-produit", {"versions": [{"id": "MVP", "nom": "MVP"}]})
     assert "encore portée" in json.loads(e.value.read())["erreur"]
     assert [x["id"] for x in appel(base, f"/api/projets/{pid}/referentiels")["versions_produit"]] == ["MVP", "V2", "V3"]
+
+
+def test_vue_ecrans_et_edition(serveur):
+    base, _ = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    v = appel(base, f"/api/projets/{pid}/ecrans")
+    ec = {e["id"]: e for e in v["ecrans"]}
+    assert ec["SCR-002"]["applications"][0]["couleur"] == "#4F46E5" and ec["SCR-002"]["parcours"][0]["id"] == "UC-001"
+    echange = next(r for r in ec["SCR-002"]["routages"] if r["genre"] == "echange")
+    assert echange["vers_nom"] == "Tableau de bord transporteur"
+    assert ec["SCR-013"]["sous_ecrans"] == ["SCR-014"] and ec["SCR-014"]["a_trancher"] and ec["SCR-004"]["version"] == "V2"
+    assert ec["SCR-011"]["sections"][-1]["version"] == "V2" and ec["SCR-001"]["sections"][0]["version"] is None
+    # Un écran au format du client (identifiant à point), créé depuis l'application
+    appel(base, f"/api/projets/{pid}/elements", {"type": "ecran", "contenu": {
+        "id": "SIMAR-04.1", "nom": "Journal des actions", "type": "panneau", "parent": "SCR-011",
+        "routages": [{"vers": "SCR-002", "genre": "navigation"}]}})
+    assert "SIMAR-04.1" in {e["id"] for e in appel(base, f"/api/projets/{pid}/ecrans")["ecrans"]}

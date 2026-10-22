@@ -1,3 +1,9 @@
 id: SCR-004
 nom: Facturation
+type: liste
 acteurs: [ACT-COMPTABLE]
+applications: [APP-PORTAIL]
+version: V2
+sections:
+  - {titre: À facturer, genre: onglet}
+  - {titre: Facturées, genre: onglet}

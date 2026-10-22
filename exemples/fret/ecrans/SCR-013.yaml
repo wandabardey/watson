@@ -1,0 +1,11 @@
+id: SCR-013
+nom: Livraison
+type: formulaire
+acteurs: [ACT-TRANSPORTEUR]
+applications: [APP-TRANSPORTEUR]
+cas_usage: [UC 10]
+sections:
+  - {titre: Preuve de livraison}
+  - {titre: Signature du destinataire}
+routages:
+  - {vers: SCR-014, genre: routage, libelle: Signaler un litige}

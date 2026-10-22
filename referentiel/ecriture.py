@@ -17,6 +17,7 @@ from ._vendor import yaml
 from .chargement import Projet, charger
 from .controles import analyser
 from .validation import erreurs as erreurs_schema
+from .schemas import cible_et_donnee
 
 # type d'élément -> (dossier, schéma)
 TYPES = {
@@ -289,7 +290,7 @@ def references(p: Projet, ident: str) -> list[dict]:
             if ident in (tr.get("regles") or []) or ident in (tr.get("acteurs") or []):
                 ajout(e, f"l'étape « {tr.get('nom', tr['id'])} »")
     for r in p.regles.values():
-        if r["id"] != ident and (r.get("entite") == ident or any(c.split(".")[0] == ident for c in r.get("porte_sur") or [])):
+        if r["id"] != ident and (r.get("entite") == ident or any(cible_et_donnee(c)[0] == ident for c in r.get("porte_sur") or [])):
             ajout(r, "porte sur lui")
     for uc in p.cas_usage.values():
         if uc.get("acteur_principal") == ident or any(ident in (et.get("acteur"), et.get("ecran"), et.get("transition")) for et in uc.get("etapes") or []):

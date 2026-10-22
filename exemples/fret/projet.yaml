@@ -1,6 +1,9 @@
 id: FRET-DEMO
 nom: Fret international (démo fictive)
 description: Projet fictif pour tester le format de la base sur une entité Expédition.
+applications:
+  - {id: APP-PORTAIL, nom: Portail fret, support: web, couleur: '#4F46E5'}
+  - {id: APP-TRANSPORTEUR, nom: App transporteur, support: mobile, couleur: '#0D9488'}
 versions_produit:
   - {id: MVP, nom: MVP, description: Première mise en service}
   - {id: V2, nom: V2, description: Seconde livraison}

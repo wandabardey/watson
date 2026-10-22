@@ -13,6 +13,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from itertools import product
 
+from .schemas import cible_et_donnee
 from .chargement import Projet
 
 ERREUR = "erreur"  # la base est incohérente, à corriger
@@ -102,9 +103,25 @@ def controler_references(p: Projet, trous: list):
                 verifier_version(el["id"], v.get("version"), v["nom"])
             for x in (el.get("statuts") or []) + (el.get("transitions") or []):
                 verifier_version(x["id"], x.get("version"), "")
+    apps = {a["id"] for a in p.meta.get("applications") or []}
+    for ec in p.ecrans.values():
+        for ro in ec.get("routages") or []:
+            verifier_version(ec["id"], ro.get("version"), "")
+            if ro["vers"] not in p.ecrans:
+                inconnu(ec["id"], "routages", ro["vers"], "l'écran")
+        for sec in ec.get("sections") or []:
+            verifier_version(ec["id"], sec.get("version"), "")
+        if ec.get("parent") and ec["parent"] not in p.ecrans:
+            inconnu(ec["id"], "parent", ec["parent"], "l'écran")
+        for r in ec.get("regles") or []:
+            if r not in p.regles:
+                inconnu(ec["id"], "regles", r, "la règle")
+        for a in ec.get("applications") or []:
+            if apps and a not in apps:
+                inconnu(ec["id"], "applications", a, "l'application")
     for r in p.regles.values():
         for cible in r.get("porte_sur") or []:
-            ident, _, donnee = cible.partition(".")
+            ident, donnee = cible_et_donnee(cible)
             connu = ident in p.fichiers or ident in transitions
             if not connu:
                 inconnu(r["id"], "porte_sur", ident, "l'élément")

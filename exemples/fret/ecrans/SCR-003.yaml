@@ -1,3 +1,11 @@
 id: SCR-003
 nom: Tableau de bord transporteur
+type: liste
 acteurs: [ACT-TRANSPORTEUR]
+applications: [APP-TRANSPORTEUR]
+cas_usage: [UC 09]
+sections:
+  - {titre: À prendre en charge, genre: onglet}
+  - {titre: En transit, genre: onglet}
+routages:
+  - {vers: SCR-013, genre: navigation, libelle: Ouvrir une livraison}

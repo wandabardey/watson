@@ -1,0 +1,10 @@
+id: SCR-010
+nom: Connexion
+type: page
+applications: [APP-PORTAIL]
+cas_usage: [UC 01]
+sections:
+  - {titre: Identifiant et mot de passe}
+  - {titre: Double authentification}
+routages:
+  - {vers: SCR-011, genre: navigation, libelle: Accueil selon le profil}

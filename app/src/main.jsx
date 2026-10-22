@@ -11,6 +11,7 @@ import { DEVISE, Watson } from './ecrans/commun.jsx';
 import logo from './images/logo.png';
 import { Synthese } from './ecrans/synthese.jsx';
 import { Referentiels } from './ecrans/referentiels.jsx';
+import { Ecrans } from './ecrans/ecrans.jsx';
 import { Workflow } from './ecrans/workflow.jsx';
 import { Regles } from './ecrans/regles.jsx';
 import { Versions } from './ecrans/versions.jsx';
@@ -21,7 +22,7 @@ import './styles.css';
 
 const MENU = [
   ['Connaissance métier'],
-  ['synthese', 'Synthèse', LayoutDashboard], ['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route, true], ['ecrans', 'Écrans', AppWindow, true],
+  ['synthese', 'Synthèse', LayoutDashboard], ['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route, true], ['ecrans', 'Écrans', AppWindow],
   ['workflow', 'Workflow', IconeWorkflow],
   ['regles', 'Règles', Scale], ['flux', 'Flux externes', ArrowLeftRight, true], ['sujets', 'Sujets en attente', CircleHelp, true],
   ['Gestion projet'],
@@ -33,7 +34,7 @@ const MENU = [
   ['administration', 'Administration', Settings, true]
 ];
 
-const ECRANS = { synthese: Synthese, referentiels: Referentiels, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
+const ECRANS = { synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
 
 function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerProjet }) {
   const [projets, setProjets] = useState([]);

@@ -1,6 +1,18 @@
 id: SCR-002
 nom: Détail d'une expédition
+type: formulaire
 acteurs: [ACT-EXPEDITEUR, ACT-AGENT-TRANSIT]
+applications: [APP-PORTAIL]
+cas_usage: [UC 06, UC 07]
+sections:
+  - {titre: Récapitulatif}
+  - {titre: Vérification des documents}
+  - {titre: Historique}
+  - {titre: Relance du client grand compte, genre: variante}
+routages:
+  - {vers: SCR-012, genre: routage, libelle: Envoyer en contrôle, condition: marchandise dangereuse}
+  - {vers: SCR-003, genre: echange, libelle: Expédition annoncée}
+regles: [RG-002, RG-003]
 captures:
   - fichier: captures/SCR-002-expediteur.png
     date: 2026-09-20

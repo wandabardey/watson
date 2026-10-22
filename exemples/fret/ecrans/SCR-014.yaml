@@ -1,0 +1,12 @@
+id: SCR-014
+nom: Signalement de litige
+type: modale
+parent: SCR-013
+acteurs: [ACT-TRANSPORTEUR]
+applications: [APP-TRANSPORTEUR]
+a_trancher: true
+cas_usage: [UC 11]
+sections:
+  - {titre: Motif du litige}
+  - {titre: Photos}
+regles: [RG-005]

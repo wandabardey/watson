@@ -1,0 +1,11 @@
+id: SCR-012
+nom: Contrôle sécurité
+type: formulaire
+acteurs: [ACT-AGENT-TRANSIT]
+applications: [APP-PORTAIL]
+cas_usage: [UC 08]
+sections:
+  - {titre: Inspection}
+  - {titre: Décision}
+routages:
+  - {vers: SCR-002, genre: routage, libelle: Valider le contrôle}

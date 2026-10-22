@@ -8,7 +8,7 @@ les tests et la documentation.
 from __future__ import annotations
 
 
-ID = {"type": "string", "pattern": r"^[A-Z0-9][A-Z0-9_-]*$"}
+ID = {"type": "string", "pattern": r"^[A-Z0-9][A-Z0-9_.-]*$"}  # point permis : SIMAR-04.1
 DATE = {"type": "string", "pattern": r"^\d{4}-\d{2}-\d{2}$"}
 TEXTE = {"type": "string", "minLength": 1}
 LISTE_ID = {"type": "array", "items": ID}
@@ -69,6 +69,8 @@ PROJET = {
                     "depot": TEXTE,  # chemin du dépôt de code, relatif au projet ou absolu
                     "etiquettes": TEXTE,  # motif des étiquettes de livraison, « v* » par défaut
                     "fichier": TEXTE,  # fichier de référence dans le dépôt, « REFERENTIEL.md » par défaut
+                    "couleur": {"type": "string", "pattern": r"^#[0-9A-Fa-f]{6}$"},  # couleur dans les schémas
+                    "support": {"enum": ["web", "mobile", "bureau", "api"]},
                 },
                 "additionalProperties": False,
             },
@@ -192,7 +194,7 @@ REGLE = {
         "version": VERSION,
         # Ce sur quoi la règle porte : une entité, une de ses données (ENT-SOCIETE.siret), une étape
         # (transition), un écran ou un parcours. « entite » reste le rattachement principal.
-        "porte_sur": {"type": "array", "items": {"type": "string", "pattern": r"^[A-Z0-9][A-Z0-9_-]*(\.[a-z][a-z0-9_]*)?$"}},
+        "porte_sur": {"type": "array", "items": {"type": "string", "pattern": r"^[A-Z0-9][A-Z0-9_.-]*(\.[a-z][a-z0-9_]*)?$"}},
         # Table de décision : conditions croisées et résultat de chaque ligne.
         "conditions": {
             "type": "array",
@@ -256,9 +258,45 @@ ECRAN = {
         "id": ID,
         "nom": TEXTE,
         "description": TEXTE,
+        "type": {"enum": ["page", "formulaire", "liste", "panneau", "modale", "tableau_de_bord"]},
         "acteurs": LISTE_ID,
         "applications": LISTE_ID,
         "version": VERSION,
+        "a_trancher": {"type": "boolean"},  # écran pas encore décidé
+        "parent": ID,  # sous-écran (panneau, modale) d'un autre écran
+        "cas_usage": {"type": "array", "items": TEXTE},  # « UC 14 », ou identifiants de cas d'usage
+        # Ce que l'écran contient : sections numérotées, variantes (◇), onglets d'une liste.
+        "sections": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["titre"],
+                "properties": {
+                    "titre": TEXTE,
+                    "description": TEXTE,
+                    "genre": {"enum": ["section", "variante", "onglet"]},
+                    "version": VERSION,
+                },
+                "additionalProperties": False,
+            },
+        },
+        # Où l'on va depuis l'écran : navigation simple, routage vers un autre formulaire, échange entre applications.
+        "routages": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["vers"],
+                "properties": {
+                    "vers": ID,
+                    "libelle": TEXTE,
+                    "condition": TEXTE,
+                    "genre": {"enum": ["navigation", "routage", "echange"]},
+                    "version": VERSION,
+                },
+                "additionalProperties": False,
+            },
+        },
+        "regles": LISTE_ID,  # règles que l'écran applique
         "captures": {
             "type": "array",
             "items": {
@@ -298,3 +336,11 @@ TYPES = {
     "cas-usage": (CAS_USAGE, "cas d'usage"),
     "ecrans": (ECRAN, "écran"),
 }
+
+
+def cible_et_donnee(cible: str) -> tuple:
+    """« ENT-SOCIETE.siret » donne (ENT-SOCIETE, siret) ; « SIMAR-04.1 » donne (SIMAR-04.1, "")."""
+    import re
+
+    m = re.match(r"^(.*)\.([a-z][a-z0-9_]*)$", cible)
+    return (m.group(1), m.group(2)) if m else (cible, "")

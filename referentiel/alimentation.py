@@ -32,8 +32,8 @@ from ._vendor import yaml
 from .chargement import charger
 from .ecriture import ErreurEcriture, _verifier_schema, aujourdhui, dump, enregistrer_element, remplacer_regle
 
-TYPES_ELEMENTS = {"acteur": "acteurs", "liste": "listes", "entite": "entites", "regle": "regles"}
-ORDRE = ["acteur", "liste", "entite", "regle", "question"]  # ordre d'écriture : ce qui est référencé d'abord
+TYPES_ELEMENTS = {"acteur": "acteurs", "liste": "listes", "entite": "entites", "regle": "regles", "ecran": "ecrans"}
+ORDRE = ["acteur", "liste", "entite", "regle", "ecran", "question"]  # ordre d'écriture : ce qui est référencé d'abord
 LIMITE_TEXTE = 150_000  # caractères lus par document
 FORMATS = ".pdf, .docx, .pptx, .txt, .md, .vtt, .srt, .html, .csv, .json"
 
@@ -209,7 +209,7 @@ def consignes(contexte_base: str, mode: str = "documents", element: str | None =
     from . import schemas
 
     formats = {"acteur": _sans_historique(schemas.ACTEUR), "liste": schemas.LISTE, "entite": _sans_historique(schemas.ENTITE),
-               "regle": _sans_historique(schemas.REGLE)}
+               "regle": _sans_historique(schemas.REGLE), "ecran": schemas.ECRAN}
     return f"""Tu aides une Product Owner à alimenter le référentiel métier de son projet à partir de documents
 (comptes rendus de réunion, transcriptions, notes, spécifications, mails). Tu lis les documents fournis et tu
 proposes ce qu'ils apportent à la base. Une personne triera chaque proposition : sois précis et sobre.
@@ -227,6 +227,9 @@ Règles absolues :
    - « liste » : une liste de valeurs réutilisable (type de société, mode de paiement…), avec ses valeurs, leur
      groupe éventuel et une note courte (contenu au format liste) ;
    - « regle » : une contrainte, un calcul, un droit ou une table de décision (contenu au format règle) ;
+   - « ecran » : un écran d'une application (formulaire, liste, page, panneau, modale), avec ses sections
+     numérotées, ses variantes, ses onglets, et ses routages vers d'autres écrans (navigation, routage vers un autre
+     formulaire, échange entre applications). Identifiant : celui du document s'il en donne un (SIMAR-05), sinon SCR-n ;
    - « question » : un point ouvert, une contradiction ou une décision non prise que les documents soulèvent
      (contenu : {{"question": "...", "contexte": "..."}}).
 3. « action » : « creer » pour un élément nouveau, « modifier » pour un élément déjà dans la base, que tu
@@ -567,9 +570,9 @@ def apercu(pid: str, racine: Path, lot_id: str) -> dict:
     nouveaux, modifies = [], []
     for pr in lot["propositions"]:
         c = pr.get("contenu") or {}
-        if pr.get("invalide") or pr.get("type") not in ("entite", "liste") or not c.get("id"):
+        if pr.get("invalide") or pr.get("type") not in ("entite", "liste", "ecran") or not c.get("id"):
             continue
-        cible = p.entites if pr["type"] == "entite" else p.listes
+        cible = {"entite": p.entites, "liste": p.listes, "ecran": p.ecrans}[pr["type"]]
         (modifies if c["id"] in cible else nouveaux).append(c["id"])
         c = copy.deepcopy(c)
         if pr["type"] == "entite":
