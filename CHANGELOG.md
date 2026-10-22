@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.16.0 (2026-10-22)
+
+- Maquettes : Watson dessine les écrans du projet avec la piste retenue du moodboard et un jeu de données fictives commun, tu gardes ou écartes ; brief prêt à coller dans Claude Design et import de ses exports HTML ou de captures ; chaque maquette se rattache à un écran.
+
 ## 0.15.0 (2026-10-22)
 
 - Moodboard : Watson propose 1 à 3 pistes de direction artistique (couleurs, typographie, réglages, principes, ergonomie) à partir du cahier des charges et des images d'inspiration ; chaque piste se voit sur un écran type, se retouche, se reprend avec Watson, et la piste retenue habillera les maquettes.

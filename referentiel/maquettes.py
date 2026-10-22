@@ -402,4 +402,4 @@ def brief_claude_design(racine: Path, ecrans: list[str] | None = None) -> str:
     if donnees:
         l += ["## Jeu de données fictives", donnees, ""]
     l += ["Export attendu : HTML (un fichier par écran), à réimporter dans Watson."]
-    return "\n".join(l).replace("—", ",").replace("–", "-")
+    return "\n".join(l).replace("\u2014", ",").replace("\u2013", "-")
