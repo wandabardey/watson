@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.9.0 (2026-10-22)
+
+- Nouvel onglet Référentiels (remplace Catalogue) : l'architecture de données en schéma généré automatiquement, avec les entités, leurs données, les listes de valeurs et les liens entre elles, ou en liste ; clic sur une brique pour sa fiche (données, cycle de vie, règles, qui l'utilise). Le modèle accepte les entités sans cycle de vie, les données qui désignent une autre entité (une ou plusieurs, optionnelles) et les listes de valeurs groupées ; Alimenter sait les proposer.
+
 ## 0.8.2 (2026-10-21)
 
 - Sur Mac, plus de barre de titre grise : les boutons de fenêtre flottent sur l'application, et le haut de la fenêtre sert à la déplacer.
