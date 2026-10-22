@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.14.0 (2026-10-22)
+
+- Avant-projet : nouveau bloc du menu et cahier des charges. Watson rédige un premier jet depuis la base et les documents, section par section, tu gardes ce qui te va. Périmètre par version et points à confirmer tenus à jour. Watson suit la méthode 4ward quand elle est installée sur le poste (Paramètres).
+
 ## 0.13.0 (2026-10-22)
 
 - Alimenter lit les images : captures d'écran, maquettes, schémas de parcours ou de données, photos de tableau blanc. Une capture se colle directement. Les écrans et scénarios proposés apparaissent dans le tri.

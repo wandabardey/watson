@@ -1,3 +1,3 @@
 """Watson, le référentiel métier vivant : une source de vérité pour les règles d'un projet."""
 
-__version__ = "0.13.0"
+__version__ = "0.14.0"
