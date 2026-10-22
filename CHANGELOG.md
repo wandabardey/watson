@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.15.0 (2026-10-22)
+
+- Moodboard : Watson propose 1 à 3 pistes de direction artistique (couleurs, typographie, réglages, principes, ergonomie) à partir du cahier des charges et des images d'inspiration ; chaque piste se voit sur un écran type, se retouche, se reprend avec Watson, et la piste retenue habillera les maquettes.
+
 ## 0.14.0 (2026-10-22)
 
 - Avant-projet : nouveau bloc du menu et cahier des charges. Watson rédige un premier jet depuis la base et les documents, section par section, tu gardes ce qui te va. Périmètre par version et points à confirmer tenus à jour. Watson suit la méthode 4ward quand elle est installée sur le poste (Paramètres).
