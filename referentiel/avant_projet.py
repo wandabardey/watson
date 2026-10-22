@@ -37,9 +37,12 @@ TRAME = [
     ("metier", "Brief métier", "Vocabulaire, processus, réglementation, pièges à connaître."),
     ("perimetre", "Périmètre et lots", "Ce que contient chaque version (MVP, V2…). Le détail se met à jour depuis la base."),
     ("fonctionnel", "Besoins fonctionnels", "Par grand domaine : ce que le produit doit permettre, en renvoyant aux scénarios."),
+    ("principes", "Principes structurants", "Ce qui s'applique partout : traçabilité de qui fait quoi, données sensibles, langues, déploiement et mises à jour."),
+    ("partenaires", "Applications partenaires", "Les applications avec lesquelles le produit échange, dans quel sens, et ce qui transite."),
     ("hors_perimetre", "Hors périmètre", "Ce qui n'est pas prévu, pour éviter les malentendus."),
     ("contraintes", "Contraintes", "Techniques, réglementaires, existant à reprendre, délais, budget."),
     ("non_fonctionnel", "Exigences non fonctionnelles", "Accessibilité, sécurité, données personnelles, performances, supports."),
+    ("complexite", "Points de complexité", "Ce qui pèsera sur le coût ou le délai, avec une première idée de la manière de s'y prendre."),
     ("reussite", "Critères de réussite", "Comment on saura que le projet a atteint ses objectifs."),
     ("questions", "Points à confirmer", "Les questions ouvertes du projet. Se met à jour depuis les sujets en attente."),
 ]

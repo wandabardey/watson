@@ -78,13 +78,13 @@ def lire(racine: Path, aid: str) -> dict:
     f = _f(racine, aid)
     if not f.exists():
         raise ErreurAtelier("Atelier inconnu.")
-    return yaml.safe_load(f.read_text(encoding="utf-8"))
+    return json.loads(json.dumps(yaml.safe_load(f.read_text(encoding="utf-8")), default=str))
 
 
 def _ecrire(racine: Path, a: dict):
     _dossier(racine).mkdir(exist_ok=True)
     a["mis_a_jour"] = aujourdhui()
-    a = json.loads(json.dumps(a, ensure_ascii=False).replace("\\u2014", ",").replace("\\u2013", "-"))
+    a = json.loads(re.sub(r" *\u2014 *", ", ", json.dumps(a, ensure_ascii=False, default=str)).replace("\u2013", "-"))
     _f(racine, a["id"]).write_text("# Atelier client : kit, séance et compte rendu (tenu dans Watson).\n" + dump(a), encoding="utf-8")
 
 
@@ -92,7 +92,8 @@ def liste(racine: Path) -> list[dict]:
     r = []
     for f in sorted(_dossier(racine).glob("*.yaml")) if _dossier(racine).exists() else []:
         a = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
-        r.append({k: a.get(k) for k in ("id", "titre", "type", "date", "statut", "duree_min")})
+        r.append({k: (str(a[k]) if k == "date" and a.get(k) else a.get(k)) for k in ("id", "titre", "type", "date", "statut", "duree_min")}
+                 | {"kit": bool(a.get("kit")), "compte_rendu": bool(a.get("compte_rendu"))})
     return sorted(r, key=lambda x: x.get("date") or "", reverse=True)
 
 
@@ -192,7 +193,7 @@ def preparer(pid: str, racine: Path, aid: str, demande: str | None = None, reque
     from .avant_projet import lire_cahier
 
     a = lire(racine, aid)
-    contexte, _ = construire_contexte(racine)
+    contexte = construire_contexte(racine)
     cahier = lire_cahier(racine)
     cahier_txt = "\n\n".join(f"## {s['titre']}\n{s.get('contenu', '')}" for s in (cahier or {}).get("sections") or [] if s.get("contenu"))[:15_000]
     grille = "\n".join(f"- {t} : " + " | ".join(qs) for t, qs in GRILLE)
@@ -357,4 +358,6 @@ def vue(pid: str, racine: Path, aid: str | None = None) -> dict:
     p = charger(racine)
     noms = {**{m["id"]: m["titre"] for m in lire_index(racine)["maquettes"]}, **{i: s["nom"] for i, s in p.scenarios.items()},
             **{x["id"]: x["nom"] for x in (lire_moodboard(racine) or {}).get("pistes") or []}}
-    return {"atelier": a, "notes": lire_notes(pid, aid), "types": TYPES, "statuts": STATUTS, "noms_supports": noms}
+    genres = {**{m["id"]: "maquette" for m in lire_index(racine)["maquettes"]}, **{i: "scenario" for i in p.scenarios},
+              **{x["id"]: "moodboard" for x in (lire_moodboard(racine) or {}).get("pistes") or []}}
+    return {"atelier": a, "notes": lire_notes(pid, aid), "types": TYPES, "statuts": STATUTS, "noms_supports": noms, "genres_supports": genres}

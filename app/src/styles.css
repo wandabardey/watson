@@ -585,3 +585,36 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .barre-usage { height: 6px; border-radius: 999px; background: #F1F0F7; overflow: hidden; }
 .barre-usage span { display: block; height: 100%; background: var(--indigo); border-radius: 999px; }
 .appel-conso { padding: 6px 0; border-bottom: 1px solid #F4F4F5; flex-wrap: nowrap; }
+
+/* Ateliers */
+.grille-ateliers { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.carte-atelier { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 16px 18px; border: 0; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px #ECEBF3; cursor: pointer; font: inherit; color: inherit; }
+.carte-atelier:hover { box-shadow: inset 0 0 0 1px #C7D2FE, 0 4px 14px rgba(79,70,229,.08); }
+.etapes-atelier { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: #F4F4F5; align-self: flex-start; }
+.etape-atelier { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: transparent; color: var(--doux); cursor: pointer; font: inherit; }
+.etape-atelier.actif { background: #fff; color: var(--texte, #18181B); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.num-etape { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 999px; background: #E4E4E7; font-size: 12px; font-weight: 600; }
+.etape-atelier.faite .num-etape { background: var(--vert-pale); color: var(--vert); }
+.sequence-trame { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #F4F4F5; }
+.duree-trame { flex: 0 0 56px; font-size: 12px; font-weight: 600; color: var(--indigo-fonce); background: var(--indigo-pale); border-radius: 8px; padding: 3px 6px; text-align: center; }
+.theme-kit { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #71717A; margin-top: 4px; }
+.question-kit { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
+.etoile { color: #F59E0B; fill: #FCD34D; flex: 0 0 auto; margin-top: 3px; }
+.bouton.icone.prioritaire { color: #D97706; background: #FEF3C7; }
+.options-decision { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.option-decision { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 12px; background: #FAFAFC; box-shadow: inset 0 0 0 1px #ECEBF3; }
+.support-kit { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 0; border-radius: 10px; background: #FAFAFC; box-shadow: inset 0 0 0 1px #ECEBF3; cursor: pointer; font: inherit; color: inherit; }
+.seance { position: fixed; inset: 0; z-index: 60; background: #F7F7FA; display: flex; flex-direction: column; }
+.seance-haut { display: flex; align-items: center; gap: 12px; padding: 14px 24px; background: #fff; border-bottom: 1px solid #ECEBF3; }
+.mac .seance-haut { padding-top: calc(var(--haut, 0px) + 10px); }
+.seance-corps { flex: 1; display: flex; min-height: 0; }
+.seance-trame { flex: 0 0 260px; display: flex; flex-direction: column; gap: 6px; padding: 18px; overflow: auto; border-right: 1px solid #ECEBF3; background: #fff; }
+.etape-seance { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; border-radius: 10px; }
+.etape-seance.en-cours { background: var(--indigo-pale); box-shadow: inset 3px 0 0 var(--indigo); }
+.etape-seance.passee { opacity: .55; }
+.seance-notes { flex: 1; overflow: auto; margin: 0 auto; padding: 22px 32px 60px; display: flex; flex-direction: column; gap: 22px; max-width: 980px; }
+.question-seance { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px #ECEBF3; }
+.question-seance.traitee { box-shadow: inset 0 0 0 1px #BBF7D0; background: #FBFEFC; }
+.question-seance textarea { padding: 8px 10px; min-height: 44px; }
+.puce-option { border: 0; border-radius: 999px; padding: 5px 12px; background: #F4F4F5; cursor: pointer; font: inherit; font-size: 13px; }
+.puce-option.choisie { background: var(--indigo); color: #fff; }

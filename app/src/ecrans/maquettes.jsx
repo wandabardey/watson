@@ -22,7 +22,7 @@ function useContenu(projet, id, proposition) {
 const oublier = (projet, id) => { for (const k of Object.keys(cache)) if (k.startsWith(`${projet.id}|`) && k.endsWith(`|${id}`)) delete cache[k]; };
 
 // Le rendu d'une maquette, à l'échelle de son cadre. Cadre isolé : aucun script ne s'exécute.
-function Rendu({ projet, m, proposition = false, largeurCadre, hauteurMax }) {
+export function Rendu({ projet, m, proposition = false, largeurCadre, hauteurMax }) {
   const c = useContenu(projet, m.id, proposition);
   const l = LARGEURS[m.support] || 1280;
   const h = HAUTEURS[m.support] || 800;

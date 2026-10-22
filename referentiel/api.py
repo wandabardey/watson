@@ -21,6 +21,7 @@ from urllib.parse import parse_qs, urlparse
 from . import __version__, alimentation, application, depot, github, reglages
 from .avant_projet import ErreurAvantProjet
 from .comite import ErreurComite
+from .ateliers import ErreurAtelier
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -366,6 +367,42 @@ def _comite(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _ateliers(methode, pid, reste, corps):
+    from . import ateliers as at
+
+    racine = application.chemin(pid)
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return at.vue(pid, racine)
+    if not reste and methode == "POST":
+        a = at.creer(racine, corps)
+        return {**at.vue(pid, racine, a["id"]), **envoyer(f"Atelier : {a['titre'][:80]}")}
+    aid = reste[0]
+    if len(reste) == 1 and methode == "GET":
+        return at.vue(pid, racine, aid)
+    if len(reste) == 1 and methode == "POST":
+        a = at.modifier(racine, aid, corps)
+        return {**at.vue(pid, racine, aid), **envoyer(f"Atelier modifié : {a['titre'][:80]}")}
+    if len(reste) == 1 and methode == "DELETE":
+        at.supprimer(racine, aid)
+        return {**at.vue(pid, racine), **envoyer("Atelier retiré")}
+    action = reste[1] if len(reste) == 2 and methode == "POST" else None
+    if action == "preparer":
+        a = at.preparer(pid, racine, aid, str(corps.get("demande") or "")[:4000] or None)
+        return {**at.vue(pid, racine, aid), **envoyer(f"Atelier préparé : {a['titre'][:80]}")}
+    if action == "notes":
+        return {"notes": at.noter(pid, aid, corps)}
+    if action == "terminer":
+        a = at.terminer(pid, racine, aid)
+        return {**at.vue(pid, racine, aid), **envoyer(f"Atelier tenu : {a['titre'][:80]}")}
+    if action == "compte-rendu":
+        a = at.rediger_cr(pid, racine, aid, str(corps.get("transcription") or "")[:200_000])
+        return {**at.vue(pid, racine, aid), **envoyer(f"Compte rendu : {a['titre'][:80]}")}
+    if action == "alimenter":
+        return at.vers_alimenter(pid, racine, aid)
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _sujets(methode, pid, reste, corps):
     from . import sujets as sj
 
@@ -620,6 +657,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _sujets(methode, pid, reste[1:], corps)
         if reste[:1] == ["comite"]:
             return _comite(methode, pid, reste[1:], corps)
+        if reste[:1] == ["ateliers"]:
+            return _ateliers(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
             from .ecriture import enregistrer_versions_produit
             enregistrer_versions_produit(application.chemin(pid), corps.get("versions") or [])
@@ -717,7 +756,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant
