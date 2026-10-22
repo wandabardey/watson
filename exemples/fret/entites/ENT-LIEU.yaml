@@ -1,0 +1,6 @@
+id: ENT-LIEU
+nom: Lieu
+attributs:
+  - {nom: nom, libelle: Nom, type: texte}
+  - {nom: adresse, libelle: Adresse, type: texte}
+  - {nom: societes, libelle: Sociétés, type: reference, cible: ENT-SOCIETE, multiple: true}

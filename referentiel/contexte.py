@@ -17,13 +17,13 @@ from __future__ import annotations
 from .chargement import Projet
 from .controles import ALERTE, ERREUR, TROU, analyser
 
-SECTIONS = ["glossaire", "acteurs", "entites", "regles", "parcours", "ecrans", "trous"]
+SECTIONS = ["glossaire", "acteurs", "listes", "entites", "regles", "parcours", "ecrans", "trous"]
 STATUTS = {"validee": "validée", "proposee": "proposée, pas encore en vigueur", "obsolete": "obsolète, plus en vigueur"}
 GRAVITES = {ERREUR: "incohérence", TROU: "manque", ALERTE: "à vérifier"}
 
 
 def _nom(p: Projet, ident: str) -> str:
-    for attr in ("acteurs", "entites", "regles", "cas_usage", "ecrans"):
+    for attr in ("acteurs", "listes", "entites", "regles", "cas_usage", "ecrans"):
         el = getattr(p, attr).get(ident)
         if el:
             return el.get("nom") or el.get("titre") or ident
@@ -87,6 +87,15 @@ def generer_contexte(p: Projet, sections: list[str] | None = None, trous=None, i
         l += [f"- {_ref(p, i)} : {a.get('description', '')}".rstrip(" :") for i, a in p.acteurs.items()]
         l.append("")
 
+    if "listes" in sections and p.listes:
+        l.append("## Listes de valeurs")
+        for i, li in p.listes.items():
+            vals = []
+            for v in li["valeurs"]:
+                vals.append(v["nom"] + (f" ({v['note']})" if v.get("note") else "") + (f" [{v['groupe']}]" if v.get("groupe") else ""))
+            l.append(f"- {_ref(p, i)} : " + " ; ".join(vals))
+        l.append("")
+
     if "entites" in sections and p.entites:
         l.append("## Entités, étapes et actions")
         for i, e in p.entites.items():
@@ -99,6 +108,12 @@ def generer_contexte(p: Projet, sections: list[str] | None = None, trous=None, i
                     t = a.get("type", "")
                     if a.get("valeurs"):
                         t += " : " + "/".join(map(_valeur, a["valeurs"]))
+                    if a.get("cible"):
+                        t = ("désigne " if t == "reference" else "valeur de la liste ") + _ref(p, a["cible"])
+                    if a.get("multiple"):
+                        t += ", plusieurs possibles"
+                    if a.get("optionnel"):
+                        t += ", optionnel"
                     attrs.append(f"{a.get('libelle') or a.get('nom')} ({t})")
                 l.append("Informations : " + " ; ".join(attrs) + ".")
             etapes = []

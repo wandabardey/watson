@@ -1,0 +1,8 @@
+id: ENT-AGREMENT
+nom: Agrément
+description: Agrément de sûreté délivré par l'autorité.
+attributs:
+  - {nom: numero, libelle: Numéro, type: texte}
+  - {nom: type_agrement, libelle: Type, type: enum, valeurs: [AH, KC, TRA]}
+  - {nom: date_fin, libelle: Date de fin de validité, type: date}
+  - {nom: verification, libelle: État de la vérification, type: enum, valeurs: [à vérifier, vérifié, refusé]}

@@ -6,7 +6,7 @@ import { ConnexionClaude, DEVISE, Entete, Watson } from './commun.jsx';
 const FORMATS = '.pdf,.docx,.pptx,.txt,.md,.vtt,.srt,.html,.csv,.json';
 const MAX = 40 * 1024 * 1024;
 const GROUPES = [
-  ['entite', 'Objets métier et workflow'], ['regle', 'Règles'], ['acteur', 'Acteurs'], ['question', 'Questions ouvertes']
+  ['entite', 'Objets métier et données'], ['liste', 'Listes de valeurs'], ['regle', 'Règles'], ['acteur', 'Acteurs'], ['question', 'Questions ouvertes']
 ];
 
 function lireFichier(f) {
@@ -90,6 +90,12 @@ function Resume({ c, avant }) {
   return (
     <div class="pile" style="gap:6px">
       {c.description && !avant && <p>{c.description}</p>}
+      {(c.attributs || []).length > 0 && (
+        <div class="ligne" style="gap:6px">{c.attributs.map((a) => (
+          <span key={a.nom} class={`badge ${a.cible ? 'b-indigo' : 'b-gris'}`} style="font-weight:500">
+            {a.libelle || a.nom}{a.cible ? ` → ${a.cible_nom || a.cible.replace(/^(ENT|LST)-/, '').toLowerCase()}` : ''}{a.multiple ? ' [ ]' : ''}{a.optionnel ? ' (optionnel)' : ''}
+          </span>))}</div>
+      )}
       <div class="ligne" style="gap:6px">{(c.statuts || []).map((s) => (
         <span key={s.id} class={`badge ${avant && !ancienStatut.has(s.id) ? 'b-indigo' : 'b-gris'}`}>{s.nom}{avant && !ancienStatut.has(s.id) ? ' (nouveau)' : ''}</span>
       ))}</div>
@@ -138,6 +144,7 @@ function Proposition({ pr, choix, changer, documents }) {
       {!invalide && pr.type === 'acteur' && <label class="champ">Nom<input value={c.nom} onInput={(e) => maj('nom', e.target.value)} /></label>}
       {!invalide && pr.type === 'question' && <label class="champ">Question<textarea value={c.question} onInput={(e) => maj('question', e.target.value)} /></label>}
       {!invalide && pr.type === 'entite' && <Resume c={c} avant={pr.action === 'modifier' ? pr.avant : null} />}
+      {!invalide && pr.type === 'liste' && <div class="ligne" style="gap:6px">{(c.valeurs || []).map((v, i) => <span key={i} class="badge b-gris" style="font-weight:500">{v.groupe ? `${v.groupe} · ` : ''}{v.nom}</span>)}</div>}
     </div>
   );
 }
@@ -198,7 +205,7 @@ function Bilan({ r, recommencer, aller }) {
       {r.retouches.map((t, i) => <p key={i} class="encart e-indigo">{t}</p>)}
       {r.refus.map((x, i) => <p key={i} class="encart e-orange"><span><strong>{x.titre}</strong> n'a pas été enregistré : {x.raison}</span></p>)}
       <div class="ligne"><button class="bouton principal-b" onClick={recommencer}>Ajouter d'autres documents</button>
-        <button class="bouton" onClick={() => aller('synthese')}>Voir la synthèse</button><button class="bouton" onClick={() => aller('catalogue')}>Voir le catalogue</button></div>
+        <button class="bouton" onClick={() => aller('synthese')}>Voir la synthèse</button><button class="bouton" onClick={() => aller('referentiels')}>Voir les référentiels</button></div>
     </div>
     </div>
   );

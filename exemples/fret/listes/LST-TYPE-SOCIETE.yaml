@@ -1,0 +1,8 @@
+id: LST-TYPE-SOCIETE
+nom: Type de société
+valeurs:
+  - nom: Transitaire
+  - nom: Prestataire de sûreté
+  - nom: Transporteur
+  - nom: Compagnie aérienne
+  - nom: Autorité

@@ -32,8 +32,8 @@ from ._vendor import yaml
 from .chargement import charger
 from .ecriture import ErreurEcriture, _verifier_schema, aujourdhui, dump, enregistrer_element, remplacer_regle
 
-TYPES_ELEMENTS = {"acteur": "acteurs", "entite": "entites", "regle": "regles"}
-ORDRE = ["acteur", "entite", "regle", "question"]  # ordre d'écriture : ce qui est référencé d'abord
+TYPES_ELEMENTS = {"acteur": "acteurs", "liste": "listes", "entite": "entites", "regle": "regles"}
+ORDRE = ["acteur", "liste", "entite", "regle", "question"]  # ordre d'écriture : ce qui est référencé d'abord
 LIMITE_TEXTE = 150_000  # caractères lus par document
 FORMATS = ".pdf, .docx, .pptx, .txt, .md, .vtt, .srt, .html, .csv, .json"
 
@@ -200,7 +200,7 @@ def _schema_reponse() -> dict:
 def consignes(contexte_base: str) -> str:
     from . import schemas
 
-    formats = {"acteur": _sans_historique(schemas.ACTEUR), "entite": _sans_historique(schemas.ENTITE),
+    formats = {"acteur": _sans_historique(schemas.ACTEUR), "liste": schemas.LISTE, "entite": _sans_historique(schemas.ENTITE),
                "regle": _sans_historique(schemas.REGLE)}
     return f"""Tu aides une Product Owner à alimenter le référentiel métier de son projet à partir de documents
 (comptes rendus de réunion, transcriptions, notes, spécifications, mails). Tu lis les documents fournis et tu
@@ -211,8 +211,13 @@ Règles absolues :
    Chaque proposition cite le document (son identifiant DOC-n) et un extrait court et exact qui la justifie.
 2. Types de propositions :
    - « acteur » : une personne ou un rôle qui agit (contenu au format acteur) ;
-   - « entite » : un objet métier suivi dans le temps, avec ses statuts et les étapes qui le font passer d'un
-     statut à l'autre (transitions : c'est le workflow). Contenu au format entité, complet ;
+   - « entite » : un objet métier et ses données (attributs). Une donnée qui désigne une autre entité est de
+     type « reference » avec « cible » (l'identifiant de l'entité), « multiple » si plusieurs, « optionnel » si
+     facultative. Une donnée prise dans une liste de valeurs est de type « liste » avec « cible ». Si l'objet est
+     suivi dans le temps, ajoute ses statuts et les étapes qui le font passer de l'un à l'autre (transitions :
+     c'est le workflow) ; sinon, ni statuts ni transitions. Contenu au format entité, complet ;
+   - « liste » : une liste de valeurs réutilisable (type de société, mode de paiement…), avec ses valeurs, leur
+     groupe éventuel et une note courte (contenu au format liste) ;
    - « regle » : une contrainte, un calcul, un droit ou une table de décision (contenu au format règle) ;
    - « question » : un point ouvert, une contradiction ou une décision non prise que les documents soulèvent
      (contenu : {{"question": "...", "contexte": "..."}}).
@@ -222,7 +227,7 @@ Règles absolues :
    est une NOUVELLE règle qui porte « remplace » : l'identifiant de l'ancienne, qui deviendra obsolète.
    Un passage d'un statut à un autre (« repasse en », « devient », « est renvoyé vers ») est une étape du
    workflow : modifie l'entité pour ajouter la transition (avec ses acteurs) plutôt que d'écrire une règle.
-4. Identifiants : en MAJUSCULES, préfixe ACT- (acteur), ENT- (entité), RG- suivi d'un numéro sur trois chiffres
+4. Identifiants : en MAJUSCULES, préfixe ACT- (acteur), ENT- (entité), LST- (liste de valeurs), RG- suivi d'un numéro sur trois chiffres
    (règle, en continuant la numérotation existante), statuts et transitions en mots courts (ex. EN-COURS,
    TR-VALIDER). Les références (entite d'une règle, regles et acteurs d'une transition, de, vers) ne visent
    que des identifiants de la base ou de tes propositions.
@@ -446,7 +451,7 @@ def appliquer(pid: str, racine: Path, lot_id: str, decisions: list[dict], auteur
     ecrits, refus, questions, retouches = [], [], [], []
     p = charger(racine)
     connus = set(p.fichiers) | set(p.transitions)
-    noms = {i: (e.get("titre") or e.get("nom") or i) for col in (p.acteurs, p.regles, p.entites) for i, e in col.items()}
+    noms = {i: (e.get("titre") or e.get("nom") or i) for col in (p.acteurs, p.listes, p.regles, p.entites) for i, e in col.items()}
     for pr in lot["propositions"] + acceptees:  # écartées comprises, pour nommer ce qui est retiré
         c = pr.get("contenu") or {}
         if pr.get("type") in TYPES_ELEMENTS and c.get("id"):
@@ -458,6 +463,13 @@ def appliquer(pid: str, racine: Path, lot_id: str, decisions: list[dict], auteur
         c = pr["contenu"]
         if pr["type"] == "regle" and c.get("entite") and c["entite"] not in connus:
             pr["refus"] = "Elle porte sur un objet métier qui n'est ni dans la base ni parmi ce que tu as accepté."
+        if pr["type"] == "entite":
+            absents = [a for a in c.get("attributs") or [] if a.get("cible") and a["cible"] not in connus]
+            for a in absents:  # lien vers un élément écarté : la donnée reste, en simple texte
+                retouches.append(f"{pr['titre']} : la donnée « {a.get('libelle') or a['nom']} » visait « {noms.get(a['cible'], 'un élément écarté')} », "
+                                 "que tu as écarté ; elle est gardée comme simple texte.")
+                a["type"] = "texte"
+                a.pop("cible", None)
         if pr["type"] == "entite":
             for tr in c.get("transitions") or []:
                 for cle in ("acteurs", "regles"):

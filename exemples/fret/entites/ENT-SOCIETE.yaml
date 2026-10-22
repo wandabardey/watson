@@ -1,0 +1,10 @@
+id: ENT-SOCIETE
+nom: Société
+description: Entreprise qui intervient dans la chaîne de sûreté du fret.
+attributs:
+  - {nom: nom, libelle: Nom, type: texte}
+  - {nom: type, libelle: Type, type: liste, cible: LST-TYPE-SOCIETE}
+  - {nom: lieux, libelle: Lieux, type: reference, cible: ENT-LIEU, multiple: true}
+  - {nom: siret, libelle: N° SIRET, type: texte}
+  - {nom: agrement, libelle: Agrément, type: reference, cible: ENT-AGREMENT, optionnel: true}
+  - {nom: personnes, libelle: Personnes, type: reference, cible: ENT-PERSONNE, multiple: true}

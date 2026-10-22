@@ -78,8 +78,13 @@ ATTRIBUT = {
     "properties": {
         "nom": {"type": "string", "pattern": r"^[a-z][a-z0-9_]*$"},
         "libelle": TEXTE,  # nom lisible affiché à l'utilisateur, par exemple « Client grand compte »
-        "type": {"enum": ["enum", "booleen", "texte", "nombre", "date"]},
+        # « reference » : la donnée désigne une autre entité (cible) ; « liste » : une valeur prise dans une
+        # liste de valeurs du projet (cible) ; « enum » : quelques valeurs écrites sur place (valeurs).
+        "type": {"enum": ["enum", "booleen", "texte", "nombre", "date", "reference", "liste"]},
         "valeurs": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "cible": ID,
+        "multiple": {"type": "boolean"},   # plusieurs valeurs possibles
+        "optionnel": {"type": "boolean"},
         "description": TEXTE,
     },
     "additionalProperties": False,
@@ -87,7 +92,9 @@ ATTRIBUT = {
 
 ENTITE = {
     "type": "object",
-    "required": ["id", "nom", "statut_initial", "statuts", "transitions"],
+    # Le cycle de vie (statut_initial, statuts, transitions) est facultatif : une entité de référentiel,
+    # comme un lieu ou un véhicule, n'en a pas.
+    "required": ["id", "nom"],
     "properties": {
         "id": ID,
         "nom": TEXTE,
@@ -124,6 +131,27 @@ ENTITE = {
                     "condition": TEXTE,
                     "applications": LISTE_ID,
                 },
+                "additionalProperties": False,
+            },
+        },
+    },
+    "additionalProperties": False,
+}
+
+LISTE = {
+    "type": "object",
+    "required": ["id", "nom", "valeurs"],
+    "properties": {
+        "id": ID,
+        "nom": TEXTE,
+        "description": TEXTE,
+        "valeurs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["nom"],
+                "properties": {"nom": TEXTE, "note": TEXTE, "groupe": TEXTE},
                 "additionalProperties": False,
             },
         },
@@ -241,6 +269,7 @@ DECISION_TROU = {
 # dossier -> (schéma, libellé)
 TYPES = {
     "acteurs": (ACTEUR, "acteur"),
+    "listes": (LISTE, "liste de valeurs"),
     "entites": (ENTITE, "entité"),
     "regles": (REGLE, "règle"),
     "cas-usage": (CAS_USAGE, "cas d'usage"),

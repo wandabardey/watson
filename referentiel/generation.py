@@ -45,6 +45,8 @@ def ecrire_mermaid(p: Projet, trous: list[Trou], sortie: Path) -> list[Path]:
     sortie.mkdir(parents=True, exist_ok=True)
     fichiers = []
     for ent in p.entites.values():
+        if not ent["statuts"]:
+            continue
         f = sortie / f"{ent['id']}.mmd"
         f.write_text(mermaid_entite(p, ent, trous) + "\n", encoding="utf-8")
         fichiers.append(f)
@@ -204,14 +206,17 @@ def generer_html(p: Projet, trous: list[Trou]) -> str:
 
     for eid, ent in p.entites.items():
         corps.append(f'<h2 id="{_e(eid)}">{_e(ent["nom"])} <code>{_e(eid)}</code></h2><p>{_e(ent.get("description", ""))}</p>')
-        corps.append(f'<div class="diagramme"><pre class="mermaid">{_e(mermaid_entite(p, ent, trous))}</pre></div>')
-        corps.append('<p class="doux" style="font-size:13px">Les statuts encadrés en orange portent un trou ouvert.</p>')
+        if ent["statuts"]:
+            corps.append(f'<div class="diagramme"><pre class="mermaid">{_e(mermaid_entite(p, ent, trous))}</pre></div>')
+            corps.append('<p class="doux" style="font-size:13px">Les statuts encadrés en orange portent un trou ouvert.</p>')
         if ent.get("attributs"):
             attrs = "".join(
-                f"<tr><td><code>{_e(a['nom'])}</code></td><td>{_e(a['type'])}</td><td>{_e(', '.join(a.get('valeurs', [])))}</td><td>{_e(a.get('description', ''))}</td></tr>"
+                f"<tr><td><code>{_e(a['nom'])}</code></td><td>{_e(a['type'])}{(' ' + _lien(p, a['cible'])) if a.get('cible') else ''}</td><td>{_e(', '.join(a.get('valeurs', [])))}</td><td>{_e(a.get('description', ''))}</td></tr>"
                 for a in ent["attributs"]
             )
             corps.append(f"<h3>Attributs</h3><table><tr><th>Nom</th><th>Type</th><th>Valeurs</th><th>Description</th></tr>{attrs}</table>")
+        if not ent["statuts"]:
+            continue
         stat = "".join(
             f'<tr><td><code>{_e(s["id"])}</code></td><td>{_e(s["nom"])}{" <span class=doux>(initial)</span>" if s["id"] == ent["statut_initial"] else ""}{" <span class=doux>(final)</span>" if s.get("final") else ""}</td><td>{_e(s.get("description", ""))}</td></tr>'
             for s in ent["statuts"]

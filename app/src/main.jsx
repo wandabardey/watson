@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import {
-  ArrowLeftRight, BookOpen, ChevronsUpDown, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
+  AppWindow, ArrowLeftRight, BookOpen, ChevronsUpDown, Database, Route, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
   MonitorPlay, Network, Palette, RefreshCw, Scale, Settings, Sparkles, Workflow as IconeWorkflow
 } from 'lucide-preact';
 import { appel, attendreMoteur, installerMiseAJour, verifierMiseAJour } from './api.js';
@@ -10,7 +10,7 @@ import { Accueil, Tuile } from './ecrans/accueil.jsx';
 import { DEVISE, Watson } from './ecrans/commun.jsx';
 import logo from './images/logo.png';
 import { Synthese } from './ecrans/synthese.jsx';
-import { Catalogue } from './ecrans/catalogue.jsx';
+import { Referentiels } from './ecrans/referentiels.jsx';
 import { Workflow } from './ecrans/workflow.jsx';
 import { Regles } from './ecrans/regles.jsx';
 import { Versions } from './ecrans/versions.jsx';
@@ -21,7 +21,8 @@ import './styles.css';
 
 const MENU = [
   ['Connaissance métier'],
-  ['synthese', 'Synthèse', LayoutDashboard], ['catalogue', 'Catalogue', Library], ['workflow', 'Workflow', IconeWorkflow],
+  ['synthese', 'Synthèse', LayoutDashboard], ['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route, true], ['ecrans', 'Écrans', AppWindow, true],
+  ['workflow', 'Workflow', IconeWorkflow],
   ['regles', 'Règles', Scale], ['flux', 'Flux externes', ArrowLeftRight, true], ['sujets', 'Sujets en attente', CircleHelp, true],
   ['Gestion projet'],
   ['evolutions', 'Évolutions', GitPullRequestArrow, true], ['versions', 'Versions', GitBranch],
@@ -32,7 +33,7 @@ const MENU = [
   ['administration', 'Administration', Settings, true]
 ];
 
-const ECRANS = { synthese: Synthese, catalogue: Catalogue, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
+const ECRANS = { synthese: Synthese, referentiels: Referentiels, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
 
 function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerProjet }) {
   const [projets, setProjets] = useState([]);

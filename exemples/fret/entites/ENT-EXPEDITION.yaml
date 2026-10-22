@@ -2,6 +2,8 @@ id: ENT-EXPEDITION
 nom: Expédition
 description: Cycle de vie d'un envoi, de la saisie à la livraison.
 attributs:
+  - {nom: expediteur, libelle: Expéditeur, type: reference, cible: ENT-EXPEDITEUR}
+  - {nom: transitaire, libelle: Transitaire, type: reference, cible: ENT-SOCIETE}
   - nom: document_douanier
     libelle: Document douanier
     type: enum

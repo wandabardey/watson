@@ -43,7 +43,7 @@ def _ajouter(trous, **kw):
 
 def libelle(p, ident: str) -> str:
     """Nom lisible d'un élément à partir de son identifiant."""
-    for attr, gabarit in (("regles", "La règle « {} »"), ("cas_usage", "Le parcours « {} »"), ("ecrans", "L'écran « {} »"),
+    for attr, gabarit in (("listes", "La liste « {} »"), ("regles", "La règle « {} »"), ("cas_usage", "Le parcours « {} »"), ("ecrans", "L'écran « {} »"),
                           ("acteurs", "L'acteur « {} »"), ("entites", "{}")):
         el = getattr(p, attr).get(ident)
         if el:
@@ -89,8 +89,13 @@ def controler_references(p: Projet, trous: list):
     transitions = p.transitions
     for ent in p.entites.values():
         statuts = {s["id"] for s in ent["statuts"]}
-        if ent["statut_initial"] not in statuts:
-            inconnu(ent["id"], "statut_initial", ent["statut_initial"], "le statut")
+        if statuts and ent.get("statut_initial") not in statuts:
+            inconnu(ent["id"], "statut_initial", ent.get("statut_initial") or "(aucun)", "le statut")
+        for a in ent.get("attributs") or []:
+            if a["type"] == "reference" and a.get("cible") not in p.entites:
+                inconnu(ent["id"], a["nom"], a.get("cible") or "(aucune)", "l'entité")
+            if a["type"] == "liste" and a.get("cible") not in p.listes:
+                inconnu(ent["id"], a["nom"], a.get("cible") or "(aucune)", "la liste de valeurs")
         for tr in ent["transitions"]:
             for champ in ("de", "vers"):
                 if tr[champ] not in statuts:
@@ -133,6 +138,8 @@ def controler_references(p: Projet, trous: list):
 
 def controler_cycle_de_vie(p: Projet, trous: list):
     for ent in p.entites.values():
+        if not ent["statuts"]:
+            continue  # entité de référentiel, sans cycle de vie
         eid = ent["id"]
         statuts = {s["id"]: s for s in ent["statuts"]}
         sorties = {s: [] for s in statuts}

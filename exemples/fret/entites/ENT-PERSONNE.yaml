@@ -1,0 +1,6 @@
+id: ENT-PERSONNE
+nom: Personne
+attributs:
+  - {nom: prenom, libelle: Prénom, type: texte}
+  - {nom: nom, libelle: Nom, type: texte}
+  - {nom: societe, libelle: Société, type: reference, cible: ENT-SOCIETE}

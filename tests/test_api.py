@@ -68,10 +68,10 @@ def test_parcours_complet(serveur):
     s = appel(base, f"/api/projets/{pid}/synthese")
     assert s["compteurs"]["regles"] == 7 and s["versions"]["derniere"] == "1.0" and s["points"]
     c = appel(base, f"/api/projets/{pid}/catalogue")
-    exp = c["entites"][0]
+    exp = next(e for e in c["entites"] if e["id"] == "ENT-EXPEDITION")
     assert exp["nom"] == "Expédition" and any(a["nom"] == "marchandise_dangereuse" and a["regles"] for a in exp["attributs"])
     w = appel(base, f"/api/projets/{pid}/workflow")
-    actions = {a["id"]: a for a in w["entites"][0]["actions"]}
+    actions = {a["id"]: a for e in w["entites"] for a in e["actions"]}
     assert actions["TR-RELANCER"]["points"] and w["tables"][0]["lignes"]
     r = {x["id"]: x for x in appel(base, f"/api/projets/{pid}/regles")["regles"]}
     assert r["RG-006"]["remplacee_par"]["id"] == "RG-007" and r["RG-005"]["statut"] == "proposee"
@@ -174,3 +174,20 @@ def test_accueil_nouveautes_depuis_la_visite(serveur, tmp_path):
     a = appel(base, "/api/accueil")["projets"][0]
     assert a["nouveautes"]["total"] == 1 and a["nouveautes"]["auteurs"] == ["Paul"]
     assert a["questions"] == [{"id": "Q-001", "question": "Assurance au-delà de 50 000 euros ?"}]
+
+
+def test_vue_referentiels(serveur):
+    base, _ = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    r = appel(base, f"/api/projets/{pid}/referentiels")
+    ent = {e["id"]: e for e in r["entites"]}
+    soc = ent["ENT-SOCIETE"]
+    lieux = next(d for d in soc["donnees"] if d["nom"] == "lieux")
+    assert lieux["cible_nom"] == "Lieu" and lieux["cible_genre"] == "entite" and lieux["multiple"]
+    assert next(d for d in soc["donnees"] if d["nom"] == "type")["cible_genre"] == "liste"
+    assert {u["id"] for u in soc["utilisee_par"]} == {"ENT-EXPEDITION", "ENT-LIEU", "ENT-PERSONNE"}
+    assert ent["ENT-LIEU"]["cycle"] == [] and len(ent["ENT-EXPEDITION"]["cycle"]) == 9
+    paiement = next(l for l in r["listes"] if l["id"] == "LST-MODE-PAIEMENT")
+    assert paiement["valeurs"][0]["groupe"] == "Traçable" and paiement["utilisee_par"][0]["id"] == "ENT-EXPEDITEUR"
+    # Le workflow ne garde que les entités qui ont un cycle de vie
+    assert [e["id"] for e in appel(base, f"/api/projets/{pid}/workflow")["entites"]] == ["ENT-EXPEDITION"]

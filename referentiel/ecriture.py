@@ -21,6 +21,7 @@ from .validation import erreurs as erreurs_schema
 # type d'élément -> (dossier, schéma)
 TYPES = {
     "acteur": ("acteurs", schemas.ACTEUR),
+    "liste": ("listes", schemas.LISTE),
     "entite": ("entites", schemas.ENTITE),
     "regle": ("regles", schemas.REGLE),
     "cas_usage": ("cas-usage", schemas.CAS_USAGE),

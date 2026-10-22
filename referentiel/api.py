@@ -99,6 +99,42 @@ def vue_catalogue(p) -> dict:
     return {"entites": entites, "acteurs": acteurs, "glossaire": p.meta.get("glossaire") or []}
 
 
+def vue_referentiels(p) -> dict:
+    """Architecture de données : entités, données (avec liens vers d'autres entités ou listes), listes de valeurs."""
+    regles_par_attribut = {}
+    for rid, r in p.regles.items():
+        for c in r.get("conditions") or []:
+            regles_par_attribut.setdefault(c.get("attribut"), []).append({"id": rid, "titre": r["titre"], "statut": r["statut"]})
+    utilisations = {}
+    for eid, e in p.entites.items():
+        for a in e.get("attributs") or []:
+            if a.get("cible"):
+                utilisations.setdefault(a["cible"], []).append({"id": eid, "nom": e["nom"], "donnee": a.get("libelle") or a["nom"]})
+
+    def nom_cible(c):
+        return (p.entites.get(c) or p.listes.get(c) or {}).get("nom", c)
+
+    entites = []
+    for eid, e in p.entites.items():
+        entites.append({
+            "id": eid, "nom": e["nom"], "description": e.get("description", ""),
+            "donnees": [{
+                "nom": a["nom"], "libelle": a.get("libelle") or a["nom"], "type": a["type"], "description": a.get("description", ""),
+                "cible": a.get("cible"), "cible_nom": nom_cible(a["cible"]) if a.get("cible") else None,
+                "cible_genre": ("entite" if a.get("cible") in p.entites else "liste" if a.get("cible") in p.listes else "inconnue") if a.get("cible") else None,
+                "multiple": bool(a.get("multiple")), "optionnel": bool(a.get("optionnel")), "valeurs": a.get("valeurs") or [],
+                "regles": regles_par_attribut.get(a["nom"], []),
+            } for a in e.get("attributs") or []],
+            "cycle": [{"id": s["id"], "nom": s.get("nom", s["id"])} for s in e.get("statuts", [])],
+            "actions": len(e.get("transitions", [])),
+            "regles": [{"id": rid, "titre": r["titre"], "statut": r["statut"]} for rid, r in p.regles.items() if r.get("entite") == eid],
+            "utilisee_par": utilisations.get(eid, []),
+        })
+    listes = [{"id": lid, "nom": li["nom"], "description": li.get("description", ""), "valeurs": li["valeurs"],
+               "utilisee_par": utilisations.get(lid, [])} for lid, li in p.listes.items()]
+    return {"entites": entites, "listes": listes}
+
+
 def vue_workflow(p) -> dict:
     trous = _trous(p)
     par_element = {}
@@ -107,6 +143,8 @@ def vue_workflow(p) -> dict:
             par_element.setdefault(el, []).append({"gravite": t.gravite, "message": t.message, "question": t.question})
     entites = []
     for eid, e in p.entites.items():
+        if not e.get("statuts"):
+            continue  # entité de référentiel, sans cycle de vie
         entites.append({
             "id": eid, "nom": e["nom"], "initiale": e.get("statut_initial"),
             "attributs": [{"nom": a["nom"], "libelle": a.get("libelle") or a["nom"], "type": a["type"], "valeurs": a.get("valeurs") or []}
@@ -261,6 +299,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
                 return {**vue_synthese(p), "depot": application.projet(pid)["depot"], "versions": vue_versions(racine)}
             if reste == ["catalogue"]:
                 return vue_catalogue(p)
+            if reste == ["referentiels"]:
+                return vue_referentiels(p)
             if reste == ["workflow"]:
                 return vue_workflow(p)
             if reste == ["regles"]:

@@ -7,7 +7,7 @@ export function Synthese({ projet, aller }) {
   if (!d) return <Attente erreur={erreur} />;
   const ouverts = d.points.length;
   const tuiles = [
-    ['Entités', d.compteurs.entites, 'catalogue'], ['Règles', d.compteurs.regles, 'regles'], ['Acteurs', d.compteurs.acteurs, 'catalogue'],
+    ['Entités', d.compteurs.entites, 'referentiels'], ['Règles', d.compteurs.regles, 'regles'], ['Acteurs', d.compteurs.acteurs, 'referentiels'],
     ['Points à trancher', ouverts, 'regles'], ['Spec figée', d.versions.derniere || 'aucune', 'versions']
   ];
   const vide = d.compteurs.entites + d.compteurs.regles + d.compteurs.acteurs === 0;

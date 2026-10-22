@@ -1,0 +1,10 @@
+id: LST-MODE-PAIEMENT
+nom: Mode de paiement
+description: Moyens de paiement acceptés pour régler une expédition.
+valeurs:
+  - {nom: Carte de crédit, groupe: Traçable, note: "n° de carte, nom et prénom"}
+  - {nom: Chèque, groupe: Traçable, note: n° de chèque}
+  - {nom: RIB, groupe: Traçable, note: IBAN / BIC ou pièce jointe}
+  - {nom: Espèces, groupe: Non traçable}
+  - {nom: Carte bleue prépayée, groupe: Non traçable}
+  - {nom: Virement bancaire anonyme, groupe: Non traçable}

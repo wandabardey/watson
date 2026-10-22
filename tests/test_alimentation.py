@@ -150,3 +150,30 @@ def test_regle_qui_en_remplace_une_autre(projet):
     p = charger(projet)
     assert r["ecrits"][0]["action"] == "créé, remplace RG-005"
     assert p.regles["RG-005"]["statut"] == "obsolete" and p.regles["RG-008"]["remplace"] == "RG-005"
+
+
+def test_liste_de_valeurs_et_liens(projet):
+    reponse = {"resume": "", "propositions": [
+        {"type": "liste", "action": "creer", "titre": "Type de véhicule", "pourquoi": "x", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "camion ou fourgon"},
+         "contenu": {"id": "LST-TYPE-VEHICULE", "nom": "Type de véhicule", "valeurs": [{"nom": "Camion"}, {"nom": "Fourgon"}]}},
+        {"type": "entite", "action": "creer", "titre": "Véhicule", "pourquoi": "x", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "véhicule de la société"},
+         "contenu": {"id": "ENT-VEHICULE", "nom": "Véhicule", "attributs": [
+             {"nom": "immatriculation", "libelle": "Immatriculation", "type": "texte"},
+             {"nom": "type_vehicule", "libelle": "Type", "type": "liste", "cible": "LST-TYPE-VEHICULE"},
+             {"nom": "societe", "libelle": "Société", "type": "reference", "cible": "ENT-SOCIETE"},
+             {"nom": "chauffeur", "libelle": "Chauffeur", "type": "reference", "cible": "ENT-CHAUFFEUR", "optionnel": True}]}},
+        {"type": "entite", "action": "creer", "titre": "Chauffeur", "pourquoi": "x", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "chauffeur"}, "contenu": {"id": "ENT-CHAUFFEUR", "nom": "Chauffeur"}},
+    ]}
+    requete, vus = faux_claude(reponse)
+    lot = alimentation.analyser("fret", projet, [{"titre": "Notes", "texte": "Véhicules."}], requete=requete)
+    assert '"liste"' in vus["options"].system_prompt and not any("invalide" in p for p in lot["propositions"])
+    # Le chauffeur est écarté : le lien devient du texte, le reste s'enregistre.
+    r = alimentation.appliquer("fret", projet, lot["id"], [{"index": 0, "accepte": True}, {"index": 1, "accepte": True}], "W")
+    p = charger(projet)
+    assert not p.erreurs and "LST-TYPE-VEHICULE" in p.listes
+    attrs = {a["nom"]: a for a in p.entites["ENT-VEHICULE"]["attributs"]}
+    assert attrs["societe"]["cible"] == "ENT-SOCIETE" and attrs["chauffeur"]["type"] == "texte" and "cible" not in attrs["chauffeur"]
+    assert any("Chauffeur" in t for t in r["retouches"])

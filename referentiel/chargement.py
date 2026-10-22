@@ -16,6 +16,7 @@ class Projet:
     meta: dict = field(default_factory=dict)
     acteurs: dict = field(default_factory=dict)
     entites: dict = field(default_factory=dict)
+    listes: dict = field(default_factory=dict)
     regles: dict = field(default_factory=dict)
     cas_usage: dict = field(default_factory=dict)
     ecrans: dict = field(default_factory=dict)
@@ -36,6 +37,7 @@ class Projet:
 
 ATTRIBUTS_PAR_DOSSIER = {
     "acteurs": "acteurs",
+    "listes": "listes",
     "entites": "entites",
     "regles": "regles",
     "cas-usage": "cas_usage",
@@ -97,6 +99,10 @@ def charger(racine: str | Path) -> Projet:
                 continue
             cible[ident] = donnees
             projet.fichiers[ident] = str(chemin.relative_to(racine))
+
+    for ent in projet.entites.values():  # entité sans cycle de vie : listes vides, pour simplifier la lecture
+        ent.setdefault("statuts", [])
+        ent.setdefault("transitions", [])
 
     fichier_trous = racine / "trous.yaml"
     if fichier_trous.exists():
