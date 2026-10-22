@@ -343,3 +343,19 @@ def test_maquettes_par_l_api(serveur):
     ec = {e["id"]: e for e in appel(base, f"/api/projets/{pid}/ecrans")["ecrans"]}
     assert ec["SCR-011"]["maquettes"] == [r["gardee"]]
     assert "Mes expéditions" in appel(base, f"/api/projets/{pid}/avant-projet/maquettes/brief", {"ecrans": ["SCR-011"]})["brief"]
+
+
+def test_sujets_en_attente(serveur):
+    base, _ = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    v = appel(base, f"/api/projets/{pid}/sujets")
+    assert v["sujets"] == [] and any(x["genre"] == "Écran" for x in v["a_trancher"]) and any(x["genre"] == "Règle proposée" for x in v["a_trancher"])
+    v = appel(base, f"/api/projets/{pid}/sujets", {"question": "Quel délai de litige ?", "contexte": "Comité"})
+    q = v["sujets"][0]
+    assert q["id"] == "Q-001" and v["ouverts"] == 1 and q["source"] == "Ajoutée à la main"
+    with pytest.raises(urllib.error.HTTPError):
+        appel(base, f"/api/projets/{pid}/sujets/Q-001", {"statut": "tranche"})
+    v = appel(base, f"/api/projets/{pid}/sujets/Q-001", {"reponse": "Cinq jours ouvrés", "statut": "tranche"})
+    assert v["sujets"][0]["statut"] == "tranche" and v["sujets"][0]["tranche_par"] == "Wanda Bardey" and v["ouverts"] == 0
+    assert appel(base, f"/api/projets/{pid}/sujets/Q-001", {"statut": "ouvert"})["ouverts"] == 1
+    assert appel(base, f"/api/projets/{pid}/sujets/Q-001", methode="DELETE", corps={})["sujets"] == []

@@ -19,6 +19,7 @@ import { Demander } from './ecrans/demander.jsx';
 import { Alimenter } from './ecrans/alimenter.jsx';
 import { Scenarios } from './ecrans/scenarios.jsx';
 import { Cahier } from './ecrans/cahier.jsx';
+import { Sujets } from './ecrans/sujets.jsx';
 import { Moodboard } from './ecrans/moodboard.jsx';
 import { Maquettes } from './ecrans/maquettes.jsx';
 import { Proposition } from './ecrans/proposition.jsx';
@@ -32,7 +33,7 @@ const MENU = [
   ['Connaissance métier'],
   ['synthese', 'Synthèse', LayoutDashboard], ['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route], ['ecrans', 'Écrans', AppWindow],
   ['workflow', 'Workflow', IconeWorkflow],
-  ['regles', 'Règles', Scale], ['flux', 'Flux externes', ArrowLeftRight, true], ['sujets', 'Sujets en attente', CircleHelp, true],
+  ['regles', 'Règles', Scale], ['flux', 'Flux externes', ArrowLeftRight, true], ['sujets', 'Sujets en attente', CircleHelp],
   ['Gestion projet'],
   ['evolutions', 'Évolutions', GitPullRequestArrow, true], ['versions', 'Versions', GitBranch],
   ['recette', 'Recette et TNR', FlaskConical, true], ['documentation', 'Documentation', BookOpen, true],
@@ -42,7 +43,7 @@ const MENU = [
   ['administration', 'Administration', Settings, true]
 ];
 
-const ECRANS = { cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, scenarios: Scenarios, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
+const ECRANS = { sujets: Sujets, cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, scenarios: Scenarios, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
 
 function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerProjet }) {
   const [projets, setProjets] = useState([]);

@@ -328,6 +328,31 @@ def _p(pid):
     return racine, p
 
 
+def _sujets(methode, pid, reste, corps):
+    from . import sujets as sj
+
+    racine = application.chemin(pid)
+    if not reste and methode == "GET":
+        return sj.vue(racine)
+    compte = github.compte()
+    if not reste and methode == "POST":
+        q = sj.ajouter(racine, str(corps.get("question", ""))[:1000], str(corps.get("contexte", ""))[:2000], compte["nom"])
+        return {**sj.vue(racine), **application.enregistrer_et_envoyer(pid, f"Question ouverte : {q['question'][:80]}")}
+    if len(reste) == 1 and methode == "POST":
+        q = sj.mettre_a_jour(racine, reste[0], corps, compte["nom"])
+        quoi = "tranchée" if corps.get("statut") == "tranche" else "rouverte" if corps.get("statut") == "ouvert" else "modifiée"
+        return {**sj.vue(racine), **application.enregistrer_et_envoyer(pid, f"Question {quoi} : {q['question'][:80]}")}
+    if len(reste) == 1 and methode == "DELETE":
+        sj.supprimer(racine, reste[0])
+        return {**sj.vue(racine), **application.enregistrer_et_envoyer(pid, "Question retirée")}
+    if len(reste) == 2 and reste[1] == "reporter" and methode == "POST":
+        q = next((x for x in sj.lire(racine) if x.get("id") == reste[0]), None)
+        if not q or not q.get("reponse"):
+            raise Erreur("Question inconnue ou sans réponse.", 400)
+        return alimentation.modifier(pid, racine, sj.consigne(q), compte["nom"])
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _avant_projet(methode, pid, reste, corps):
     from . import avant_projet as ap
 
@@ -548,6 +573,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _elements(methode, pid, reste[1:], corps)
         if reste[:1] == ["avant-projet"]:
             return _avant_projet(methode, pid, reste[1:], corps)
+        if reste[:1] == ["sujets"]:
+            return _sujets(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
             from .ecriture import enregistrer_versions_produit
             enregistrer_versions_produit(application.chemin(pid), corps.get("versions") or [])

@@ -502,3 +502,8 @@ details summary { cursor: pointer; display: inline-flex; align-items: center; ga
 .sl-jalon i { width: 10px; height: 10px; background: #4B4949; transform: rotate(45deg); }
 .sl-acf { display: inline-flex; align-items: center; padding: 1px 9px; border-radius: 99px; background: #FFF1CC; color: #8A5A00; font-size: 12px; font-weight: 700; letter-spacing: 0; vertical-align: middle; }
 .sl-chiffre .v .sl-acf { font-size: 16px; padding: 4px 12px; }
+
+/* Sujets en attente */
+.sujet.tranche { background: #FCFCFD; }
+.reponse-sujet { padding: 10px 12px; border-radius: 10px; background: #F0FDF4; box-shadow: inset 3px 0 0 #22C55E; font-size: 14px; }
+.reponse-sujet b { color: #166534; margin-right: 4px; }
