@@ -40,7 +40,7 @@ class Erreur(Exception):
 # ---------------------------------------------------------------------------
 
 def _nom(p, ident):
-    for coll in (p.acteurs, p.entites, p.regles, p.ecrans, p.cas_usage):
+    for coll in (p.acteurs, p.entites, p.regles, p.ecrans, p.cas_usage, p.scenarios):
         if ident in coll:
             return coll[ident].get("nom") or coll[ident].get("titre") or ident
     if ident in p.transitions:
@@ -164,6 +164,10 @@ def vue_ecrans(p) -> dict:
         for et in uc.get("etapes") or []:
             if et.get("ecran"):
                 parcours.setdefault(et["ecran"], {})[uid] = uc["nom"]
+    for sid, sc in p.scenarios.items():
+        for et in sc["etapes"]:
+            if et.get("ecran"):
+                parcours.setdefault(et["ecran"], {})[sid] = sc["nom"]
     enfants = {}
     for eid, e in p.ecrans.items():
         if e.get("parent"):
@@ -187,6 +191,58 @@ def vue_ecrans(p) -> dict:
         })
     return {"ecrans": ecrans, "applications": list(apps.values()), "versions_produit": p.meta.get("versions_produit") or [],
             "acteurs": [{"id": a, "nom": x["nom"]} for a, x in p.acteurs.items()],
+            "regles": [{"id": r, "titre": x["titre"], "statut": x["statut"]} for r, x in p.regles.items()]}
+
+
+def vue_scenarios(p) -> dict:
+    """Scénarios : étapes typées, liens (explicites, ou dans l'ordre), et ce que chaque étape cite."""
+    apps = {a["id"]: a for a in p.meta.get("applications") or []}
+    statuts = {s["id"]: s.get("nom", s["id"]) for e in p.entites.values() for s in e.get("statuts") or []}
+    par_etape = {}
+    for rid, r in p.regles.items():
+        info = {"id": rid, "titre": r["titre"], "statut": r["statut"]}
+        for cible in r.get("porte_sur") or []:
+            ident, donnee = cible_et_donnee(cible)
+            if ident in p.scenarios and donnee:
+                par_etape.setdefault((ident, donnee), []).append(info)
+    scenarios = []
+    for sid, sc in p.scenarios.items():
+        etapes = []
+        for et in sc["etapes"]:
+            regles = list(par_etape.get((sid, et["id"]), []))
+            if et.get("transition") in p.transitions:
+                for r in p.transitions[et["transition"]][1].get("regles") or []:
+                    if r in p.regles and all(x["id"] != r for x in regles):
+                        regles.append({"id": r, "titre": p.regles[r]["titre"], "statut": p.regles[r]["statut"]})
+            app = apps.get(et.get("application")) or {}
+            etapes.append({
+                **et, "genre": et.get("genre", "etape"), "version_propre": et.get("version"),
+                "version": et.get("version") or sc.get("version"), "a_trancher": bool(et.get("a_trancher")),
+                "application_nom": app.get("nom"), "couleur": app.get("couleur"),
+                "acteur_nom": _nom(p, et["acteur"]) if et.get("acteur") else None,
+                "ecran_nom": (p.ecrans.get(et.get("ecran")) or {}).get("nom") if et.get("ecran") else None,
+                "statut_nom": statuts.get(et.get("statut")) if et.get("statut") else None,
+                "transition_nom": _nom(p, et["transition"]) if et.get("transition") else None,
+                "regles": regles,
+            })
+        if sc.get("liens"):
+            liens = [{**li, "genre": li.get("genre", "suite")} for li in sc["liens"]]
+        else:  # sans liens écrits : les étapes s'enchaînent dans l'ordre
+            liens = [{"de": a["id"], "vers": b["id"], "genre": "suite"} for a, b in zip(sc["etapes"], sc["etapes"][1:])]
+        scenarios.append({
+            "id": sid, "nom": sc["nom"], "description": sc.get("description", ""), "version": sc.get("version"),
+            "a_trancher": bool(sc.get("a_trancher")), "cas_usage": sc.get("cas_usage") or [],
+            "acteur": {"id": sc["acteur"], "nom": _nom(p, sc["acteur"])} if sc.get("acteur") else None,
+            "entite": {"id": sc["entite"], "nom": _nom(p, sc["entite"])} if sc.get("entite") else None,
+            "etapes": etapes, "liens": liens, "liens_ecrits": bool(sc.get("liens")),
+            "regles": [x for (s_, _), l in par_etape.items() if s_ == sid for x in l],
+        })
+    return {"scenarios": scenarios, "applications": list(apps.values()), "versions_produit": p.meta.get("versions_produit") or [],
+            "acteurs": [{"id": a, "nom": x["nom"]} for a, x in p.acteurs.items()],
+            "ecrans": [{"id": e, "nom": x["nom"]} for e, x in p.ecrans.items()],
+            "entites": [{"id": e, "nom": x["nom"], "statuts": [{"id": s["id"], "nom": s.get("nom", s["id"])} for s in x["statuts"]],
+                         "transitions": [{"id": t["id"], "nom": t.get("nom", t["id"])} for t in x["transitions"]]}
+                        for e, x in p.entites.items() if x.get("statuts")],
             "regles": [{"id": r, "titre": x["titre"], "statut": x["statut"]} for r, x in p.regles.items()]}
 
 
@@ -275,7 +331,7 @@ def _alimenter(methode, pid, reste, corps):
         return alimentation.lire_lot(pid, reste[0])
     if methode == "GET" and len(reste) == 2 and reste[1] == "apercu":
         changes, p = alimentation.apercu(pid, racine, reste[0])
-        return {**changes, "referentiels": vue_referentiels(p), "ecrans": vue_ecrans(p)}
+        return {**changes, "referentiels": vue_referentiels(p), "ecrans": vue_ecrans(p), "scenarios": vue_scenarios(p)}
     if methode == "DELETE" and len(reste) == 1:
         alimentation.abandonner(pid, reste[0])
         return {"ok": True}
@@ -393,6 +449,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
                 return vue_referentiels(p)
             if reste == ["ecrans"]:
                 return vue_ecrans(p)
+            if reste == ["scenarios"]:
+                return vue_scenarios(p)
             if reste == ["workflow"]:
                 return vue_workflow(p)
             if reste == ["regles"]:

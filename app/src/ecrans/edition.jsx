@@ -197,7 +197,7 @@ export function Edition({ projet, id, genre, d, fini, annuler }) {
 }
 
 // « Demander à Watson » : une demande en langage naturel devient des propositions à voir sur le schéma.
-export function DemandeWatson({ projet, element, nomElement, lance, fermer }) {
+export function DemandeWatson({ projet, element, nomElement, lance, fermer, exemple }) {
   const [texte, setTexte] = useState('');
   const [occupe, setOccupe] = useState(false);
   const [message, setMessage] = useState(null);
@@ -214,7 +214,7 @@ export function DemandeWatson({ projet, element, nomElement, lance, fermer }) {
         {fermer && <button class="bouton icone" aria-label="Fermer" onClick={fermer}><X size={15} /></button>}
       </div>
       <textarea class="saisie" rows={3} style="padding:10px 12px" disabled={occupe}
-        placeholder={nomElement ? `Par exemple : ajoute un code IATA optionnel à ${nomElement.toLowerCase()}` : 'Par exemple : ajoute un véhicule rattaché à la société, avec son immatriculation'}
+        placeholder={exemple ? `Par exemple : ${exemple}` : nomElement ? `Par exemple : ajoute un code IATA optionnel à ${nomElement.toLowerCase()}` : 'Par exemple : ajoute un véhicule rattaché à la société, avec son immatriculation'}
         value={texte} onInput={(e) => setTexte(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) envoyer(); }} />
       {message && <p class="encart e-rouge">{message}</p>}
       <button class="bouton principal-b" style="align-self:flex-start" disabled={occupe || !texte.trim()} onClick={envoyer}>

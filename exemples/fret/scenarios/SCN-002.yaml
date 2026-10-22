@@ -1,0 +1,21 @@
+id: SCN-002
+nom: Livrer et signaler un litige
+description: Le transporteur livre ; l'expéditeur peut signaler un litige dans le délai.
+acteur: ACT-TRANSPORTEUR
+entite: ENT-EXPEDITION
+cas_usage: [UC 07, UC 11]
+etapes:
+  - {id: transit, libelle: En transit, genre: statut, statut: EN_TRANSIT, application: APP-TRANSPORTEUR}
+  - {id: livraison, libelle: Livrer avec preuve, application: APP-TRANSPORTEUR, acteur: ACT-TRANSPORTEUR, ecran: SCR-013, transition: TR-LIVRER}
+  - {id: livree, libelle: Livrée, genre: statut, statut: LIVREE, application: APP-PORTAIL}
+  - {id: probleme, libelle: "Marchandise abîmée ?", genre: decision, application: APP-TRANSPORTEUR}
+  - {id: litige, libelle: Signaler un litige, application: APP-TRANSPORTEUR, acteur: ACT-TRANSPORTEUR, ecran: SCR-014, transition: TR-SIGNALER-LITIGE, a_trancher: true}
+  - {id: en_litige, libelle: En litige, genre: statut, statut: LITIGE, application: APP-PORTAIL}
+  - {id: fin, libelle: Expédition close, genre: fin, application: APP-PORTAIL}
+liens:
+  - {de: transit, vers: probleme}
+  - {de: probleme, vers: livraison, libelle: Non}
+  - {de: probleme, vers: litige, libelle: Oui, genre: refus}
+  - {de: livraison, vers: livree}
+  - {de: litige, vers: en_litige}
+  - {de: livree, vers: fin}

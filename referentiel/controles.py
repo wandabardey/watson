@@ -44,7 +44,7 @@ def _ajouter(trous, **kw):
 
 def libelle(p, ident: str) -> str:
     """Nom lisible d'un élément à partir de son identifiant."""
-    for attr, gabarit in (("listes", "La liste « {} »"), ("regles", "La règle « {} »"), ("cas_usage", "Le parcours « {} »"), ("ecrans", "L'écran « {} »"),
+    for attr, gabarit in (("listes", "La liste « {} »"), ("regles", "La règle « {} »"), ("cas_usage", "Le parcours « {} »"), ("ecrans", "L'écran « {} »"), ("scenarios", "Le scénario « {} »"),
                           ("acteurs", "L'acteur « {} »"), ("entites", "{}")):
         el = getattr(p, attr).get(ident)
         if el:
@@ -94,7 +94,7 @@ def controler_references(p: Projet, trous: list):
         if valeur and valeur not in versions:
             inconnu(source, "version", valeur, "la version produit")
 
-    for col in (p.entites, p.listes, p.regles, p.ecrans, p.cas_usage):
+    for col in (p.entites, p.listes, p.regles, p.ecrans, p.cas_usage, p.scenarios):
         for el in col.values():
             verifier_version(el["id"], el.get("version"), "")
             for a in el.get("attributs") or []:
@@ -119,12 +119,37 @@ def controler_references(p: Projet, trous: list):
         for a in ec.get("applications") or []:
             if apps and a not in apps:
                 inconnu(ec["id"], "applications", a, "l'application")
+    statuts_connus = {s["id"] for e in p.entites.values() for s in e.get("statuts") or []}
+    for sc in p.scenarios.values():
+        etapes = {et["id"] for et in sc["etapes"]}
+        if len(etapes) < len(sc["etapes"]):
+            inconnu(sc["id"], "etapes", "(étape en double)", "une étape unique")
+        if sc.get("acteur") and sc["acteur"] not in p.acteurs:
+            inconnu(sc["id"], "acteur", sc["acteur"], "l'acteur")
+        if sc.get("entite") and sc["entite"] not in p.entites:
+            inconnu(sc["id"], "entite", sc["entite"], "l'entité")
+        for et in sc["etapes"]:
+            verifier_version(sc["id"], et.get("version"), "")
+            for champ, col, attendu in (("acteur", p.acteurs, "l'acteur"), ("ecran", p.ecrans, "l'écran"),
+                                        ("transition", transitions, "l'action"), ("statut", statuts_connus, "le statut")):
+                if et.get(champ) and et[champ] not in col:
+                    inconnu(sc["id"], f"etapes.{champ}", et[champ], attendu)
+            if et.get("application") and apps and et["application"] not in apps:
+                inconnu(sc["id"], "etapes.application", et["application"], "l'application")
+        for li in sc.get("liens") or []:
+            verifier_version(sc["id"], li.get("version"), "")
+            for champ in ("de", "vers"):
+                if li[champ] not in etapes:
+                    inconnu(sc["id"], f"liens.{champ}", li[champ], "l'étape")
     for r in p.regles.values():
         for cible in r.get("porte_sur") or []:
             ident, donnee = cible_et_donnee(cible)
             connu = ident in p.fichiers or ident in transitions
             if not connu:
                 inconnu(r["id"], "porte_sur", ident, "l'élément")
+            elif donnee and ident in p.scenarios:
+                if donnee not in {et["id"] for et in p.scenarios[ident]["etapes"]}:
+                    inconnu(r["id"], "porte_sur", cible, "l'étape")
             elif donnee and donnee not in {a["nom"] for a in (p.entites.get(ident) or {}).get("attributs") or []}:
                 inconnu(r["id"], "porte_sur", cible, "la donnée")
     for ent in p.entites.values():
@@ -480,6 +505,20 @@ def controler_usages(p: Projet, trous: list):
                         ),
                         question=f"L'acteur « {nom_acteur} » a-t-il le droit de « {tr['nom'].lower()} » ? Si oui, on l'autorise ; sinon, on corrige le parcours.",
                     )
+
+    for sc in p.scenarios.values():
+        if sc.get("acteur"):
+            acteurs_actifs.add(sc["acteur"])
+        for et in sc["etapes"]:
+            if et.get("acteur"):
+                acteurs_actifs.add(et["acteur"])
+            if et.get("ecran"):
+                ecrans_utilises.add(et["ecran"])
+            for st in [et.get("statut")] + ([transitions[et["transition"]][1]["de"], transitions[et["transition"]][1]["vers"]]
+                                            if et.get("transition") in transitions else []):
+                for ent in p.entites.values():
+                    if st and st in {x["id"] for x in ent["statuts"]}:
+                        statuts_couverts.setdefault(ent["id"], set()).add(st)
 
     for aid, a in p.acteurs.items():
         if aid not in acteurs_actifs:

@@ -27,6 +27,7 @@ TYPES = {
     "regle": ("regles", schemas.REGLE),
     "cas_usage": ("cas-usage", schemas.CAS_USAGE),
     "ecran": ("ecrans", schemas.ECRAN),
+    "scenario": ("scenarios", schemas.SCENARIO),
 }
 
 
@@ -295,6 +296,11 @@ def references(p: Projet, ident: str) -> list[dict]:
     for uc in p.cas_usage.values():
         if uc.get("acteur_principal") == ident or any(ident in (et.get("acteur"), et.get("ecran"), et.get("transition")) for et in uc.get("etapes") or []):
             ajout(uc, "une de ses étapes")
+    for sc in p.scenarios.values():
+        if sc["id"] != ident and (ident in (sc.get("acteur"), sc.get("entite")) or any(
+                ident in (et.get("acteur"), et.get("ecran"), et.get("transition"), et.get("application"), et.get("statut"))
+                for et in sc.get("etapes") or [])):
+            ajout(sc, "une de ses étapes")
     for ec in p.ecrans.values():
         if ec["id"] != ident and (ident in (ec.get("acteurs") or []) or ident in str(ec.get("routages") or "") or ident in (ec.get("regles") or [])):
             ajout(ec, "le cite")

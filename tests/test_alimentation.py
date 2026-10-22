@@ -177,3 +177,27 @@ def test_liste_de_valeurs_et_liens(projet):
     attrs = {a["nom"]: a for a in p.entites["ENT-VEHICULE"]["attributs"]}
     assert attrs["societe"]["cible"] == "ENT-SOCIETE" and attrs["chauffeur"]["type"] == "texte" and "cible" not in attrs["chauffeur"]
     assert any("Chauffeur" in t for t in r["retouches"])
+
+
+def test_scenario_propose_et_nettoye(projet):
+    reponse = {"resume": "", "propositions": [
+        {"type": "ecran", "action": "creer", "titre": "Relevé", "pourquoi": "x", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "écran de relevé"}, "contenu": {"id": "SCR-050", "nom": "Relevé"}},
+        {"type": "scenario", "action": "creer", "titre": "Relever les compteurs", "pourquoi": "x", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "relevé puis validation"},
+         "contenu": {"id": "SCN-001", "nom": "Relever les compteurs", "acteur": "ACT-TRANSPORTEUR", "etapes": [
+             {"id": "releve", "libelle": "Relever", "ecran": "SCR-050", "application": "APP-TRANSPORTEUR"},
+             {"id": "ok", "libelle": "Conforme ?", "genre": "decision"},
+             {"id": "valide", "libelle": "En transit", "genre": "statut", "statut": "EN_TRANSIT"}],
+             "liens": [{"de": "releve", "vers": "ok"}, {"de": "ok", "vers": "valide", "libelle": "Oui"},
+                       {"de": "ok", "vers": "releve", "libelle": "Non", "genre": "retour"}]}}]}
+    requete, vus = faux_claude(reponse)
+    lot = alimentation.analyser("fret", projet, [{"titre": "Notes", "texte": "Relevé."}], requete=requete)
+    assert '"scenario"' in vus["options"].system_prompt and "Scénarios" in vus["options"].system_prompt
+    sc = lot["propositions"][1]
+    assert sc["contenu"]["id"] != "SCN-001" and not sc.get("invalide")  # SCN-001 existe : renuméroté
+    # L'écran est écarté : l'étape le perd, le scénario s'enregistre quand même.
+    r = alimentation.appliquer("fret", projet, lot["id"], [{"index": 1, "accepte": True}], "W")
+    p = charger(projet)
+    assert not p.erreurs and "ecran" not in p.scenarios[sc["contenu"]["id"]]["etapes"][0]
+    assert any("Relevé" in t for t in r["retouches"])

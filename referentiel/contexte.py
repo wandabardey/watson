@@ -17,13 +17,13 @@ from __future__ import annotations
 from .chargement import Projet
 from .controles import ALERTE, ERREUR, TROU, analyser
 
-SECTIONS = ["glossaire", "acteurs", "listes", "entites", "regles", "parcours", "ecrans", "trous"]
+SECTIONS = ["glossaire", "acteurs", "listes", "entites", "regles", "parcours", "scenarios", "ecrans", "trous"]
 STATUTS = {"validee": "validée", "proposee": "proposée, pas encore en vigueur", "obsolete": "obsolète, plus en vigueur"}
 GRAVITES = {ERREUR: "incohérence", TROU: "manque", ALERTE: "à vérifier"}
 
 
 def _nom(p: Projet, ident: str) -> str:
-    for attr in ("acteurs", "listes", "entites", "regles", "cas_usage", "ecrans"):
+    for attr in ("acteurs", "listes", "entites", "regles", "cas_usage", "ecrans", "scenarios"):
         el = getattr(p, attr).get(ident)
         if el:
             return el.get("nom") or el.get("titre") or ident
@@ -173,10 +173,33 @@ def generer_contexte(p: Projet, sections: list[str] | None = None, trous=None, i
             l.append(f"- {_ref(p, i)}, acteur principal {_nom(p, uc.get('acteur_principal', ''))} : " + " ".join(etapes))
         l.append("")
 
+    if "scenarios" in sections and p.scenarios:
+        l.append("## Scénarios (étape : genre, libellé, puis acteur, écran, application, action, statut, version)")
+        for i, sc in p.scenarios.items():
+            l.append(f"- {_ref(p, i)}" + (f", version {sc['version']}" if sc.get("version") else "") + " : "
+                     + " ; ".join(f"{e['id']} : {e.get('genre', 'etape')} « {e['libelle']} »"
+                                  + "".join(f" {e[c]}" for c in ("acteur", "ecran", "application", "transition", "statut", "version") if e.get(c))
+                                  for e in sc["etapes"]))
+            if sc.get("liens"):
+                l.append("  Liens : " + ", ".join(f"{x['de']}>{x['vers']}" + (f" « {x['libelle']} »" if x.get("libelle") else "")
+                                                   + (f" {x['genre']}" if x.get("genre") else "") + (f" {x['version']}" if x.get("version") else "")
+                                                   for x in sc["liens"]))
+        l.append("")
+
     if "ecrans" in sections and p.ecrans:
         l.append("## Écrans")
         for i, s in p.ecrans.items():
             details = [f"pour {_liste(p, s.get('acteurs'))}"]
+            if s.get("applications"):
+                details.append("dans " + ", ".join(s["applications"]))
+            if s.get("version"):
+                details.append(f"version {s['version']}")
+            if s.get("sections"):
+                details.append("contenu : " + ", ".join(x["titre"] + (f" ({x['genre']})" if x.get("genre") not in (None, "section") else "")
+                                                        for x in s["sections"]))
+            if s.get("routages"):
+                details.append("mène à " + ", ".join(f"{r['vers']}" + (f" par « {r['libelle']} »" if r.get("libelle") else "")
+                                                     for r in s["routages"]))
             if s.get("zones"):
                 details.append("zones " + ", ".join(z.get("nom", "") if isinstance(z, dict) else str(z) for z in s["zones"]))
             if s.get("captures"):

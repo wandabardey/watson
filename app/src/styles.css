@@ -242,3 +242,40 @@ table.tableau { width: 100%; border-collapse: collapse; }
 .etiquette-lien { position: absolute; display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 12px; border-radius: 999px; background: #fff; border: 1px solid #E4E4EC; font-size: 12.5px; font-weight: 600; white-space: nowrap; box-shadow: 0 1px 3px rgba(24,24,27,.06); pointer-events: none; }
 .etiquette-lien.echange { background: #18181B; color: #fff; border-color: #18181B; }
 .pilule-echange { background: #18181B; color: #fff; border-color: #18181B; }
+
+/* Scénarios */
+.onglets-sc { display: flex; flex-wrap: wrap; gap: 6px; }
+.onglet-sc { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 999px; border: 1px solid #E4E4EC; background: #fff; font: inherit; font-size: 13.5px; color: #3F3F46; cursor: pointer; }
+.onglet-sc:hover { border-color: #C7CBF6; }
+.onglet-sc.actif { background: #18181B; border-color: #18181B; color: #fff; font-weight: 600; }
+.onglet-sc.actif .pastille-version { background: #3F3F46; color: #E4E4E7; border-color: #71717A; }
+.onglet-sc.hors { border-style: dashed; color: #8A8A99; }
+.bandeau-sc { gap: 8px; margin-top: -4px; }
+.couloir-sc .couloir-nom-sc { position: absolute; left: 20px; top: 18px; width: 130px; display: inline-flex; align-items: flex-start; gap: 7px; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.couloir-sc .couloir-nom-sc svg { flex: 0 0 auto; margin-top: 1px; }
+.groupe-sc { position: absolute; border: 1.5px dashed; border-radius: 22px; pointer-events: none; }
+.groupe-sc span { position: absolute; left: 16px; top: 5px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.etape-sc { position: absolute; box-sizing: border-box; cursor: pointer; transition: opacity .15s, box-shadow .15s; }
+.etape-sc.attenuee { opacity: .3; }
+.etape-sc.brique { border-radius: 16px; }
+.etape-titre { font-size: 14px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.etape-pied { display: flex; align-items: center; gap: 6px; margin: 0 12px; padding-top: 6px; border-top: 1px solid #F1F1F6; min-width: 0; }
+.puce-action { display: inline-flex; align-items: center; gap: 3px; max-width: 140px; padding: 1px 7px; border-radius: 6px; background: #EEF0FF; color: #4338CA; font-size: 10.5px; font-weight: 600; }
+.etape-sc.g-statut { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; background: #18181B; color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; box-shadow: 0 6px 16px rgba(24,24,27,.18); }
+.etape-sc.g-statut .pastille-version { background: #3F3F46; color: #E4E4E7; border-color: #71717A; }
+.etape-sc.g-statut.choisie { box-shadow: 0 0 0 5px rgba(109,93,246,.25); }
+.etape-sc.g-statut.hors-version { background: #fff; color: #6B7280; border: 1.5px dashed #A1A1AA; box-shadow: none; }
+.etape-sc.g-debut, .etape-sc.g-fin { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 999px; background: #fff; border: 1.5px solid; font-size: 13px; font-weight: 600; color: #3F3F46; box-shadow: 0 2px 8px rgba(24,24,27,.05); }
+.etape-sc.g-debut.choisie, .etape-sc.g-fin.choisie { box-shadow: 0 0 0 5px rgba(109,93,246,.18); }
+.etape-sc.g-debut.hors-version, .etape-sc.g-fin.hors-version { border-style: dashed; border-color: #B8B8C6 !important; color: #8A8A99; }
+.etape-sc.g-decision { background: #FFFDF8; }
+.etiquette-lien.refus { color: #B91C1C; border-color: #FECACA; background: #FEF2F2; }
+.trait-legende { display: inline-block; width: 22px; height: 0; border-top: 2px solid #52525B; }
+.trait-legende.refus { border-top: 2px dotted #DC2626; }
+.trait-legende.retour { border-top: 2px dashed #A1A1AA; }
+.statut-noir { display: inline-flex; padding: 1px 9px; border-radius: 999px; background: #18181B; color: #fff; font-size: 11.5px; font-weight: 600; margin-left: 4px; }
+.etape-sc.g-debut span, .etape-sc.g-fin span.tronque { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; font-size: 12px; }
+.edition .champ { min-width: 0; }
+.edition input, .edition select, .edition textarea { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.edition .ligne > .champ.espace { flex: 1 1 0; }
+.etape-pied .a-trancher-txt { white-space: nowrap; }

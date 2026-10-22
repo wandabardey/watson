@@ -32,8 +32,8 @@ from ._vendor import yaml
 from .chargement import charger
 from .ecriture import ErreurEcriture, _verifier_schema, aujourdhui, dump, enregistrer_element, remplacer_regle
 
-TYPES_ELEMENTS = {"acteur": "acteurs", "liste": "listes", "entite": "entites", "regle": "regles", "ecran": "ecrans"}
-ORDRE = ["acteur", "liste", "entite", "regle", "ecran", "question"]  # ordre d'écriture : ce qui est référencé d'abord
+TYPES_ELEMENTS = {"acteur": "acteurs", "liste": "listes", "entite": "entites", "regle": "regles", "ecran": "ecrans", "scenario": "scenarios"}
+ORDRE = ["acteur", "liste", "entite", "regle", "ecran", "scenario", "question"]  # ordre d'écriture : ce qui est référencé d'abord
 LIMITE_TEXTE = 150_000  # caractères lus par document
 FORMATS = ".pdf, .docx, .pptx, .txt, .md, .vtt, .srt, .html, .csv, .json"
 
@@ -209,7 +209,7 @@ def consignes(contexte_base: str, mode: str = "documents", element: str | None =
     from . import schemas
 
     formats = {"acteur": _sans_historique(schemas.ACTEUR), "liste": schemas.LISTE, "entite": _sans_historique(schemas.ENTITE),
-               "regle": _sans_historique(schemas.REGLE), "ecran": schemas.ECRAN}
+               "regle": _sans_historique(schemas.REGLE), "ecran": schemas.ECRAN, "scenario": schemas.SCENARIO}
     return f"""Tu aides une Product Owner à alimenter le référentiel métier de son projet à partir de documents
 (comptes rendus de réunion, transcriptions, notes, spécifications, mails). Tu lis les documents fournis et tu
 proposes ce qu'ils apportent à la base. Une personne triera chaque proposition : sois précis et sobre.
@@ -230,6 +230,11 @@ Règles absolues :
    - « ecran » : un écran d'une application (formulaire, liste, page, panneau, modale), avec ses sections
      numérotées, ses variantes, ses onglets, et ses routages vers d'autres écrans (navigation, routage vers un autre
      formulaire, échange entre applications). Identifiant : celui du document s'il en donne un (SIMAR-05), sinon SCR-n ;
+   - « scenario » : un parcours de bout en bout, dessiné comme un diagramme de processus. Étapes typées (debut,
+     etape, decision, statut pour un statut apposé à l'objet, fin), chacune avec un identifiant court en minuscules
+     (saisie, controle), son application, son acteur, l'écran où elle se passe et l'action du workflow si elle en
+     déclenche une. Liens entre étapes avec un libellé de condition (Oui, Non, Conforme) ; genre « refus » pour un
+     chemin de rejet, « retour » pour une boucle. Identifiant SCN-n ;
    - « question » : un point ouvert, une contradiction ou une décision non prise que les documents soulèvent
      (contenu : {{"question": "...", "contexte": "..."}}).
 3. « action » : « creer » pour un élément nouveau, « modifier » pour un élément déjà dans la base, que tu
@@ -238,7 +243,7 @@ Règles absolues :
    est une NOUVELLE règle qui porte « remplace » : l'identifiant de l'ancienne, qui deviendra obsolète.
    Un passage d'un statut à un autre (« repasse en », « devient », « est renvoyé vers ») est une étape du
    workflow : modifie l'entité pour ajouter la transition (avec ses acteurs) plutôt que d'écrire une règle.
-4. Identifiants : en MAJUSCULES, préfixe ACT- (acteur), ENT- (entité), LST- (liste de valeurs), RG- suivi d'un numéro sur trois chiffres
+4. Identifiants : en MAJUSCULES, préfixe ACT- (acteur), ENT- (entité), LST- (liste de valeurs), SCR- (écran), SCN- (scénario), RG- suivi d'un numéro sur trois chiffres
    (règle, en continuant la numérotation existante), statuts et transitions en mots courts (ex. EN-COURS,
    TR-VALIDER). Les références (entite d'une règle, regles et acteurs d'une transition, de, vers) ne visent
    que des identifiants de la base ou de tes propositions.
@@ -246,7 +251,7 @@ Règles absolues :
    idée, une hypothèse ou un point à confirmer. « source » : le document et sa date si connue, en une ligne.
 6. « conflit » : une phrase si la proposition contredit ou remplace ce que dit la base (nomme l'élément
    concerné par son nom métier), sinon une chaîne vide. Ne propose rien qui soit déjà dans la base à l'identique.
-7. Versions produit : si le texte rattache un élément, une donnée ou une valeur à une version déclarée (MVP, V2,
+7. Versions produit : si le texte rattache un élément, une donnée, une valeur, une étape ou un lien à une version déclarée (MVP, V2,
    « hors MVP »…), renseigne « version » avec son identifiant ; sinon laisse-la vide.
 8. « titre » : nom métier court ; « pourquoi » : une phrase. Français, phrases courtes, sans tiret cadratin ni
    demi-cadratin. « resume » : deux phrases sur ce que disent les documents.
@@ -363,7 +368,7 @@ def _verifier(p, propositions: list[dict]) -> list[dict]:
 
 
 def _element(p, ident):
-    for collection in (p.acteurs, p.entites, p.regles):
+    for collection in (p.acteurs, p.listes, p.entites, p.regles, p.ecrans, p.scenarios):
         if ident in collection:
             return {k: v for k, v in collection[ident].items() if k != "historique"}
     return None
@@ -475,7 +480,7 @@ def appliquer(pid: str, racine: Path, lot_id: str, decisions: list[dict], auteur
     ecrits, refus, questions, retouches = [], [], [], []
     p = charger(racine)
     connus = set(p.fichiers) | set(p.transitions)
-    noms = {i: (e.get("titre") or e.get("nom") or i) for col in (p.acteurs, p.listes, p.regles, p.entites) for i, e in col.items()}
+    noms = {i: (e.get("titre") or e.get("nom") or i) for col in (p.acteurs, p.listes, p.regles, p.entites, p.ecrans, p.scenarios) for i, e in col.items()}
     for pr in lot["propositions"] + acceptees:  # écartées comprises, pour nommer ce qui est retiré
         c = pr.get("contenu") or {}
         if pr.get("type") in TYPES_ELEMENTS and c.get("id"):
@@ -504,6 +509,23 @@ def appliquer(pid: str, racine: Path, lot_id: str, decisions: list[dict], auteur
                             tr.pop(cle)
                         lib = ", ".join(f"« {noms.get(x, 'élément écarté')} »" for x in absents)
                         retouches.append(f"{pr['titre']} : {lib} n'est plus rattaché à l'étape « {tr.get('nom')} », puisque tu l'as écarté.")
+        if pr["type"] == "scenario":
+            statuts_ok = {x["id"] for e in p.entites.values() for x in e.get("statuts") or []}
+            for q in acceptees:
+                if q["type"] == "entite":
+                    statuts_ok |= {x["id"] for x in q["contenu"].get("statuts") or []}
+                    connus.update(t["id"] for t in q["contenu"].get("transitions") or [])
+            if c.get("entite") and c["entite"] not in connus:
+                c.pop("entite")
+            if c.get("acteur") and c["acteur"] not in connus:
+                c.pop("acteur")
+            for et in c.get("etapes") or []:
+                for cle in ("acteur", "ecran", "transition", "statut"):
+                    v = et.get(cle)
+                    if v and (v not in statuts_ok if cle == "statut" else v not in connus):
+                        et.pop(cle)
+                        retouches.append(f"{pr['titre']} : l'étape « {et.get('libelle')} » ne cite plus « {noms.get(v, v if cle == 'statut' else 'élément écarté')} », "
+                                         "qui n'est pas dans la base.")
     for pr in acceptees:
         if pr.get("refus"):
             refus.append({"titre": pr["titre"], "raison": pr["refus"]})
@@ -570,9 +592,9 @@ def apercu(pid: str, racine: Path, lot_id: str) -> dict:
     nouveaux, modifies = [], []
     for pr in lot["propositions"]:
         c = pr.get("contenu") or {}
-        if pr.get("invalide") or pr.get("type") not in ("entite", "liste", "ecran") or not c.get("id"):
+        if pr.get("invalide") or pr.get("type") not in ("entite", "liste", "ecran", "scenario") or not c.get("id"):
             continue
-        cible = {"entite": p.entites, "liste": p.listes, "ecran": p.ecrans}[pr["type"]]
+        cible = {"entite": p.entites, "liste": p.listes, "ecran": p.ecrans, "scenario": p.scenarios}[pr["type"]]
         (modifies if c["id"] in cible else nouveaux).append(c["id"])
         c = copy.deepcopy(c)
         if pr["type"] == "entite":

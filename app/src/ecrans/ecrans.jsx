@@ -225,7 +225,7 @@ function FicheEcran({ e, tout, choisir, aller, fermer, modifier, versions, proje
         </section>
       )}
       {e.parcours.length > 0 && <section class="pile" style="gap:6px"><h3>Parcours qui l'utilisent</h3>{e.parcours.map((u) => <span key={u.id}>{u.nom}</span>)}</section>}
-      <section class="encadre-watson"><DemandeWatson projet={projet} element={e.id} nomElement={e.nom} lance={lance} /></section>
+      <section class="encadre-watson"><DemandeWatson projet={projet} element={e.id} nomElement={e.nom} lance={lance} exemple="ajoute un onglet Historique, prévu en V2" /></section>
     </aside>
   );
 }

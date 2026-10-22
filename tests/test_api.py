@@ -290,3 +290,27 @@ def test_vue_ecrans_et_edition(serveur):
         "id": "SIMAR-04.1", "nom": "Journal des actions", "type": "panneau", "parent": "SCR-011",
         "routages": [{"vers": "SCR-002", "genre": "navigation"}]}})
     assert "SIMAR-04.1" in {e["id"] for e in appel(base, f"/api/projets/{pid}/ecrans")["ecrans"]}
+
+
+def test_vue_scenarios_et_edition(serveur):
+    base, _ = serveur
+    pid = appel(base, "/api/projets", {"depot": "wandabardey/fret"})["id"]
+    v = appel(base, f"/api/projets/{pid}/scenarios")
+    sc = {s["id"]: s for s in v["scenarios"]}
+    et = {e["id"]: e for e in sc["SCN-001"]["etapes"]}
+    assert et["dangereuse"]["genre"] == "decision" and et["dangereuse"]["regles"][0]["id"] == "RG-002"
+    assert et["controle"]["ecran_nom"] == "Contrôle sécurité" and et["prete"]["statut_nom"] == "Prête à expédier"
+    assert et["relance"]["version"] == "V2" and et["saisie"]["couleur"] == "#4F46E5"
+    assert any(li["genre"] == "refus" for li in sc["SCN-001"]["liens"]) and v["entites"][0]["statuts"]
+    # Les écrans savent dans quels scénarios ils servent.
+    ec = {e["id"]: e for e in appel(base, f"/api/projets/{pid}/ecrans")["ecrans"]}
+    assert "SCN-001" in {x["id"] for x in ec["SCR-012"]["parcours"]}
+    # Sans liens écrits, les étapes s'enchaînent dans l'ordre.
+    appel(base, f"/api/projets/{pid}/elements", {"type": "scenario", "contenu": {
+        "id": "SCN-010", "nom": "Facturer", "etapes": [{"id": "a", "libelle": "Préparer"}, {"id": "b", "libelle": "Envoyer"}]}})
+    nouveau = next(s for s in appel(base, f"/api/projets/{pid}/scenarios")["scenarios"] if s["id"] == "SCN-010")
+    assert nouveau["liens"] == [{"de": "a", "vers": "b", "genre": "suite"}]
+    # Un identifiant d'étape hors format est refusé, rien n'est écrit.
+    with pytest.raises(Exception):
+        appel(base, f"/api/projets/{pid}/elements", {"type": "scenario", "contenu": {
+            "id": "SCN-011", "nom": "Cassé", "etapes": [{"id": "A", "libelle": "Majuscule interdite"}]}})

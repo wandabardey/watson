@@ -314,6 +314,64 @@ ECRAN = {
     "additionalProperties": False,
 }
 
+ETAPE_ID = {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+
+# Scénario : un parcours dessiné en diagramme de processus. Étapes typées, reliées dans l'ordre par défaut,
+# ou par des liens explicites (conditions, refus, retours).
+SCENARIO = {
+    "type": "object",
+    "required": ["id", "nom", "etapes"],
+    "properties": {
+        "id": ID,
+        "nom": TEXTE,
+        "description": TEXTE,
+        "version": VERSION,
+        "a_trancher": {"type": "boolean"},
+        "acteur": ID,  # acteur principal
+        "entite": ID,  # objet métier dont le scénario fait avancer les statuts
+        "cas_usage": {"type": "array", "items": TEXTE},
+        "etapes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["id", "libelle"],
+                "properties": {
+                    "id": ETAPE_ID,
+                    "libelle": TEXTE,
+                    "genre": {"enum": ["debut", "etape", "decision", "statut", "fin"]},
+                    "description": TEXTE,
+                    "application": ID,
+                    "acteur": ID,
+                    "ecran": ID,
+                    "statut": ID,  # statut apposé (genre statut) ou atteint
+                    "transition": ID,
+                    "groupe": TEXTE,
+                    "version": VERSION,
+                    "a_trancher": {"type": "boolean"},
+                },
+                "additionalProperties": False,
+            },
+        },
+        "liens": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["de", "vers"],
+                "properties": {
+                    "de": ETAPE_ID,
+                    "vers": ETAPE_ID,
+                    "libelle": TEXTE,
+                    "genre": {"enum": ["suite", "refus", "retour"]},
+                    "version": VERSION,
+                },
+                "additionalProperties": False,
+            },
+        },
+    },
+    "additionalProperties": False,
+}
+
 DECISION_TROU = {
     "type": "object",
     "required": ["trou", "statut", "justification"],
@@ -335,6 +393,7 @@ TYPES = {
     "regles": (REGLE, "règle"),
     "cas-usage": (CAS_USAGE, "cas d'usage"),
     "ecrans": (ECRAN, "écran"),
+    "scenarios": (SCENARIO, "scénario"),
 }
 
 

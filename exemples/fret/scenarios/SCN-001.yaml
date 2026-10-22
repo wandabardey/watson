@@ -1,0 +1,31 @@
+id: SCN-001
+nom: Annoncer et contrôler une expédition
+description: De la saisie par l'expéditeur jusqu'à la prise en charge par le transporteur.
+acteur: ACT-EXPEDITEUR
+entite: ENT-EXPEDITION
+cas_usage: [UC 04, UC 05, UC 06]
+etapes:
+  - {id: depart, libelle: L'expéditeur a une marchandise à envoyer, genre: debut, application: APP-PORTAIL}
+  - {id: saisie, libelle: Saisir l'expédition, application: APP-PORTAIL, acteur: ACT-EXPEDITEUR, ecran: SCR-001, groupe: Annonce}
+  - {id: soumission, libelle: Soumettre, application: APP-PORTAIL, acteur: ACT-EXPEDITEUR, transition: TR-SOUMETTRE, groupe: Annonce}
+  - {id: attente_docs, libelle: En attente de documents, genre: statut, statut: EN_ATTENTE_DOCUMENTS, application: APP-PORTAIL}
+  - {id: verification, libelle: Vérifier les documents, application: APP-PORTAIL, acteur: ACT-AGENT-TRANSIT, ecran: SCR-002, groupe: Vérification}
+  - {id: dangereuse, libelle: "Marchandise dangereuse ?", genre: decision, application: APP-PORTAIL, groupe: Vérification}
+  - {id: controle, libelle: Contrôle sécurité, application: APP-PORTAIL, acteur: ACT-AGENT-TRANSIT, ecran: SCR-012, transition: TR-VALIDER-CONTROLE, groupe: Vérification}
+  - {id: relance, libelle: Relancer l'expéditeur, application: APP-PORTAIL, acteur: ACT-AGENT-TRANSIT, transition: TR-RELANCER, version: V2}
+  - {id: prete, libelle: Prête à expédier, genre: statut, statut: PRETE, application: APP-PORTAIL}
+  - {id: prise_en_charge, libelle: Prendre en charge, application: APP-TRANSPORTEUR, acteur: ACT-TRANSPORTEUR, ecran: SCR-003, transition: TR-PRENDRE-EN-CHARGE}
+  - {id: transit, libelle: En transit, genre: statut, statut: EN_TRANSIT, application: APP-TRANSPORTEUR}
+liens:
+  - {de: depart, vers: saisie}
+  - {de: saisie, vers: soumission}
+  - {de: soumission, vers: attente_docs}
+  - {de: attente_docs, vers: verification}
+  - {de: verification, vers: dangereuse, libelle: Documents complets}
+  - {de: verification, vers: relance, libelle: Documents manquants, genre: refus, version: V2}
+  - {de: relance, vers: attente_docs, genre: retour, version: V2}
+  - {de: dangereuse, vers: controle, libelle: Oui}
+  - {de: dangereuse, vers: prete, libelle: Non}
+  - {de: controle, vers: prete, libelle: Conforme}
+  - {de: prete, vers: prise_en_charge}
+  - {de: prise_en_charge, vers: transit}
