@@ -23,6 +23,7 @@ from .avant_projet import ErreurAvantProjet
 from .comite import ErreurComite
 from .ateliers import ErreurAtelier
 from .studio import ErreurStudio
+from .evolutions import ErreurEvolution
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -368,6 +369,41 @@ def _comite(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _evolutions(methode, pid, reste, corps):
+    from . import evolutions as ev
+
+    racine = application.chemin(pid)
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return ev.vue(racine)
+    if not reste and methode == "POST":
+        e = ev.creer(racine, corps, github.compte()["nom"])
+        return {**ev.vue(racine, e["id"]), **envoyer(f"Évolution {e['id']} : {e['titre'][:80]}")}
+    eid = reste[0]
+    if len(reste) == 1 and methode == "GET":
+        return ev.vue(racine, eid)
+    if len(reste) == 1 and methode == "POST":
+        e = ev.modifier(racine, eid, corps)
+        return {**ev.vue(racine, eid), **envoyer(f"Évolution {eid} modifiée : {e['titre'][:80]}")}
+    if len(reste) == 1 and methode == "DELETE":
+        ev.supprimer(racine, eid)
+        return {**ev.vue(racine), **envoyer(f"Évolution {eid} retirée")}
+    action = reste[1] if len(reste) == 2 and methode == "POST" else None
+    if action == "rediger":
+        e = ev.rediger(pid, racine, eid, str(corps.get("demande") or "")[:4000])
+        return {**ev.vue(racine, eid), **envoyer(f"Évolution {eid} rédigée : {e['titre'][:80]}")}
+    if action == "impact":
+        ev.recalculer(racine, eid)
+        return {**ev.vue(racine, eid), **envoyer(f"Évolution {eid} : impact recalculé")}
+    if action == "base":
+        e = ev.lire(racine, eid)
+        consigne = str(corps.get("consigne") or (e.get("redaction") or {}).get("consigne_base") or "")[:4000]
+        lot = alimentation.modifier(pid, racine, consigne, github.compte()["nom"])
+        ev.modifier(racine, eid, {"lot": lot["id"]})
+        return lot
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _studio(methode, pid, reste, corps):
     from . import studio as st
 
@@ -687,6 +723,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _comite(methode, pid, reste[1:], corps)
         if reste[:1] == ["ateliers"]:
             return _ateliers(methode, pid, reste[1:], corps)
+        if reste[:1] == ["evolutions"]:
+            return _evolutions(methode, pid, reste[1:], corps)
         if reste[:1] == ["studio"]:
             return _studio(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
@@ -786,7 +824,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

@@ -49,7 +49,7 @@ def _donnees(pid: str, *parties: str) -> Path:
 
 # ----------------------------------------------------------------- relecture
 
-RELISIBLES = {"maquette": "critique", "cahier": "relecture", "atelier": "relecture", "compte_rendu": "relecture",
+RELISIBLES = {"maquette": "critique", "cahier": "relecture", "evolution": "relecture", "atelier": "relecture", "compte_rendu": "relecture",
               "proposition": "relecture"}
 
 SCHEMA_REVUE = {"type": "object", "required": ["verdict", "points"], "properties": {
@@ -70,6 +70,16 @@ def _matiere(pid: str, racine: Path, cible: dict) -> tuple[str, str]:
     t, i = cible.get("type"), str(cible.get("id") or "")
     if t not in RELISIBLES:
         raise ErreurStudio("Ce livrable ne se relit pas encore ici.")
+    if t == "evolution":
+        from .evolutions import ErreurEvolution, lire as lire_evo
+
+        try:
+            e = lire_evo(racine, i)
+        except ErreurEvolution as ex:
+            raise ErreurStudio(str(ex)) from ex
+        if not e.get("redaction"):
+            raise ErreurStudio("L'évolution n'est pas encore rédigée.")
+        return f"Évolution « {e['titre']} »", json.dumps({k: e.get(k) for k in ("titre", "besoin", "redaction", "impact")}, ensure_ascii=False)
     if t in ("atelier", "compte_rendu"):
         from .ateliers import ErreurAtelier, lire
 

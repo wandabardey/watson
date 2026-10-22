@@ -25,6 +25,7 @@ import { Parametres } from './ecrans/parametres.jsx';
 import { Administration } from './ecrans/administration.jsx';
 import { Ateliers } from './ecrans/ateliers.jsx';
 import { Secteur } from './ecrans/studio.jsx';
+import { Evolutions } from './ecrans/evolutions.jsx';
 import './styles.css';
 
 // Catégories repliables de la barre latérale. [clé, libellé, icône, bientôt]
@@ -33,14 +34,14 @@ const GROUPES = [
     ['proposition', 'Proposition', Presentation]]],
   ['metier', 'Connaissance métier', [['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route], ['ecrans', 'Écrans', AppWindow],
     ['regles', 'Règles', Scale], ['secteur', 'Fiche secteur', Landmark], ['flux', 'Flux externes', ArrowLeftRight, true]]],
-  ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow, true],
+  ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow],
     ['versions', 'Versions', GitBranch], ['recette', 'Recette et TNR', FlaskConical, true], ['documentation', 'Documentation', BookOpen, true]]],
   ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette, true]]],
 ];
 
 const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: AccueilProjet, alimenter: AccueilProjet, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
-  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur };
+  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions };
 
 const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
 
