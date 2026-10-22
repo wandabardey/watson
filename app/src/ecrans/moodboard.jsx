@@ -11,7 +11,7 @@ const DIALS = [['variance', 'Variance', 'sage', 'éditorial'], ['motion', 'Anima
 const charges = new Set();
 
 // Charge une police Google Fonts (une fois) pour l'aperçu.
-function police(famille) {
+export function police(famille) {
   if (!famille || charges.has(famille)) return;
   charges.add(famille);
   const l = document.createElement('link');

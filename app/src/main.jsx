@@ -21,13 +21,14 @@ import { Scenarios } from './ecrans/scenarios.jsx';
 import { Cahier } from './ecrans/cahier.jsx';
 import { Moodboard } from './ecrans/moodboard.jsx';
 import { Maquettes } from './ecrans/maquettes.jsx';
+import { Proposition } from './ecrans/proposition.jsx';
 import { Parametres } from './ecrans/parametres.jsx';
 import './styles.css';
 
 const MENU = [
   ['Avant-projet'],
   ['cahier', 'Cahier des charges', FileText], ['moodboard', 'Moodboard', Palette], ['maquettes', 'Maquettes', Frame],
-  ['proposition', 'Proposition', Presentation, true],
+  ['proposition', 'Proposition', Presentation],
   ['Connaissance métier'],
   ['synthese', 'Synthèse', LayoutDashboard], ['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route], ['ecrans', 'Écrans', AppWindow],
   ['workflow', 'Workflow', IconeWorkflow],
@@ -41,7 +42,7 @@ const MENU = [
   ['administration', 'Administration', Settings, true]
 ];
 
-const ECRANS = { cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, scenarios: Scenarios, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
+const ECRANS = { cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, scenarios: Scenarios, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
 
 function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerProjet }) {
   const [projets, setProjets] = useState([]);

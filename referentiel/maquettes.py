@@ -145,6 +145,9 @@ def _nouvel_id(racine: Path, base: str, pid: str | None = None) -> str:
     pris = {m["id"] for m in lire_index(racine)["maquettes"]}
     if pid:
         pris |= {m["id"] for m in propositions(pid)}
+    import unicodedata
+
+    base = unicodedata.normalize("NFKD", base).encode("ascii", "ignore").decode()
     base = re.sub(r"[^a-z0-9]+", "-", base.lower()).strip("-")[:40] or "maquette"
     r, n = base, 2
     while r in pris:

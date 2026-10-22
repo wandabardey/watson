@@ -374,8 +374,32 @@ def _avant_projet(methode, pid, reste, corps):
         return {**ap.vue_moodboard(racine, pid), **application.enregistrer_et_envoyer(pid, "Moodboard : image retirée")}
     if reste[:1] == ["maquettes"]:
         return _maquettes(methode, pid, racine, reste[1:], corps)
+    if reste[:1] == ["proposition"]:
+        return _proposition(methode, pid, racine, reste[1:], corps)
     if reste == ["image"] and methode == "POST":
         return ap.image(racine, str(corps.get("fichier", "")))
+    raise Erreur("Ressource inconnue.", 404)
+
+
+def _proposition(methode, pid, racine, reste, corps):
+    from . import avant_projet as ap
+    from . import proposition as pr
+
+    if not reste and methode == "GET":
+        return pr.vue(racine, pid)
+    if not reste and methode == "POST":
+        pr.enregistrer(racine, corps.get("proposition") or {})
+        return {**pr.vue(racine, pid), **application.enregistrer_et_envoyer(pid, corps.get("message") or "Proposition : mise à jour")}
+    if reste == ["rediger"] and methode == "POST":
+        return pr.rediger(pid, racine, str(corps.get("demande") or "")[:4000] or None, corps.get("slide") or None)
+    if reste == ["garder"] and methode == "POST":
+        r = pr.garder(pid, racine)
+        return {**pr.vue(racine, pid), **application.enregistrer_et_envoyer(pid, f"Proposition : {r.get('titre', '')} (rédigée avec Claude)")}
+    if reste == ["ecarter"] and methode == "POST":
+        ap.ecarter_proposition(pid, "deck")
+        return pr.vue(racine, pid)
+    if reste == ["exporter"] and methode == "POST":
+        return pr.exporter(racine, str(corps.get("format", "")), corps.get("images") or [], corps.get("nom") or None)
     raise Erreur("Ressource inconnue.", 404)
 
 

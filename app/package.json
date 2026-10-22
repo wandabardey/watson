@@ -15,6 +15,7 @@
     "@tauri-apps/plugin-shell": "^2.5.0",
     "@tauri-apps/plugin-updater": "^2.14.0",
     "elkjs": "^0.9.3",
+    "html-to-image": "1.11.13",
     "lucide-preact": "^1.61.0",
     "preact": "^10.29.8"
   },
