@@ -8,6 +8,7 @@ import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
 import { appel } from '../api.js';
 import { BoutonComite } from './comite.jsx';
 import { DemandeWatson, Edition, GererVersions, LotEnCours } from './edition.jsx';
+import { Workflow } from './workflow.jsx';
 
 const TYPES = { enum: 'Choix', booleen: 'Oui ou non', texte: 'Texte', nombre: 'Nombre', date: 'Date', reference: 'Lien', liste: 'Liste de valeurs' };
 const L = 300; // largeur d'une brique
@@ -247,6 +248,24 @@ function Schema({ entites, listes, choisi, choisir, filtre, versions = [], versi
   );
 }
 
+// Le cycle de vie d'un objet (ses statuts, les actions qui l'y font passer, qui peut les faire, les règles) : dans une fenêtre.
+function BoutonCycle({ projet, el, aller }) {
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <>
+      <button class="bouton" style="align-self:flex-start" onClick={() => setOuvert(true)}><IconeSchema size={14} /> Voir le cycle de vie ({el.actions} action{el.actions > 1 ? 's' : ''})</button>
+      {ouvert && (
+        <div class="visionneuse" onClick={() => setOuvert(false)}>
+          <div class="modale-comite" style="width:min(1400px,100%)" onClick={(e) => e.stopPropagation()}>
+            <div class="ligne"><IconeSchema size={18} color="#4F46E5" /><strong class="espace">Cycle de vie : {el.nom}</strong><button class="bouton icone" aria-label="Fermer" onClick={() => setOuvert(false)}><X size={15} /></button></div>
+            <Workflow projet={projet} entite={el.id} integre aller={(e) => { setOuvert(false); aller(e); }} />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function Fiche({ el, tout, choisir, aller, fermer, modifier, versions, projet, lance }) {
   if (!el) return null;
   const liste = el.genre === 'liste';
@@ -289,7 +308,7 @@ function Fiche({ el, tout, choisir, aller, fermer, modifier, versions, projet, l
         <section class="pile" style="gap:6px">
           <h3>Cycle de vie</h3>
           <div class="ligne" style="gap:6px">{el.cycle.map((s) => <span key={s.id} class="badge b-gris" style="font-weight:500">{s.nom}</span>)}</div>
-          <button class="bouton" style="align-self:flex-start" onClick={() => aller('workflow')}>Voir ses {el.actions} étapes dans le Workflow</button>
+          <BoutonCycle projet={projet} el={el} aller={aller} />
         </section>
       )}
       {!liste && el.regles.length > 0 && (

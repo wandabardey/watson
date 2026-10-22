@@ -242,7 +242,7 @@ function Bilan({ r, recommencer, aller }) {
       {r.retouches.map((t, i) => <p key={i} class="encart e-indigo">{t}</p>)}
       {r.refus.map((x, i) => <p key={i} class="encart e-orange"><span><strong>{x.titre}</strong> n'a pas été enregistré : {x.raison}</span></p>)}
       <div class="ligne"><button class="bouton principal-b" onClick={recommencer}>Ajouter d'autres documents</button>
-        <button class="bouton" onClick={() => aller('synthese')}>Voir la synthèse</button><button class="bouton" onClick={() => aller('referentiels')}>Voir les référentiels</button>
+        <button class="bouton" onClick={() => aller('projet')}>Accueil du projet</button><button class="bouton" onClick={() => aller('referentiels')}>Voir les référentiels</button>
         {r.ecrits.some((e) => e.type === 'ecran') && <button class="bouton" onClick={() => aller('ecrans')}>Voir les écrans</button>}
         {r.ecrits.some((e) => e.type === 'scenario') && <button class="bouton" onClick={() => aller('scenarios')}>Voir les scénarios</button>}</div>
     </div>
@@ -250,7 +250,7 @@ function Bilan({ r, recommencer, aller }) {
   );
 }
 
-export function Alimenter({ projet, etat, aller }) {
+export function Alimenter({ projet, etat, aller, integre }) {
   const [claude, setClaude] = useState(etat.claude);
   const [phase, setPhase] = useState({ nom: 'depot' });
   const [erreur, setErreur] = useState(null);
@@ -267,8 +267,8 @@ export function Alimenter({ projet, etat, aller }) {
   };
   return (
     <>
-      <Entete titre="Alimenter le projet" description="Donne à Claude ce qui existe déjà : comptes rendus, transcriptions, notes, spécifications, maquettes et schémas. Il propose les objets métier, écrans, scénarios, règles et questions qu'il y trouve ; tu choisis ce qui entre dans la base." />
-      <ConnexionClaude claude={claude} setClaude={setClaude} usage="La lecture des documents" />
+      {!integre && <Entete titre="Alimenter le projet" description="Donne à Claude ce qui existe déjà : comptes rendus, transcriptions, notes, spécifications, maquettes et schémas. Il propose les objets métier, écrans, scénarios, règles et questions qu'il y trouve ; tu choisis ce qui entre dans la base." />}
+      {!integre && <ConnexionClaude claude={claude} setClaude={setClaude} usage="La lecture des documents" />}
       {erreur && <p class="encart e-rouge">{erreur}</p>}
       {phase.nom === 'depot' && <Depot projet={projet} lancer={lancer} reprendre={reprendre} />}
       {phase.nom === 'lecture' && (

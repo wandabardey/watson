@@ -562,3 +562,23 @@ def garder_moodboard(pid: str, racine: Path, pistes: list[str], questions: list[
         noter_questions(racine, [{**q, "source": "Moodboard"} for q in qs], auteur, aujourdhui())
     ecarter_proposition(pid, "moodboard")
     return {"pistes": gardees, "questions": len(qs)}
+
+
+def avancement(racine: Path) -> dict:
+    """Où en est l'avant-projet : pour l'accueil du projet."""
+    from .maquettes import lire_index
+    from .proposition import lire as lire_deck
+
+    c = lire_cahier(racine)
+    mb = lire_moodboard(racine) or {}
+    deck = lire_deck(racine)
+    retenue = next((x["nom"] for x in mb.get("pistes") or [] if x["id"] == mb.get("retenue")), None)
+    remplies = sum(1 for s in (c or {}).get("sections") or [] if s.get("contenu") or s["id"] in VIVANTES)
+    return {
+        "cahier": {"existe": c is not None, "remplies": remplies, "total": len((c or {}).get("sections") or []) or len(TRAME),
+                   "statut": STATUTS.get((c or {}).get("statut", "brouillon")) if c else None},
+        "moodboard": {"pistes": len(mb.get("pistes") or []), "retenue": retenue, "statut": STATUTS_MOODBOARD.get(mb.get("statut", "")) if mb else None},
+        "maquettes": len(lire_index(racine)["maquettes"]),
+        "proposition": {"existe": deck is not None, "slides": len((deck or {}).get("slides") or []),
+                        "statut": {"brouillon": "Brouillon", "relu": "Relu", "envoye": "Envoyé au client"}.get((deck or {}).get("statut", "")) if deck else None},
+    }

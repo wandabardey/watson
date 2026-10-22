@@ -625,7 +625,15 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
         racine, p = _p(pid)
         if methode == "GET":
             if reste == ["synthese"]:
-                return {**vue_synthese(p), "depot": application.projet(pid)["depot"], "versions": vue_versions(racine)}
+                from .avant_projet import avancement
+                from .sujets import vue as vue_sujets
+                sj = vue_sujets(racine)
+                return {**vue_synthese(p), "depot": application.projet(pid)["depot"], "versions": vue_versions(racine),
+                        "avant_projet": avancement(racine), "questions": [q for q in sj["sujets"] if q.get("statut", "ouvert") == "ouvert"][:5],
+                        "questions_ouvertes": sj["ouverts"], "a_trancher": len(sj["a_trancher"])}
+            if reste == ["compteurs"]:
+                from .sujets import vue as vue_sujets
+                return {"questions_ouvertes": vue_sujets(racine)["ouverts"]}
             if reste == ["catalogue"]:
                 return vue_catalogue(p)
             if reste == ["referentiels"]:

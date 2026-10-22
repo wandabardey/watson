@@ -243,7 +243,7 @@ function FicheEtape({ sc, e, choisir, aller, fermer, modifier, versions, projet,
       {e.description && <p class="doux">{e.description}</p>}
       <section class="pile" style="gap:6px">
         {e.ecran && <span class="petit"><span class="doux">Se passe sur </span><button class="lien" onClick={() => aller('ecrans')}>{e.ecran_nom || e.ecran}</button></span>}
-        {e.transition_nom && <span class="petit"><span class="doux">Déclenche l'action </span><button class="lien" onClick={() => aller('workflow')}>{e.transition_nom}</button></span>}
+        {e.transition_nom && <span class="petit"><span class="doux">Déclenche l'action </span><button class="lien" onClick={() => aller('referentiels')}>{e.transition_nom}</button></span>}
         {e.statut && <span class="petit"><span class="doux">Statut : </span><span class="statut-noir">{e.statut_nom || e.statut}</span></span>}
       </section>
       {(entrants.length > 0 || sortants.length > 0) && (

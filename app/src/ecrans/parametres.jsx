@@ -73,7 +73,7 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
 
  <Section titre="Méthode 4ward" description="Quand le studio 4ward de 4SH est installé sur ce poste, Watson en suit les compétences à chaque appel à Claude : cadrage, direction artistique, maquettes, deck commercial. Rien de 4ward n'est copié dans Watson ni dans les dépôts.">
         {r.methode.trouve
-          ? <div class="ligne"><BookOpen size={18} color="#4F46E5" /><span class="pile espace" style="gap:2px"><strong>4ward {r.methode.version} {r.methode.choisi ? '(dossier choisi)' : '(trouvé automatiquement)'}</strong><span class="doux petit tronque">{r.methode.chemin}</span></span>
+          ? <div class="ligne" style="flex-wrap:nowrap;align-items:flex-start"><BookOpen size={18} color="#4F46E5" style="flex:0 0 auto;margin-top:2px" /><span class="pile espace" style="gap:2px;min-width:0"><strong>4ward {r.methode.version} {r.methode.choisi ? '(dossier choisi)' : '(trouvé automatiquement)'}</strong><span class="doux petit tronque">{r.methode.chemin}</span></span>
               {r.methode.choisi && <button class="bouton" onClick={() => changer({ dossier_4ward: '' })}>Détection automatique</button>}</div>
           : <p class="encart e-orange">{r.methode.choisi_introuvable ? 'Le dossier choisi ne contient plus 4ward.' : '4ward n\'a pas été trouvé sur ce poste.'} Watson applique ses consignes de base. Installe 4ward dans Claude, ou indique son dossier ci-dessous.</p>}
         <span class="ligne"><input class="saisie espace" placeholder="Dossier du plugin 4ward (celui qui contient « skills »)" value={dossier} onInput={(e) => setDossier(e.target.value)} />

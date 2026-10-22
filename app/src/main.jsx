@@ -2,21 +2,18 @@ import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import {
   AppWindow, ArrowLeftRight, BookOpen, ChevronsUpDown, Database, Route, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
-  MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, Workflow as IconeWorkflow
+  MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, ChevronRight, MessagesSquare
 } from 'lucide-preact';
-import { appel, attendreMoteur, installerMiseAJour, verifierMiseAJour } from './api.js';
+import { appel, attendreMoteur, lancerMiseAJour, suivreMiseAJour, verifierMiseAJour } from './api.js';
 import { ConnexionGitHub } from './ecrans/connexion.jsx';
 import { Accueil, Tuile } from './ecrans/accueil.jsx';
 import { DEVISE, Watson } from './ecrans/commun.jsx';
 import logo from './images/logo.png';
-import { Synthese } from './ecrans/synthese.jsx';
+import { AccueilProjet } from './ecrans/projet.jsx';
 import { Referentiels } from './ecrans/referentiels.jsx';
 import { Ecrans } from './ecrans/ecrans.jsx';
-import { Workflow } from './ecrans/workflow.jsx';
 import { Regles } from './ecrans/regles.jsx';
 import { Versions } from './ecrans/versions.jsx';
-import { Demander } from './ecrans/demander.jsx';
-import { Alimenter } from './ecrans/alimenter.jsx';
 import { Scenarios } from './ecrans/scenarios.jsx';
 import { Cahier } from './ecrans/cahier.jsx';
 import { Sujets } from './ecrans/sujets.jsx';
@@ -27,29 +24,36 @@ import { Proposition } from './ecrans/proposition.jsx';
 import { Parametres } from './ecrans/parametres.jsx';
 import './styles.css';
 
-const MENU = [
-  ['Avant-projet'],
-  ['cahier', 'Cahier des charges', FileText], ['moodboard', 'Moodboard', Palette], ['maquettes', 'Maquettes', Frame],
-  ['proposition', 'Proposition', Presentation],
-  ['Connaissance métier'],
-  ['synthese', 'Synthèse', LayoutDashboard], ['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route], ['ecrans', 'Écrans', AppWindow],
-  ['workflow', 'Workflow', IconeWorkflow],
-  ['regles', 'Règles', Scale], ['flux', 'Flux externes', ArrowLeftRight, true], ['sujets', 'Sujets en attente', CircleHelp],
-  ['Gestion projet'],
-  ['evolutions', 'Évolutions', GitPullRequestArrow, true], ['versions', 'Versions', GitBranch], ['comite', 'Comité d\'experts', Users],
-  ['recette', 'Recette et TNR', FlaskConical, true], ['documentation', 'Documentation', BookOpen, true],
-  ['Produit'],
-  ['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette, true],
-  ['Projet'],
-  ['administration', 'Administration', Settings, true]
+// Catégories repliables de la barre latérale. [clé, libellé, icône, bientôt]
+const GROUPES = [
+  ['avant', 'Avant-projet', [['cahier', 'Cahier des charges', FileText], ['moodboard', 'Moodboard', Palette], ['maquettes', 'Maquettes', Frame],
+    ['proposition', 'Proposition', Presentation]]],
+  ['metier', 'Connaissance métier', [['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route], ['ecrans', 'Écrans', AppWindow],
+    ['regles', 'Règles', Scale], ['flux', 'Flux externes', ArrowLeftRight, true]]],
+  ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare, true], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow, true],
+    ['versions', 'Versions', GitBranch], ['recette', 'Recette et TNR', FlaskConical, true], ['documentation', 'Documentation', BookOpen, true]]],
+  ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette, true]]],
 ];
 
-const ECRANS = { comite: Comite, sujets: Sujets, cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, scenarios: Scenarios, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
+const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: AccueilProjet, alimenter: AccueilProjet, sujets: Sujets, comite: Comite,
+  cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
+  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions };
+
+const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
 
 function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerProjet }) {
   const [projets, setProjets] = useState([]);
   const [liste, setListe] = useState(false);
+  const [ouverts, setOuverts] = useState(lireOuverts);
+  const [questions, setQuestions] = useState(null);
   useEffect(() => { appel('/projets').then((d) => setProjets(d.projets.filter((p) => !p.absent))).catch(() => {}); }, []);
+  useEffect(() => { appel(`/projets/${projet.id}/compteurs`).then((d) => setQuestions(d.questions_ouvertes)).catch(() => {}); }, [ecran]);
+  const groupeCourant = GROUPES.find(([, , items]) => items.some(([cle]) => cle === ecran))?.[0];
+  const basculer = (g) => {
+    const n = ouverts.includes(g) ? ouverts.filter((x) => x !== g) : [...ouverts, g];
+    setOuverts(n);
+    try { localStorage.setItem('watson.menu.ouverts', JSON.stringify(n)); } catch { /* sans importance */ }
+  };
   return (
     <nav class="panneau lateral" aria-label="Navigation du projet">
       <button class="marque" onClick={quitter} title="Retour à l'accueil">
@@ -76,19 +80,32 @@ function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerP
           </div>
         )}
       </div>
-      <button class={`menu question ${ecran === 'demander' ? 'actif' : ''}`} onClick={() => choisir('demander')}>
-        <Sparkles size={17} /> Poser une question
-      </button>
-      <button class={`menu ${ecran === 'alimenter' ? 'actif' : ''}`} onClick={() => choisir('alimenter')}>
-        <FilePlus2 size={18} strokeWidth={1.8} /> Alimenter
-      </button>
-      {MENU.map(([cle, libelle, Icone, bientot]) => (Icone ? (
-        <button key={cle} class={`menu ${ecran === cle ? 'actif' : ''}`} disabled={bientot} onClick={() => choisir(cle)} title={bientot ? 'Dans une prochaine version' : ''}>
-          <Icone size={18} strokeWidth={1.8} /> {libelle}
-          {bientot && <span class="compte b-gris">bientôt</span>}
+      <div class="menu-defilant">
+        <button class={`menu ${['projet', 'synthese', 'demander', 'alimenter'].includes(ecran) ? 'actif' : ''}`} onClick={() => choisir('projet')}>
+          <LayoutDashboard size={18} strokeWidth={1.8} /> Accueil du projet
         </button>
-      ) : <span key={cle} class="section">{cle}</span>))}
-      <span class="espace" />
+        <button class={`menu ${ecran === 'sujets' ? 'actif' : ''}`} onClick={() => choisir('sujets')}>
+          <CircleHelp size={18} strokeWidth={1.8} /> Questions ouvertes
+          {questions > 0 && <span class="compte b-ambre">{questions}</span>}
+        </button>
+        {GROUPES.map(([g, titre, items]) => {
+          const ouvert = ouverts.includes(g) || g === groupeCourant;
+          return (
+            <div key={g} class="groupe-menu">
+              <button class="section-menu" aria-expanded={ouvert} onClick={() => basculer(g)}>
+                <ChevronRight size={14} class={`chevron ${ouvert ? 'ouvert' : ''}`} /> {titre}
+              </button>
+              {ouvert && items.map(([cle, libelle, Icone, bientot]) => (
+                <button key={cle} class={`menu ${ecran === cle ? 'actif' : ''}`} disabled={bientot} onClick={() => choisir(cle)} title={bientot ? 'Dans une prochaine version' : ''}>
+                  <Icone size={18} strokeWidth={1.8} /> {libelle}
+                  {bientot && <span class="compte b-gris">bientôt</span>}
+                </button>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+      <button class="menu petit-menu" disabled title="Dans une prochaine version"><Settings size={16} strokeWidth={1.8} /> Administration du projet <span class="compte b-gris">bientôt</span></button>
       {compte && (
         <div class="profil">
           {compte.avatar ? <img class="avatar" src={compte.avatar} alt="" /> : <span class="avatar" />}
@@ -102,17 +119,15 @@ function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerP
 
 function BandeauMiseAJour({ maj }) {
   const [etat, setEtat] = useState(null);
+  useEffect(() => suivreMiseAJour(setEtat), []);
   if (!maj) return null;
-  const installer = async () => {
-    setEtat(0);
-    try { await installerMiseAJour(maj, (p) => setEtat(p)); } catch (e) { setEtat(`Échec : ${e.message || e}`); }
-  };
+  const installer = () => lancerMiseAJour(maj);
   return (
     <div class="bandeau-maj">
       <RefreshCw size={18} />
       <span class="espace">Watson {maj.version} est disponible{maj.body ? ` : ${maj.body.split('\n')[0]}` : '.'}</span>
-      {etat === null ? <button class="bouton" onClick={installer}>Installer et redémarrer</button>
-        : <span>{typeof etat === 'number' ? `Téléchargement… ${etat}%` : etat}</span>}
+      {etat === null || String(etat).startsWith('Échec') ? <>{etat && <span>{etat}</span>}<button class="bouton" onClick={installer}>Installer et redémarrer</button></>
+        : <span>{typeof etat === 'number' ? `Téléchargement… ${etat} %` : etat} <span class="doux">· tu peux continuer à travailler</span></span>}
     </div>
   );
 }
@@ -121,7 +136,7 @@ function App() {
   const [erreur, setErreur] = useState(null);
   const [etat, setEtat] = useState(null);
   const [projet, setProjet] = useState(null);
-  const [ecran, setEcran] = useState('synthese');
+  const [ecran, setEcran] = useState('projet');
   const [maj, setMaj] = useState(null);
   const [synchro, setSynchro] = useState(null);
   const [parametres, setParametres] = useState(false);
@@ -135,7 +150,7 @@ function App() {
   useEffect(() => { charger(); verifierMiseAJour().then(setMaj); }, []);
 
   const [questionInitiale, setQuestionInitiale] = useState(null);
-  const ouvrir = async (p, ecranInitial = 'synthese', question = null) => {
+  const ouvrir = async (p, ecranInitial = 'projet', question = null) => {
     setProjet(p); setEcran(ecranInitial); setQuestionInitiale(question); setSynchro({ etat: 'en_cours' });
     try { setSynchro(await appel(`/projets/${p.id}/synchroniser`, { corps: {} })); } catch (e) { setSynchro({ erreur: e.message }); }
     appel(`/projets/${p.id}/visite`, { corps: {} }).catch(() => {});
@@ -173,7 +188,7 @@ function App() {
           {synchro && !synchro.erreur && synchro.etat !== 'en_cours' && <span class="badge b-vert">À jour avec GitHub</span>}
           <button class="bouton" style="min-height:30px" onClick={() => ouvrir(projet)}><RefreshCw size={14} /> Synchroniser</button>
         </div>
-        <Ecran key={`${projet.id}-${ecran}-${ecran === 'demander' ? '' : synchro?.etat}`} projet={projet} etat={etat} aller={setEcran} questionInitiale={questionInitiale} />
+        <Ecran key={`${projet.id}-${ECRANS[ecran] === AccueilProjet ? 'projet' : ecran}-${synchro?.etat === 'en_cours' ? 'a' : 'b'}`} projet={projet} etat={etat} aller={setEcran} questionInitiale={questionInitiale} zone={ecran} />
       </main>
     </div>
   );

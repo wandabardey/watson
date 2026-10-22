@@ -5,7 +5,7 @@ import { ConnexionClaude, Entete, Watson } from './commun.jsx';
 
 const VERDICT = { oui: 'b-vert', non: 'b-rouge', depend: 'b-violet', partiel: 'b-ambre', inconnu: 'b-ambre', resume: 'b-indigo' };
 
-export function Demander({ projet, etat, questionInitiale }) {
+export function Demander({ projet, etat, questionInitiale, integre }) {
   const [q, setQ] = useState('');
   const [portee, setPortee] = useState('travail');
   const [fil, setFil] = useState([]);
@@ -24,14 +24,14 @@ export function Demander({ projet, etat, questionInitiale }) {
   useEffect(() => { if (questionInitiale) poser(null, questionInitiale); }, []);
   return (
     <>
-      <Entete titre="Poser une question" description="Claude répond à partir de la connaissance du projet, et cite ses sources : règle, décision, date, auteur." />
+      {!integre && <Entete titre="Poser une question" description="Claude répond à partir de la connaissance du projet, et cite ses sources : règle, décision, date, auteur." />}
       <ConnexionClaude claude={claude} setClaude={setClaude} usage="Cette fonction" />
       <form class="ligne" onSubmit={poser} style="padding:8px 8px 8px 16px;border-radius:16px;box-shadow:0 0 0 1px var(--bord),0 6px 16px rgba(24,24,27,.06)">
         <input style="flex:1;border:0;outline:none;min-height:36px" placeholder="Par exemple : qui peut annuler une expédition ?" value={q} onInput={(e) => setQ(e.target.value)} />
         <select class="saisie" value={portee} onChange={(e) => setPortee(e.target.value)}><option value="travail">Version de travail</option><option value="production">Production</option><option value="histoire">Toute l'histoire</option></select>
         <button class="bouton principal-b" aria-label="Envoyer"><ArrowUp size={18} /></button>
       </form>
-      {fil.length === 0 && (
+      {fil.length === 0 && !integre && (
         <div class="vide pile" style="align-items:center;gap:10px"><Watson humeur="note" hauteur={190} />
           <span>Je réponds à partir de la base du projet, et je te dis toujours d'où vient la réponse.</span></div>
       )}

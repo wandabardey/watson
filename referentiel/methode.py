@@ -39,6 +39,9 @@ TACHES = {
     "comite_synthese": ["4SH-comite-boost/SKILL.md", "4SH-comite-boost/references/protocole.md", "4SH-accueil/references/arbitrer-une-decision.md"],
     "proposition": ["4SH-deck-commercial/SKILL.md", "4SH-deck-commercial/references/modele-et-deck-de-reference.md",
                     "4SH-accueil/references/charte-presentations-4sh.md"],
+    "atelier": ["4SH-preparation-atelier/SKILL.md", "4SH-preparation-atelier/references/kit-atelier.md",
+                "4SH-accueil/references/arbitrer-une-decision.md"],
+    "compte_rendu": ["4SH-compte-rendu/SKILL.md", "4SH-compte-rendu/references/gabarit-compte-rendu.md"],
 }
 LIBELLES = {"cahier": "cadrage de projet et expertise métier", "moodboard": "direction artistique",
             "maquettes": "maquettes et prototypes", "proposition": "deck commercial", "comite_casting": "comité d'experts"}

@@ -55,6 +55,18 @@ export async function verifierMiseAJour() {
   }
 }
 
+// Le téléchargement d'une mise à jour survit aux changements d'écran : un seul en cours, suivi par le bandeau.
+const suiviMaj = { valeur: null, abonnes: new Set(), promesse: null };
+const publierMaj = (v) => { suiviMaj.valeur = v; suiviMaj.abonnes.forEach((f) => f(v)); };
+export function suivreMiseAJour(f) { suiviMaj.abonnes.add(f); f(suiviMaj.valeur); return () => suiviMaj.abonnes.delete(f); }
+export function lancerMiseAJour(maj) {
+  if (suiviMaj.promesse) return suiviMaj.promesse;
+  publierMaj(0);
+  suiviMaj.promesse = installerMiseAJour(maj, (p) => publierMaj(p === null ? 'Téléchargement…' : p >= 100 ? 'Installation…' : p))
+    .catch((e) => { publierMaj(`Échec : ${e?.message || e}. Réessaie plus tard.`); suiviMaj.promesse = null; });
+  return suiviMaj.promesse;
+}
+
 export async function installerMiseAJour(maj, progression) {
   let total = 0, recu = 0;
   await maj.downloadAndInstall((e) => {

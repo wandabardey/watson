@@ -51,9 +51,9 @@ function trace(a, pos, rang) {
   return { d: `M${x1} ${y1} C${cote} ${y1}, ${cote} ${y2}, ${x2 + (gauche ? 4 : -4)} ${y2}`, lx: cote, ly: (y1 + y2) / 2 };
 }
 
-export function Workflow({ projet, aller }) {
+export function Workflow({ projet, aller, entite, integre }) {
   const { donnees: d, erreur } = useVue(`/projets/${projet.id}/workflow`);
-  const [ent, setEnt] = useState(null);
+  const [ent, setEnt] = useState(entite || null);
   const [sel, setSel] = useState(null);
   const e = d && (d.entites.find((x) => x.id === ent) || d.entites[0]);
   const plan = useMemo(() => (e ? disposer(e) : null), [e]);
@@ -64,9 +64,9 @@ export function Workflow({ projet, aller }) {
   const nomEtape = (id) => e.etapes.find((s) => s.id === id)?.nom || id;
   return (
     <>
-      <Entete titre={`Cycle de vie : ${e.nom}`} description="Les étapes, les actions qui font passer de l'une à l'autre, qui peut les faire et les règles qui les gouvernent. Cliquer une étape ou une action pour le détail.">
+      {integre ? <p class="doux">Les étapes de « {e.nom} », les actions qui font passer de l'une à l'autre, qui peut les faire et les règles qui les gouvernent. Clique une étape ou une action pour le détail.</p> : <Entete titre={`Cycle de vie : ${e.nom}`} description="Les étapes, les actions qui font passer de l'une à l'autre, qui peut les faire et les règles qui les gouvernent. Cliquer une étape ou une action pour le détail.">
         {d.entites.length > 1 && <div class="segments">{d.entites.map((x) => <button key={x.id} class={`segment ${x.id === e.id ? 'actif' : ''}`} onClick={() => { setEnt(x.id); setSel(null); }}>{x.nom}</button>)}</div>}
-      </Entete>
+      </Entete>}
       <div class="ligne petit">
         <span class="badge b-gris">Action</span><span class="badge b-orange">Information manquante</span><span class="badge b-rouge">Incohérence</span>
       </div>

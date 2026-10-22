@@ -69,7 +69,7 @@ export function Regles({ projet, aller }) {
               </tbody></table></div>
             )}
             {r.points.map((p, i) => <Point key={i} p={p} />)}
-            {r.actions.length > 0 && <div class="ligne" style="gap:6px"><span class="petit doux">Actions :</span>{r.actions.map((a) => <button key={a.id} class="badge b-gris" style="border:0;cursor:pointer" onClick={() => aller('workflow')}>{a.nom}</button>)}</div>}
+            {r.actions.length > 0 && <div class="ligne" style="gap:6px"><span class="petit doux">Actions :</span>{r.actions.map((a) => <button key={a.id} class="badge b-gris" style="border:0;cursor:pointer" onClick={() => aller('referentiels')}>{a.nom}</button>)}</div>}
             {r.source && <p class="petit"><span class="doux">Source : </span>{r.source}</p>}
             <div class="pile" style="gap:6px">
               <span class="petit doux">Histoire</span>
