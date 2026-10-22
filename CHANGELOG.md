@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.11.0 (2026-10-22)
+
+- Onglet Écrans : carte des écrans par application, contenu, routages et échanges, versions MVP, édition et Demander à Watson
+
 ## 0.10.0 (2026-10-22)
 
 - Référentiels éditables : créer, modifier, supprimer une entité ou une liste de valeurs depuis sa fiche ; « Demander à Watson » prépare un changement décrit en langage naturel, visible sur le schéma avant d'être enregistré. Versions produit (MVP, V2…) : chaque entité, donnée, valeur ou règle peut en porter une, et le schéma montre en pointillés ce qui vient après la version choisie. Une règle peut porter sur des données précises ; elle apparaît en pastille sur le schéma.
