@@ -83,6 +83,35 @@ jobs:
         with:
           python-version: "3.12"
           architecture: ${{ matrix.python || '' }}
+      # Signature macOS avec une identité stable (certificat Watson, secrets WATSON_CERTIFICAT et
+      # WATSON_CERTIFICAT_MDP) : le trousseau reconnaît alors chaque nouvelle version et ne redemande plus l'accès.
+      # Sans ces secrets, signature sans éditeur comme avant.
+      - name: Signature macOS
+        if: runner.os == 'macOS'
+        env:
+          CERTIFICAT: ${{ secrets.WATSON_CERTIFICAT }}
+          MDP: ${{ secrets.WATSON_CERTIFICAT_MDP }}
+        run: |
+          if [ -z "$CERTIFICAT" ]; then echo "Pas de certificat Watson : signature sans éditeur."; exit 0; fi
+          trousseau="$RUNNER_TEMP/watson.keychain-db"
+          mdpk=$(uuidgen)
+          echo "$CERTIFICAT" | base64 --decode > "$RUNNER_TEMP/watson.p12"
+          security create-keychain -p "$mdpk" "$trousseau"
+          security set-keychain-settings -lut 21600 "$trousseau"
+          security unlock-keychain -p "$mdpk" "$trousseau"
+          security import "$RUNNER_TEMP/watson.p12" -k "$trousseau" -P "$MDP" -T /usr/bin/codesign
+          rm -f "$RUNNER_TEMP/watson.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$mdpk" "$trousseau" > /dev/null
+          security list-keychains -d user -s "$trousseau" $(security list-keychains -d user | tr -d '"')
+          security find-certificate -c "Watson (4SH)" -p "$trousseau" > "$RUNNER_TEMP/watson.pem"
+          sudo security add-trusted-cert -d -r trustRoot -p codeSign -k /Library/Keychains/System.keychain "$RUNNER_TEMP/watson.pem" \
+            || echo "Certificat non approuvé sur la machine de construction : la signature reste possible."
+          empreinte=$(security find-identity -p codesigning "$trousseau" | awk '/Watson \(4SH\)/ {print $2; exit}')
+          [ -n "$empreinte" ] || { echo "Identité Watson introuvable dans le certificat."; exit 1; }
+          cp /bin/echo "$RUNNER_TEMP/essai" && codesign -f -s "$empreinte" "$RUNNER_TEMP/essai" \
+            || { echo "Le certificat Watson ne permet pas de signer."; exit 1; }
+          echo "WATSON_IDENTITE_SIGNATURE=$empreinte" >> "$GITHUB_ENV"
+          echo "APPLE_SIGNING_IDENTITY=$empreinte" >> "$GITHUB_ENV"
       - name: Moteur (Python embarqué)
         env:
           WATSON_CIBLE: ${{ matrix.cible }}
@@ -112,7 +141,13 @@ jobs:
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then
             moteur="app/src-tauri/target/${{ matrix.cible }}/release/bundle/macos/Watson.app/Contents/MacOS/watson-moteur"
-            codesign -dv "$moteur" 2>&1 | head -5 || true
+            codesign -dvv "$moteur" 2>&1 | head -8 || true
+            codesign -d -r- "$moteur" 2>&1 | tail -1 || true
+            if [ -n "$WATSON_IDENTITE_SIGNATURE" ]; then
+              codesign -dvv "$moteur" 2>&1 | grep -q "Authority=Watson (4SH)" \
+                || { echo "Le moteur n'est pas signé avec l'identité Watson : le trousseau redemanderait l'accès."; exit 1; }
+              codesign --verify --deep --strict "$(dirname "$moteur")/../.." || echo "Attention : la vérification complète de la signature de l'application signale un écart."
+            fi
           else
             moteur="app/src-tauri/target/${{ matrix.cible }}/release/watson-moteur.exe"
           fi

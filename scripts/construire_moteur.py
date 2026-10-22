@@ -42,9 +42,9 @@ def main():
         "--add-data", f"{RACINE / 'exemples' / 'fret'}{sep}exemples/fret",
         "--collect-all", "claude_agent_sdk", "--collect-submodules", "keyring", "--collect-submodules", "dulwich",
         "--hidden-import", "platformdirs", "--hidden-import", "truststore", "--collect-submodules", "pypdf", "--collect-submodules", "pptx", "--collect-data", "pptx", "--collect-data", "certifi",
-        # macOS : tout ce qui est embarqué (Python compris) est re-signé sans éditeur, comme l'application ; sinon
-        # macOS refuse de charger le Python signé par python.org dans un programme qui ne l'est pas.
-        *(["--codesign-identity", "-", "--osx-entitlements-file", str(RACINE / "app" / "src-tauri" / "Entitlements.plist")]
+        # macOS : tout ce qui est embarqué (Python compris) est re-signé avec l'identité de l'application (celle de
+        # Watson en publication, sans éditeur sinon) ; sinon macOS refuse de charger le Python signé par python.org.
+        *(["--codesign-identity", os.environ.get("WATSON_IDENTITE_SIGNATURE") or "-", "--osx-entitlements-file", str(RACINE / "app" / "src-tauri" / "Entitlements.plist")]
           if sys.platform == "darwin" else []),
         str(RACINE / "serveur" / "moteur.py"),
     ]
