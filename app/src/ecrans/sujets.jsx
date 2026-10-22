@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'preact/hooks';
 import { Check, CircleHelp, Plus, Quote, RotateCcw, Sparkles, Trash2, X } from 'lucide-preact';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 import { LotEnCours } from './edition.jsx';
 
 const date = (d) => (d ? d.split('-').reverse().join('/') : '');
 
-function Sujet({ q, faire, reporter, occupe, claude }) {
+function Sujet({ q, faire, reporter, occupe, claude, projet }) {
   const [rep, setRep] = useState(null);
   const [confirmer, setConfirmer] = useState(false);
   const ouvert = (q.statut || 'ouvert') === 'ouvert';
@@ -41,6 +42,7 @@ function Sujet({ q, faire, reporter, occupe, claude }) {
       {rep === null && (
         <div class="ligne" style="gap:6px">
           {ouvert && <button class="bouton" disabled={occupe} onClick={() => setRep(q.reponse || '')}><Check size={14} /> {q.reponse ? 'Reprendre la réponse' : 'Répondre'}</button>}
+          {ouvert && <BoutonComite projet={projet} cible={{ type: 'sujet', id: q.id }} libelle="Demander au comité" desactive={occupe} />}
           {!ouvert && <button class="bouton bouton-watson" disabled={occupe || !claude?.connecte} title="Watson propose les changements de la base qui découlent de la réponse" onClick={() => reporter(q)}><Sparkles size={14} /> Mettre la base à jour</button>}
           {!ouvert && <button class="bouton" disabled={occupe} onClick={() => base({ statut: 'ouvert' })}><RotateCcw size={14} /> Rouvrir</button>}
           {q.mise_a_jour && <span class="petit doux">Base mise à jour</span>}
@@ -110,7 +112,7 @@ export function Sujets({ projet, etat, aller }) {
         <div class="vide pile" style="align-items:center;gap:10px"><Watson humeur={d.ouverts ? 'reflechit' : 'ecrit'} hauteur={150} />
           <span>{filtre === 'ouverts' ? 'Aucune question ouverte. Elles arrivent d\'Alimenter et des onglets de l\'avant-projet.' : 'Rien ici pour l\'instant.'}</span></div>
       )}
-      <div class="pile" style="gap:10px">{liste.map((q) => <Sujet key={q.id} q={q} faire={faire} reporter={reporter} occupe={occupe || !!attente || !!lot} claude={claude} />)}</div>
+      <div class="pile" style="gap:10px">{liste.map((q) => <Sujet key={q.id} projet={projet} q={q} faire={faire} reporter={reporter} occupe={occupe || !!attente || !!lot} claude={claude} />)}</div>
       {d.a_trancher.length > 0 && (
         <section class="pile" style="gap:8px;margin-top:8px">
           <h2>Aussi en suspens dans la base</h2>

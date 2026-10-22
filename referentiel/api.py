@@ -20,6 +20,7 @@ from urllib.parse import parse_qs, urlparse
 
 from . import __version__, alimentation, application, depot, github, reglages
 from .avant_projet import ErreurAvantProjet
+from .comite import ErreurComite
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -328,6 +329,43 @@ def _p(pid):
     return racine, p
 
 
+def _comite(methode, pid, reste, corps):
+    from . import comite as co
+
+    racine = application.chemin(pid)
+    if not reste and methode == "GET":
+        return co.vue(pid, racine)
+    if reste == ["evaluer"] and methode == "POST":
+        cible = corps.get("cible") or {"type": "libre", "id": ""}
+        s = co.evaluer(pid, racine, {"type": str(cible.get("type", "libre")), "id": str(cible.get("id", ""))},
+                       str(corps.get("question") or "")[:3000], str(corps.get("intensite") or "standard"), bool(corps.get("utiliser_comite")))
+        return {"id": s["id"]}
+    if len(reste) == 2 and reste[0] == "seances" and methode == "GET":
+        return co.lire_seance(pid, reste[1])
+    if len(reste) == 3 and reste[0] == "seances" and methode == "POST":
+        sid, action = reste[1], reste[2]
+        if action == "noter":
+            co.noter(pid, racine, sid, str(corps.get("decision", "")), str(corps.get("note") or "")[:2000], github.compte()["nom"])
+            s = co.lire_seance(pid, sid)
+            return {**co.vue(pid, racine), **application.enregistrer_et_envoyer(pid, f"Comité : {s['cible']['nom'][:60]}, {co.DECISIONS[s['decision']].lower()}")}
+        if action == "panel":
+            co.garder_panel(pid, racine, sid)
+            return {**co.vue(pid, racine), **application.enregistrer_et_envoyer(pid, "Comité du projet : membres")}
+        if action == "appliquer":
+            s = co.lire_seance(pid, sid)
+            consigne = (s.get("synthese") or {}).get("consigne_watson", "").strip()
+            if not consigne:
+                raise Erreur("Cette recommandation ne se traduit pas en changement de la base.", 400)
+            element = s["cible"]["id"] if s["cible"]["type"] not in ("libre", "cahier", "moodboard", "maquette", "proposition", "sujet") else None
+            return alimentation.modifier(pid, racine, consigne[:4000], github.compte()["nom"], element)
+    if reste == ["membres"] and methode == "DELETE":
+        d = co.lire_comite(racine)
+        d["membres"] = []
+        co._ecrire_comite(racine, d)
+        return {**co.vue(pid, racine), **application.enregistrer_et_envoyer(pid, "Comité du projet : panel retiré")}
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _sujets(methode, pid, reste, corps):
     from . import sujets as sj
 
@@ -575,6 +613,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _avant_projet(methode, pid, reste[1:], corps)
         if reste[:1] == ["sujets"]:
             return _sujets(methode, pid, reste[1:], corps)
+        if reste[:1] == ["comite"]:
+            return _comite(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
             from .ecriture import enregistrer_versions_produit
             enregistrer_versions_produit(application.chemin(pid), corps.get("versions") or [])
@@ -664,7 +704,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

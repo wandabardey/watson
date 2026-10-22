@@ -5,6 +5,7 @@ import {
 } from 'lucide-preact';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
 import { DemandeWatson, GererVersions, LotEnCours } from './edition.jsx';
 import { horsVersion } from './referentiels.jsx';
@@ -186,6 +187,7 @@ function FicheEcran({ e, tout, choisir, aller, fermer, modifier, versions, proje
   return (
     <aside class="fiche" onMouseDown={(ev) => ev.stopPropagation()}>
       <div class="ligne"><span class="petit doux espace">{e.id} · {TYPES_ECRAN[e.type] || 'Écran'}{e.version && ` · ${nomV(e.version)}`}</span>
+        <BoutonComite projet={projet} cible={{ type: 'ecran', id: e.id }} />
         <button class="bouton" onClick={modifier}><Pencil size={14} /> Modifier</button>
         <button class="bouton icone" aria-label="Fermer" onClick={fermer}><X size={15} /></button></div>
       <h2>{e.nom}</h2>

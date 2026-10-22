@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Check, ImagePlus, Pencil, Plus, Sparkles, Star, Trash2, X } from 'lucide-preact';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 
 const ROLES = { marque: 'Marque', accent: 'Accent', fond: 'Fond', surface: 'Surface', texte: 'Texte', texte_doux: 'Texte doux', bordure: 'Bordure', succes: 'Succès', alerte: 'Alerte', erreur: 'Erreur', info: 'Information' };
@@ -70,7 +71,7 @@ function EcranType({ p, projet }) {
   );
 }
 
-function Planche({ p, projet, retenue, retenir, modifier, reprendre, supprimer, occupe, choix }) {
+function Planche({ p, projet, projetW, retenue, retenir, modifier, reprendre, supprimer, occupe, choix }) {
   police(p.typo.titres); police(p.typo.texte);
   const [dem, setDem] = useState(null);
   const [confirmer, setConfirmer] = useState(false);
@@ -87,6 +88,7 @@ function Planche({ p, projet, retenue, retenir, modifier, reprendre, supprimer, 
         {modifier && (
           <span class="ligne" style="gap:6px;align-self:flex-start;flex-wrap:nowrap">
             {!retenue && <button class="bouton" disabled={occupe} onClick={retenir}><Star size={14} /> Retenir</button>}
+            {projetW && <BoutonComite projet={projetW} cible={{ type: 'moodboard', id: p.id }} />}
             <button class="bouton bouton-watson" disabled={occupe} onClick={() => setDem(dem === null ? '' : null)}><Sparkles size={14} /> Reprendre</button>
             <button class="bouton" disabled={occupe} onClick={modifier}><Pencil size={14} /> Modifier</button>
             {confirmer ? <button class="bouton danger" disabled={occupe} onClick={supprimer}>Supprimer la piste</button>
@@ -297,7 +299,7 @@ export function Moodboard({ projet, etat, aller }) {
           )}
           {mb.pistes.map((p) => (edition === p.id
             ? <EditionPiste key={p.id} piste={p} occupe={occupe} annuler={() => setEdition(null)} enregistrer={async (np) => { if (await enregistrer({ ...mb, pistes: mb.pistes.map((x) => (x.id === p.id ? np : x)) }, `Moodboard : ${np.nom}`)) setEdition(null); }} />
-            : <Planche key={p.id} p={p} projet={d.projet} retenue={mb.retenue === p.id} occupe={occupe}
+            : <Planche key={p.id} p={p} projet={d.projet} projetW={projet} retenue={mb.retenue === p.id} occupe={occupe}
                 retenir={() => enregistrer({ ...mb, retenue: p.id }, `Moodboard : piste retenue, ${p.nom}`)}
                 modifier={() => setEdition(p.id)}
                 reprendre={(t) => proposer({ piste: p.id, nombre: 1, demande: t?.trim() || `Affine la piste « ${p.nom} »` })}

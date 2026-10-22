@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { Check } from 'lucide-preact';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { Attente, Entete, Point, Statut, useVue } from './commun.jsx';
 
 const FILTRES = [['tous', 'Toutes'], ['validee', 'Validées'], ['proposee', 'À valider'], ['obsolete', 'Obsolètes']];
@@ -58,7 +59,7 @@ export function Regles({ projet, aller }) {
         {r && (
           <aside class="carte detail" style="flex-basis:380px">
             <div class="ligne"><Statut s={r.statut} /><span class="petit doux">{r.type === 'table_decision' ? 'Table de décision' : 'Règle'}{r.entite ? ` · ${r.entite}` : ''}</span></div>
-            <h2>{r.titre}</h2>
+            <div class="ligne"><h2 class="espace">{r.titre}</h2><BoutonComite projet={projet} cible={{ type: 'regle', id: r.id }} /></div>
             <p>{r.enonce}</p>
             {r.remplace && <p class="encart e-indigo">Remplace « {r.remplace.titre} ».</p>}
             {r.remplacee_par && <p class="encart e-indigo">Remplacée par « {r.remplacee_par.titre} ».</p>}

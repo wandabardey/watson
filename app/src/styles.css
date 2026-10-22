@@ -507,3 +507,25 @@ details summary { cursor: pointer; display: inline-flex; align-items: center; ga
 .sujet.tranche { background: #FCFCFD; }
 .reponse-sujet { padding: 10px 12px; border-radius: 10px; background: #F0FDF4; box-shadow: inset 3px 0 0 #22C55E; font-size: 14px; }
 .reponse-sujet b { color: #166534; margin-right: 4px; }
+
+/* Comité d'experts */
+.modale-comite { width: min(1100px, 100%); max-height: 100%; overflow: auto; background: #F7F7FA; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+.choix-intensites { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.membres-comite { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.membre-comite { background: #fff; border-radius: 16px; padding: 14px 16px; box-shadow: 0 0 0 1px #ECEBF3; }
+.avatar-comite { flex: 0 0 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; }
+.avis-texte { margin: 0; font-size: 14px; line-height: 1.5; color: #27272A; }
+.debat-comite { font-size: 13px; padding: 8px 10px; border-radius: 10px; background: #F5F3FF; color: #3F3F46; }
+.debat-comite b { color: #6D28D9; }
+.synthese-comite { background: #fff; border-radius: 18px; padding: 16px 18px; box-shadow: 0 0 0 2px #C7CBF6; }
+.synthese-comite .reco { font-size: 16px; line-height: 1.45; }
+.etapes-comite { display: flex; gap: 8px; flex-wrap: wrap; }
+.etape-comite { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px #ECEBF3; font-size: 13px; color: #A1A1AA; }
+.etape-comite i { width: 8px; height: 8px; border-radius: 50%; background: #D4D4D8; }
+.etape-comite.encours { color: #4338CA; box-shadow: 0 0 0 1.5px #A5ABF2; }
+.etape-comite.encours i { background: #6D5DF6; animation: pulse 1.2s infinite; }
+.etape-comite.fait { color: #166534; }
+@keyframes pulse { 50% { opacity: .3; } }
+.seance-ligne { width: 100%; border: 0; cursor: pointer; font: inherit; gap: 12px; }
+.seance-ligne:hover { box-shadow: 0 0 0 1px #C7CBF6; }
+@media (max-width: 900px) { .choix-intensites { grid-template-columns: 1fr; } }

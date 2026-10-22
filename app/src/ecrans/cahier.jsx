@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Check, Copy, FileText, Pencil, RefreshCw, Sparkles, X } from 'lucide-preact';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 import { Markdown } from './markdown.jsx';
 
@@ -179,6 +180,7 @@ export function Cahier({ projet, etat, aller }) {
           <select class="saisie" value={c.statut || 'brouillon'} onChange={(e) => enregistrer({ ...c, statut: e.target.value }, `Cahier des charges : ${d.statuts[e.target.value].toLowerCase()}`)} aria-label="Statut du cahier">
             {Object.entries(d.statuts).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
+          <BoutonComite projet={projet} cible={{ type: 'cahier', id: 'cahier' }} />
           <button class="bouton" onClick={copier}>{copie ? <Check size={15} /> : <Copy size={15} />} {copie ? 'Copié' : 'Copier en Markdown'}</button>
           <button class="bouton bouton-watson" disabled={!!redaction || !claude?.connecte} onClick={() => rediger(null, null)}><RefreshCw size={15} /> Tout reprendre avec Watson</button>
         </div>

@@ -6,6 +6,7 @@ import {
   Smartphone, Sparkles, Trash2, Workflow as IconeSchema, X
 } from 'lucide-preact';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
 import { DemandeWatson, GererVersions, LotEnCours, slug } from './edition.jsx';
 import { horsVersion } from './referentiels.jsx';
@@ -508,6 +509,7 @@ export function Scenarios({ projet, aller }) {
           </div>
         )}
         <span class="espace" />
+        {sc && <BoutonComite projet={projet} cible={{ type: 'scenario', id: sc.id }} desactive={!!lot} />}
         {sc && <button class="bouton" disabled={!!lot} onClick={() => setPanneau({ mode: 'edition', id: sc.id })}><Pencil size={14} /> Modifier</button>}
         <button class="bouton" disabled={!!lot} onClick={() => { setChoisi(null); setPanneau({ mode: 'edition' }); }}><Plus size={15} /> Scénario</button>
         <button class="bouton bouton-watson" disabled={!!lot} onClick={() => { setChoisi(null); setPanneau({ mode: 'demande', element: sc?.id, nom: sc?.nom }); }}><Sparkles size={15} /> Demander à Watson</button>

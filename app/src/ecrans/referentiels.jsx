@@ -6,6 +6,7 @@ import {
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { DemandeWatson, Edition, GererVersions, LotEnCours } from './edition.jsx';
 
 const TYPES = { enum: 'Choix', booleen: 'Oui ou non', texte: 'Texte', nombre: 'Nombre', date: 'Date', reference: 'Lien', liste: 'Liste de valeurs' };
@@ -253,6 +254,7 @@ function Fiche({ el, tout, choisir, aller, fermer, modifier, versions, projet, l
   return (
     <aside class="fiche" onMouseDown={(e) => e.stopPropagation()}>
       <div class="ligne"><span class="petit doux espace">{liste ? 'Liste de valeurs' : 'Entité'}{el.version && ` · ${nomV(el.version)}`}</span>
+        <BoutonComite projet={projet} cible={{ type: liste ? 'liste' : 'entite', id: el.id }} />
         <button class="bouton" onClick={modifier}><Pencil size={14} /> Modifier</button>
         <button class="bouton icone" aria-label="Fermer" onClick={fermer}><X size={15} /></button></div>
       <h2>{el.nom}</h2>

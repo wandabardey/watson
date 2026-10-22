@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import {
   AppWindow, ArrowLeftRight, BookOpen, ChevronsUpDown, Database, Route, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
-  MonitorPlay, Network, Palette, FileText, Frame, Presentation, RefreshCw, Scale, Settings, Sparkles, Workflow as IconeWorkflow
+  MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, Workflow as IconeWorkflow
 } from 'lucide-preact';
 import { appel, attendreMoteur, installerMiseAJour, verifierMiseAJour } from './api.js';
 import { ConnexionGitHub } from './ecrans/connexion.jsx';
@@ -20,6 +20,7 @@ import { Alimenter } from './ecrans/alimenter.jsx';
 import { Scenarios } from './ecrans/scenarios.jsx';
 import { Cahier } from './ecrans/cahier.jsx';
 import { Sujets } from './ecrans/sujets.jsx';
+import { Comite } from './ecrans/comite.jsx';
 import { Moodboard } from './ecrans/moodboard.jsx';
 import { Maquettes } from './ecrans/maquettes.jsx';
 import { Proposition } from './ecrans/proposition.jsx';
@@ -35,7 +36,7 @@ const MENU = [
   ['workflow', 'Workflow', IconeWorkflow],
   ['regles', 'Règles', Scale], ['flux', 'Flux externes', ArrowLeftRight, true], ['sujets', 'Sujets en attente', CircleHelp],
   ['Gestion projet'],
-  ['evolutions', 'Évolutions', GitPullRequestArrow, true], ['versions', 'Versions', GitBranch],
+  ['evolutions', 'Évolutions', GitPullRequestArrow, true], ['versions', 'Versions', GitBranch], ['comite', 'Comité d\'experts', Users],
   ['recette', 'Recette et TNR', FlaskConical, true], ['documentation', 'Documentation', BookOpen, true],
   ['Produit'],
   ['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette, true],
@@ -43,7 +44,7 @@ const MENU = [
   ['administration', 'Administration', Settings, true]
 ];
 
-const ECRANS = { sujets: Sujets, cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, scenarios: Scenarios, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
+const ECRANS = { comite: Comite, sujets: Sujets, cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, synthese: Synthese, referentiels: Referentiels, ecrans: Ecrans, scenarios: Scenarios, catalogue: Referentiels, workflow: Workflow, regles: Regles, versions: Versions, demander: Demander, alimenter: Alimenter };
 
 function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerProjet }) {
   const [projets, setProjets] = useState([]);

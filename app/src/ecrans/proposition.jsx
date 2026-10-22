@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { ArrowDown, ArrowUp, Check, ChevronLeft, ChevronRight, FileDown, Play, Plus, Presentation, Sparkles, Trash2, X } from 'lucide-preact';
 import { appel } from '../api.js';
+import { BoutonComite } from './comite.jsx';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 import { H, L, Slide, capturerMaquette, photographier, sections } from './deck.jsx';
 import { police } from './moodboard.jsx';
@@ -169,6 +170,7 @@ export function Proposition({ projet, etat, aller }) {
       {!d.en_attente && !attente && (
         <div class="ligne">
           {d.existe && <select class="saisie" value={deck.statut || 'brouillon'} onChange={(e) => { setDeck({ ...deck, statut: e.target.value }); setModifie(true); }}>{Object.entries(d.statuts).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>}
+          {d.existe && <BoutonComite projet={projet} cible={{ type: 'proposition', id: 'proposition' }} />}
           {d.existe && <button class="bouton" onClick={() => setPresenter(true)}><Play size={15} /> Présenter</button>}
           {d.existe && <button class="bouton" disabled={!!export_ && !export_.fini} onClick={() => exporter('pdf')}><FileDown size={15} /> PDF</button>}
           {d.existe && <button class="bouton" disabled={!!export_ && !export_.fini} onClick={() => exporter('pptx')}><Presentation size={15} /> PowerPoint</button>}

@@ -33,11 +33,15 @@ TACHES = {
                   "4SH-conception-specs/references/maquettes-figma-visualizer.md",
                   "4SH-conception-specs/references/regles-ux-applications-metier.md",
                   "4SH-conception-specs/references/droits-et-etats-d-erreur.md"],
+    "comite_casting": ["4SH-comite-boost/SKILL.md", "4SH-comite-boost/references/roster.md", "4SH-comite-boost/references/fiche-de-poste.md",
+                       "4SH-comite-boost/references/comite-du-projet.md"],
+    "comite_expert": ["4SH-agent-expert/SKILL.md", "4SH-agent-expert/references/portrait-expert.md", "4SH-agent-expert/references/compte-rendu.md"],
+    "comite_synthese": ["4SH-comite-boost/SKILL.md", "4SH-comite-boost/references/protocole.md", "4SH-accueil/references/arbitrer-une-decision.md"],
     "proposition": ["4SH-deck-commercial/SKILL.md", "4SH-deck-commercial/references/modele-et-deck-de-reference.md",
                     "4SH-accueil/references/charte-presentations-4sh.md"],
 }
 LIBELLES = {"cahier": "cadrage de projet et expertise métier", "moodboard": "direction artistique",
-            "maquettes": "maquettes et prototypes", "proposition": "deck commercial"}
+            "maquettes": "maquettes et prototypes", "proposition": "deck commercial", "comite_casting": "comité d'experts"}
 REPERE = "skills/4SH-deck-commercial/SKILL.md"
 LIMITE = 60_000  # caractères de méthode par appel
 _IGNORES = {".trash", "node_modules", ".git", "Cache", "Code Cache", "GPUCache", "vm_bundles", "logs", "IndexedDB",
