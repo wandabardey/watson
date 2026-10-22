@@ -34,7 +34,7 @@ def _claude(systeme: str, message, requete=None) -> dict:
 
 
 def _sans_tirets(x):
-    return json.loads(re.sub(r" *— *", ", ", json.dumps(x, ensure_ascii=False)).replace("–", "-"))
+    return json.loads(re.sub(" *\u2014 *", ", ", json.dumps(x, ensure_ascii=False)).replace("\u2013", "-"))
 
 
 def _donnees(pid: str, *parties: str) -> Path:

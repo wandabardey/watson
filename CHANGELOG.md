@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.22.0 (2026-10-22)
+
+- Critique UX des maquettes (sur la capture) et relecture du cahier des charges, des kits d'atelier, des comptes rendus et de la proposition : verdict, retours priorisés, et correction par Watson des retours choisis. Fiche secteur : le métier du client expliqué avant de concevoir, qui nourrit le cahier des charges. Brouillons de mails au client (compte rendu, proposition, annonce de version, retard, recadrage), à relire et envoyer soi-même.
+
 ## 0.21.0 (2026-10-22)
 
 - Ateliers client : Watson prépare le kit (objectifs, trame minutée, questions issues de ce que la base ne sait pas encore, décisions à prendre, supports), mode séance en plein écran pour cocher et noter, compte rendu rédigé depuis les notes et une transcription, qui tranche les questions ouvertes et met la base à jour après validation. Administration du projet : consommation de Claude par projet, avec la session de 5 heures et la part du projet. Cahier des charges : trois sections de plus. Signature macOS stable : le trousseau ne redemande plus l'accès à chaque version.
