@@ -23,7 +23,7 @@ from .avant_projet import ErreurAvantProjet
 from .comite import ErreurComite
 from .ateliers import ErreurAtelier
 from .studio import ErreurStudio
-from .evolutions import ErreurEvolution
+from .backlog import ErreurEvolution
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -370,7 +370,7 @@ def _comite(methode, pid, reste, corps):
 
 
 def _evolutions(methode, pid, reste, corps):
-    from . import evolutions as ev
+    from . import backlog as ev
 
     racine = application.chemin(pid)
     envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731

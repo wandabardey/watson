@@ -71,7 +71,7 @@ def _matiere(pid: str, racine: Path, cible: dict) -> tuple[str, str]:
     if t not in RELISIBLES:
         raise ErreurStudio("Ce livrable ne se relit pas encore ici.")
     if t == "evolution":
-        from .evolutions import ErreurEvolution, lire as lire_evo
+        from .backlog import ErreurEvolution, lire as lire_evo
 
         try:
             e = lire_evo(racine, i)

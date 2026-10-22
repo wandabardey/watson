@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.23.0 (2026-10-22)
+
+- Évolutions : chaque changement demandé sur le produit est rédigé par Watson (constat, attendu, règles testables, critères d'acceptation nominaux, d'erreur, de limite et de droits, questions au client) ; l'analyse d'impact suit la base à l'envers (ce qui cite chaque élément, les scénarios et écrans concernés, leurs maquettes) et donne la non-régression à rejouer ; la base se met à jour par une demande à Watson, validée comme toujours. Copie en Markdown pour Confluence, relecture par Watson.
+
 ## 0.22.0 (2026-10-22)
 
 - Critique UX des maquettes (sur la capture) et relecture du cahier des charges, des kits d'atelier, des comptes rendus et de la proposition : verdict, retours priorisés, et correction par Watson des retours choisis. Fiche secteur : le métier du client expliqué avant de concevoir, qui nourrit le cahier des charges. Brouillons de mails au client (compte rendu, proposition, annonce de version, retard, recadrage), à relire et envoyer soi-même.
