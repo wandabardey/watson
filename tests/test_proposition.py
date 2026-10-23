@@ -36,7 +36,7 @@ def faux_claude(reponse):
 
 
 DECK = {"titre": "Proposition fret", "client": "Fret international", "a_confirmer": ["Budget"], "slides": [
-    {"id": "couverture", "type": "couverture", "titre": "Chaque expédition suivie — de bout en bout", "sous_titre": "Web et mobile"},
+    {"id": "couverture", "type": "couverture", "titre": "Chaque expédition suivie \u2014 de bout en bout", "sous_titre": "Web et mobile"},
     {"id": "s1", "type": "section", "sur_titre": "01", "titre": "Votre besoin", "sous_titre": "Notre compréhension"},
     {"id": "besoin", "type": "besoin", "titre": "Des expéditions bloquées", "points": [{"titre": "Documents tardifs", "texte": "la veille du départ"}],
      "colonne": {"titre": "Vos objectifs", "points": ["Annoncer en 5 minutes"]}, "notes": "Ouverture."},
@@ -52,7 +52,7 @@ def test_rediger_garder_retoucher(projet):
     sp = vus["options"].system_prompt
     assert "insister sur le mobile" in sp and "Maquettes disponibles" in sp and "detail" in sp and "Périmètre par version" in sp
     assert [s["id"] for s in att["slides"]] == ["couverture", "s1", "besoin", "ecran", "besoin-2"] and att["ecartees"] == 1
-    assert "maquette" not in att["slides"][3] and "—" not in att["slides"][0]["titre"]
+    assert "maquette" not in att["slides"][3] and "\u2014" not in att["slides"][0]["titre"]
     p = pr.garder("fret", projet)
     assert p["titre"] == "Proposition fret" and p["date"] and len(p["slides"]) == 5
     requete2, vus2 = faux_claude({"titre": "x", "client": "y", "slides": [{"id": "autre", "type": "besoin", "titre": "Trois blocages", "notes": "N"}]})

@@ -193,12 +193,23 @@ def _description_ecran(p, eid: str) -> str:
     return "\n".join(l)
 
 
-def _consignes(contexte: str, piste: dict | None, cahier_txt: str, donnees: str, support: str, demande: str | None, precedente: str | None) -> str:
+def _consignes(contexte: str, piste: dict | None, cahier_txt: str, donnees: str, support: str, demande: str | None, precedente: str | None,
+               systeme: dict | None = None) -> str:
     from . import methode
 
     direction = (f"Direction artistique retenue (à appliquer strictement : couleurs par rôle, polices Google Fonts, rayon, ombre, densité) :\n"
                  f"{json.dumps(piste, ensure_ascii=False)}" if piste else
                  "Aucune piste de moodboard retenue : style sobre et neutre d'application métier, une couleur de marque discrète.")
+    if systeme and systeme.get("fondations"):
+        from .design_system import variables_css
+        comps = ", ".join(f"{c['id']} ({c['nom']})" for c in systeme.get("composants") or [] if c.get("statut") in ("disponible", "utilise", "sur_mesure"))[:4000]
+        direction = (f"Design system validé du projet, prioritaire sur toute autre indication visuelle. Recopie ces variables en tête de ton "
+                     f"<style> et n'emploie aucune autre couleur, police, rayon, ombre ni durée : uniquement var(--...).\n{variables_css(systeme['fondations'])}\n"
+                     f"Nuances 50 à 900 : 50 à 100 pour les fonds teintés, 500 à 600 pour les actions, 700 à 900 pour les textes. "
+                     f"Transitions avec var(--motion-defaut) et var(--motion-courbe).\n"
+                     + (f"Composants disponibles dans le code : {comps}. Construis l'écran avec eux et marque chaque bloc qui en reprend un avec "
+                        f"l'attribut data-composant=\"ui-...\" ; un bloc qui n'existe pas dans la liste porte data-composant=\"sur-mesure\".\n" if comps else "")
+                     + (f"\nRepère d'ambiance (le design system l'emporte) : {piste.get('nom', '')}" if piste else ""))
     return f"""Tu dessines la maquette d'un écran, pour une Product Owner de 4SH qui la montrera au client avant tout
 développement. Maquette moyenne fidélité, statique, crédible : on doit croire à l'écran.
 
@@ -270,7 +281,8 @@ def dessiner(pid: str, racine: Path, ecran: str | None = None, description: str 
     quoi = _description_ecran(p, ecran) if ecran else f"Écran à imaginer : {description}"
     debut = time.time()
     try:
-        r = asyncio.run(_lire_par_claude(_consignes(contexte, piste, cahier_txt, idx["donnees"], support, demande, precedente),
+        from .design_system import lire as lire_systeme
+        r = asyncio.run(_lire_par_claude(_consignes(contexte, piste, cahier_txt, idx["donnees"], support, demande, precedente, lire_systeme(racine)),
                                          f"Dessine cet écran.\n\n{quoi}", requete))
     except ErreurAlimentation as e:
         raise ErreurAvantProjet(str(e)) from e

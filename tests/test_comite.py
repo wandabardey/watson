@@ -32,7 +32,7 @@ def faux_claude():
         elif "Tour contradictoire" in sp:
             r = {"position": "nuance", "reponse": "D'accord avec B, sauf sur le délai."}
         elif "facilitateur" in sp:
-            r = {"recommandation": "Passer le délai à cinq jours ouvrés — et le dire au transporteur.", "consensus": ["Délai trop court"],
+            r = {"recommandation": "Passer le délai à cinq jours ouvrés \u2014 et le dire au transporteur.", "consensus": ["Délai trop court"],
                  "desaccords": [{"sujet": "Jours ouvrés", "positions": "A pour, B contre", "arbitrage": "ouvrés"}],
                  "actions": [{"texte": "Modifier la règle", "source": "métier, dev", "confiance": "haute"}],
                  "consigne_watson": "Remplace la règle du délai de litige : cinq jours ouvrés."}
@@ -50,7 +50,7 @@ def test_seance_standard_puis_journal_et_panel(projet):
     s = co.lire_seance("fret", s["id"])
     assert s["etat"] == "fini" and [m["id"] for m in s["membres"]] == ["m_tier", "dev", "ux"]
     assert set(s["avis"]) == {"m_tier", "dev", "ux"} and set(s["debat"]) == set(s["avis"])
-    assert "—" not in s["synthese"]["recommandation"] and s["cible"]["nom"] == "Délai de signalement d'un litige"
+    assert "\u2014" not in s["synthese"]["recommandation"] and s["cible"]["nom"] == "Délai de signalement d'un litige"
     assert sum("Tu es Claire Morel" in v for v in vus) == 2  # son avis, puis son tour de débat
     assert len(vus) == 1 + 3 + 3 + 1
     co.noter("fret", projet, s["id"], "retenue", "On le fait", "Wanda")

@@ -86,4 +86,4 @@ def test_importer_modifier_supprimer_et_brief(projet):
     mq.supprimer(projet, i["id"])
     assert not (projet / "avant-projet" / "maquettes" / i["fichier"]).exists() and len(mq.lire_index(projet)["maquettes"]) == 1
     brief = mq.brief_claude_design(projet, ["SCR-002"])
-    assert "Détail d'une expédition" in brief and "Récapitulatif" in brief and "—" not in brief
+    assert "Détail d'une expédition" in brief and "Récapitulatif" in brief and "\u2014" not in brief

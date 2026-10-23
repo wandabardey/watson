@@ -142,7 +142,7 @@ def test_contexte_compact():
                     "Si document_douanier = valide, marchandise_dangereuse = oui alors Envoyer en contrôle sécurité",
                     "## Ce que la base ne dit pas encore"):
         assert attendu in texte
-    assert "—" not in texte and "–" not in texte
+    assert "\u2014" not in texte and "\u2013" not in texte
     index = generer_contexte(p, index=True)
     assert len(index) < len(texte) and "Comité produit" not in index
 

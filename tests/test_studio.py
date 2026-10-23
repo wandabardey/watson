@@ -10,7 +10,7 @@ from referentiel import ateliers as at
 from referentiel import studio as st
 
 FRET = Path(__file__).resolve().parent.parent / "exemples" / "fret"
-REVUE = {"verdict": "Prêt après corrections mineures — deux retours.", "forces": ["Clair"],
+REVUE = {"verdict": "Prêt après corrections mineures \u2014 deux retours.", "forces": ["Clair"],
          "points": [{"gravite": "mineur", "constat": "Titre long", "recommandation": "Raccourcir"},
                     {"gravite": "bloquant", "ou": "Objectifs", "constat": "Aucun objectif mesurable", "recommandation": "Chiffrer"}],
          "quick_wins": ["Chiffrer l'objectif 1"]}
@@ -48,7 +48,7 @@ def test_relecture_d_un_kit_d_atelier(projet):
     systeme, message = vus[0]
     assert "Est-ce assez cadré ?" in systeme and "Kit de l'atelier" in systeme and "Comprendre" in message
     assert not message.split("# Base du projet\n")[1].startswith("(")  # le contexte, pas un tuple
-    assert [p["gravite"] for p in r["points"]] == ["bloquant", "mineur"] and "—" not in r["verdict"]
+    assert [p["gravite"] for p in r["points"]] == ["bloquant", "mineur"] and "\u2014" not in r["verdict"]
     assert st.lire_revue("fret", {"type": "atelier", "id": a["id"]})["verdict"] == r["verdict"]
     assert "Aucun objectif mesurable → Chiffrer" in st.consigne_correction(r, [0])
     with pytest.raises(st.ErreurStudio):
@@ -56,7 +56,7 @@ def test_relecture_d_un_kit_d_atelier(projet):
 
 
 def test_fiche_secteur_proposee_puis_gardee(projet):
-    requete, vus = faux_claude({"domaine": "Fret", "texte": "# Le fret\n\nUn **transitaire** — organise.", "a_confirmer": ["Seuils ADR"]})
+    requete, vus = faux_claude({"domaine": "Fret", "texte": "# Le fret\n\nUn **transitaire** \u2014 organise.", "a_confirmer": ["Seuils ADR"]})
     v = st.proposer_secteur("fret", projet, complete=True, requete=requete)
     assert v["fiche"] is None and v["proposition"]["domaine"] == "Fret" and "complète" in vus[0][0]
     v = st.garder_secteur("fret", projet)

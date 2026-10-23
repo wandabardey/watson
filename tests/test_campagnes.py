@@ -25,8 +25,8 @@ def test_cahier_relu_et_cas_d_evolution(projet):
     ids = [c["id"] for c in props[:3]]
     ca.garder_propositions(projet, ids, "Wanda")
     assert ca.propositions(projet)["cas"][0]["id"] not in ids
-    c = ca.modifier_cas(projet, ids[0], {"alors": "Ça marche — vraiment.", "statut": "valide", "a_preciser": [""]}, "Wanda")
-    assert c["statut"] == "valide" and c["valide_par"] == "Wanda" and "a_preciser" not in c and "—" not in c["alors"]
+    c = ca.modifier_cas(projet, ids[0], {"alors": "Ça marche \u2014 vraiment.", "statut": "valide", "a_preciser": [""]}, "Wanda")
+    assert c["statut"] == "valide" and c["valide_par"] == "Wanda" and "a_preciser" not in c and "\u2014" not in c["alors"]
     with pytest.raises(ca.ErreurRecette):
         ca.modifier_cas(projet, "../x", {}, "W")
     # Cas d'une évolution : un par critère, sources = règles touchées.

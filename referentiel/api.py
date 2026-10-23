@@ -450,6 +450,33 @@ def _crud(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _design(methode, pid, reste, corps):
+    from . import design_system as dsm
+
+    racine = application.chemin(pid)
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    try:
+        if not reste and methode == "GET":
+            return dsm.vue(racine)
+        if not reste and methode == "POST":
+            dsm.enregistrer(racine, corps.get("systeme") or {})
+            return {**dsm.vue(racine), **envoyer("Design system : mise à jour")}
+        if reste == ["starter"] and methode == "POST":
+            dsm.partir_du_starter(racine, str(corps.get("kit") or "@4sh/ui-kit"))
+            return {**dsm.vue(racine), **envoyer("Design system : catalogue de composants du starter 4SH")}
+        if reste == ["piste"] and methode == "POST":
+            dsm.appliquer_piste(racine)
+            return {**dsm.vue(racine), **envoyer("Design system : fondations tirées de l'identité retenue")}
+        if reste == ["existant"] and methode == "POST":
+            dsm.importer_existant(racine, str(corps.get("application") or ""))
+            return {**dsm.vue(racine), **envoyer("Design system : inventaire du code existant")}
+        if reste == ["gamme"] and methode == "POST":
+            return {"nuances": dsm.gamme(str(corps.get("couleur") or ""))}
+    except dsm.ErreurDesignSystem as e:
+        raise Erreur(str(e), 400) from e
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _specifications(methode, pid, reste, corps):
     from . import specifications as sp
 
@@ -964,6 +991,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _specifications(methode, pid, reste[1:], corps)
         if reste[:1] == ["crud"]:
             return _crud(methode, pid, reste[1:], corps)
+        if reste[:1] == ["design"]:
+            return _design(methode, pid, reste[1:], corps)
         if reste[:1] == ["studio"]:
             return _studio(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:

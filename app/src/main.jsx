@@ -31,6 +31,7 @@ import { Recette } from './ecrans/recette.jsx';
 import { Documentation } from './ecrans/documentation.jsx';
 import { Flux } from './ecrans/flux.jsx';
 import { Crud } from './ecrans/crud.jsx';
+import { Design } from './ecrans/design.jsx';
 import { Specifications } from './ecrans/specifications.jsx';
 import './styles.css';
 
@@ -42,12 +43,12 @@ const GROUPES = [
     ['regles', 'Règles', Scale], ['crud', 'Qui fait quoi', KeyRound], ['secteur', 'Fiche secteur', Landmark], ['flux', 'Flux externes', ArrowLeftRight]]],
   ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow],
     ['versions', 'Versions', GitBranch], ['specifications', 'Spécifications Confluence', BookMarked], ['recette', 'Recette et TNR', FlaskConical], ['documentation', 'Documentation', BookOpen]]],
-  ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette, true]]],
+  ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette]]],
 ];
 
 const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: EcranDemander, alimenter: EcranAlimenter, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
-  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud, specifications: Specifications };
+  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud, specifications: Specifications, design: Design };
 
 const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
 

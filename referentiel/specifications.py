@@ -346,7 +346,7 @@ def rediger_une(pid: str, racine: Path, cle: str, requete=None, requete_confluen
         r = asyncio.run(_lire_par_claude(_consignes(ligne, c, modele, sorted(set(titres))), _contexte_element(p, racine, ligne), requete))
     except ErreurAlimentation as e:
         raise ErreurSpecifications(str(e)) from e
-    storage = str(r.get("storage") or "").replace("—", ",").replace("–", "-").strip()
+    storage = str(r.get("storage") or "").replace("\u2014", ",").replace("\u2013", "-").strip()
     alertes = []
     err = valider_storage(storage)
     if err:
@@ -358,7 +358,7 @@ def rediger_une(pid: str, racine: Path, cle: str, requete=None, requete_confluen
     label = TYPES[ligne["type"]][3]
     labels = sorted({*(str(x) for x in r.get("labels") or [] if re.fullmatch(r"[a-z0-9_-]{2,40}", str(x))), *([label] if label else [])})
     b = {"cle": cle, "titre": ligne["titre"], "date": aujourdhui(), "storage": storage, "labels": labels, "empreinte": ligne["empreinte"],
-         "modele": bool(modele), "hypotheses": [str(x).replace("—", ",") for x in r.get("hypotheses") or []][:20], "alertes": alertes,
+         "modele": bool(modele), "hypotheses": [str(x).replace("\u2014", ",") for x in r.get("hypotheses") or []][:20], "alertes": alertes,
          "valide": err is None}
     _ecrire_brouillon(pid, cle, b)
     return b

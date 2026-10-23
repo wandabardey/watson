@@ -44,7 +44,7 @@ def test_remplacement_et_langage_metier():
     remp = next(c for c in r["cas"] if c["type"] == "remplacement")
     assert "plus en vigueur" in remp["alors"] and {s["id"] for s in remp["sources"]} == {"RG-007", "RG-006"}
     texte = cas_test.formater(cas_test.proposer(charger(FRET)))
-    assert "—" not in texte and "–" not in texte and "uexpédition" not in texte
+    assert "\u2014" not in texte and "\u2013" not in texte and "uexpédition" not in texte
     droits = next(c for c in cas_test.proposer(charger(FRET))["cas"] if c["id"] == "CT-TR-LIVRER-DROITS")
     assert "le comptable" in droits["quand"] and "le transporteur" not in droits["quand"]
 

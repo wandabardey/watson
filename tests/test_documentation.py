@@ -11,7 +11,7 @@ import pytest
 from referentiel import documentation as do
 
 FRET = Path(__file__).resolve().parent.parent / "exemples" / "fret"
-SOMMAIRE = {"titre": "Guide du transporteur", "introduction": "Vous suivez vos expéditions — simplement.",
+SOMMAIRE = {"titre": "Guide du transporteur", "introduction": "Vous suivez vos expéditions \u2014 simplement.",
             "rubriques": [{"titre": "Signaler un litige", "partie": "Transporteur", "objectif": "Déclarer un dommage", "sources": ["RG-005", "SCR-014", "SCR-999"]},
                           {"titre": "Prendre en charge une expédition", "partie": "Transporteur", "objectif": "x", "sources": ["RG-003"]}]}
 PAGE = {"texte": "## Signaler un litige\n\nQuand une marchandise arrive abîmée.\n\n1. Ouvrez « Livraison ».\n2. Cliquez sur « Signaler un litige ».\n\n> **Attention** passé le délai, c'est refusé.\n\nVoir [Prendre en charge une expédition](#prendre-en-charge-une-expedition).",
@@ -45,7 +45,7 @@ def test_du_sommaire_a_l_export(projet):
     assert "Par profil d'utilisateur" in vus[0][0] and not vus[0][1].split("# Base du produit\n")[1].startswith("(")
     r = v["rubriques"]
     assert [x["id"] for x in r] == ["signaler-un-litige", "prendre-en-charge-une-expedition"]
-    assert r[0]["sources"] == ["RG-005", "SCR-014"] and r[0]["statut"] == "a_rediger" and "—" not in v["guide"]["introduction"]
+    assert r[0]["sources"] == ["RG-005", "SCR-014"] and r[0]["statut"] == "a_rediger" and "\u2014" not in v["guide"]["introduction"]
     requete, vus = faux_claude(PAGE)
     v = do.rediger_rubrique(projet, "signaler-un-litige", requete=requete)
     assert "Délai de signalement" in vus[0][1] and "#prendre-en-charge-une-expedition" in vus[0][0]

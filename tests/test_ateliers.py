@@ -48,17 +48,17 @@ def faux_claude(reponse):
 
 def test_du_kit_au_compte_rendu(projet):
     sujets.ajouter(projet, "Quel délai pour signaler un litige ?", "", "Wanda")
-    a = at.creer(projet, {"titre": "Atelier de cadrage — litiges", "type": "cadrage", "duree_min": 90,
+    a = at.creer(projet, {"titre": "Atelier de cadrage \u2014 litiges", "type": "cadrage", "duree_min": 90,
                           "participants": [{"nom": "Claire", "role": "Directrice des opérations", "decideur": True}, {"role": "sans nom"}]})
     assert a["id"] == "atelier-de-cadrage-litiges" and len(a["participants"]) == 1
-    assert at.creer(projet, {"titre": "Atelier de cadrage — litiges", "type": "cadrage"})["id"] == "atelier-de-cadrage-litiges-2"
+    assert at.creer(projet, {"titre": "Atelier de cadrage \u2014 litiges", "type": "cadrage"})["id"] == "atelier-de-cadrage-litiges-2"
     requete, vus = faux_claude(KIT)
     a = at.preparer("fret", projet, a["id"], "Insister sur les litiges", requete=requete)
     systeme, message = vus[0]
     assert not message.split("# Base du projet\n")[1].startswith("(")
     assert "Insister sur les litiges" in systeme and "Claire" in systeme and "Q-001" in message and "SCN-001" in message
     assert [q["id"] for th in a["kit"]["themes"] for q in th["questions"]] == ["q1", "q2", "q3"]
-    assert "—" not in (projet / "ateliers" / f"{a['id']}.yaml").read_text(encoding="utf-8")
+    assert "\u2014" not in (projet / "ateliers" / f"{a['id']}.yaml").read_text(encoding="utf-8")
     # La séance : les notes restent sur ce poste jusqu'à la fin.
     at.noter("fret", a["id"], {"cochees": ["q1"], "notes": {"q1": "Cinq jours ouvrés"}, "decisions": {"0": "Cinq jours ouvrés"}, "libres": "RAS"})
     assert at.vue("fret", projet, a["id"])["notes"]["notes"]["q1"] == "Cinq jours ouvrés"

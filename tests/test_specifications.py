@@ -102,7 +102,7 @@ def test_du_plan_a_la_publication(projet):
     sp.rediger("p1", projet, cles, requete=claude, requete_confluence=cf, attendre=True)
     assert "<modele>" in vus[0] and "Liste des règles métiers" in vus[0] and "ENT-Expédition" in vus[0]
     b = sp.lire_brouillon("p1", "ecran:SCR-001")
-    assert b["valide"] and not b["alertes"] and "—" not in b["storage"] and b["labels"] == ["screen", "usecase"]
+    assert b["valide"] and not b["alertes"] and "\u2014" not in b["storage"] and b["labels"] == ["screen", "usecase"]
     b2 = sp.lire_brouillon("p1", "entite:ENT-EXPEDITION")
     assert b2["valide"] and not b2["modele"]
     assert "Macro « details »" in sp.apercu(b["storage"]) and "ac:" not in sp.apercu(b["storage"])

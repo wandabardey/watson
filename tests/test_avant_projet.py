@@ -41,14 +41,14 @@ def test_cahier_vide_et_perimetre_vivant(projet):
 
 def test_rediger_puis_garder(projet):
     reponse = {"resume": "Premier jet.", "sections": [
-        {"id": "contexte", "titre": "Contexte", "contenu": "Le fret international — suivi des expéditions.", "pourquoi": "Écrit."},
+        {"id": "contexte", "titre": "Contexte", "contenu": "Le fret international \u2014 suivi des expéditions.", "pourquoi": "Écrit."},
         {"id": "perimetre", "titre": "Périmètre", "contenu": "Ne doit pas passer : section vivante."},
         {"id": "objectifs", "titre": "Objectifs", "contenu": "1. Réduire les litiges [À CONFIRMER]"}],
         "questions": [{"question": "Quel budget ?", "contexte": "Absent des sources."}, {"question": "Quelle date ?"}]}
     requete, vus = faux_claude(reponse)
     prop = ap.rediger_cahier("fret", projet, demande="Insiste sur les litiges", requete=requete)
     assert "Insiste sur les litiges" in vus["options"].system_prompt and "Rien d'inventé" in vus["options"].system_prompt
-    assert [s["id"] for s in prop["sections"]] == ["contexte", "objectifs"] and "—" not in prop["sections"][0]["contenu"]
+    assert [s["id"] for s in prop["sections"]] == ["contexte", "objectifs"] and "\u2014" not in prop["sections"][0]["contenu"]
     assert ap.vue_cahier(projet, "fret")["proposition"]["resume"] == "Premier jet."
     r = ap.garder_proposition("fret", projet, ["objectifs"], [0], "Wanda")
     assert r == {"sections": ["Objectifs"], "questions": 1}

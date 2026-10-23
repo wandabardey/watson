@@ -752,3 +752,14 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .specs-apercu { gap: 10px; position: sticky; top: 12px; max-height: calc(100vh - 40px); }
 .specs-cadre { width: 100%; height: calc(100vh - 220px); border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px #ECEBF3; background: #fff; }
 .specs-source { min-height: calc(100vh - 280px); padding: 10px 12px; font-family: ui-monospace, monospace; font-size: 12px; }
+
+/* Design system */
+.ds-deux { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 1100px) { .ds-deux { grid-template-columns: 1fr; } }
+.ds-colle { position: sticky; top: 12px; }
+.ds-gamme { display: flex; flex-direction: column; gap: 6px; }
+.ds-gamme-tete { display: flex; align-items: center; gap: 10px; }
+.ds-gamme-tete input[type=color] { width: 36px; height: 36px; padding: 0; border: 1px solid var(--bord2); border-radius: 8px; background: none; cursor: pointer; }
+.ds-nuances { display: grid; grid-template-columns: repeat(10, 1fr); border-radius: 8px; overflow: hidden; }
+.ds-nuances div { height: 30px; font-size: 10px; display: flex; align-items: flex-end; padding: 3px; }
+.ds-nuances div.base { box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px #18181b; }
