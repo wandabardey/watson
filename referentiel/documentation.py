@@ -59,7 +59,7 @@ def _ecrire_guide(racine: Path, g: dict):
 
 
 def _element(p, ident: str) -> dict | None:
-    for col in (p.entites, p.listes, p.acteurs, p.regles, p.ecrans, p.scenarios, p.cas_usage):
+    for col in (p.entites, p.listes, p.acteurs, p.regles, p.ecrans, p.scenarios, p.cas_usage, p.flux):
         if ident in col:
             return col[ident]
     return None

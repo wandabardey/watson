@@ -24,9 +24,9 @@ from .ecriture import aujourdhui, dump, references
 STATUTS = {"a_qualifier": "À qualifier", "prete": "Prête", "en_cours": "En cours", "livree": "Livrée", "abandonnee": "Abandonnée"}
 PRIORITES = {"haute": "Haute", "normale": "Normale", "basse": "Basse"}
 ONGLETS = {"entite": "referentiels", "liste": "referentiels", "acteur": "referentiels", "regle": "regles", "ecran": "ecrans",
-           "scenario": "scenarios", "maquette": "maquettes"}
+           "scenario": "scenarios", "maquette": "maquettes", "flux": "flux"}
 GENRES = {"entite": "Objet métier", "liste": "Liste de valeurs", "acteur": "Acteur", "regle": "Règle", "ecran": "Écran",
-          "scenario": "Scénario", "maquette": "Maquette"}
+          "scenario": "Scénario", "maquette": "Maquette", "flux": "Flux externe"}
 
 
 class ErreurEvolution(Exception):
@@ -111,14 +111,14 @@ def supprimer(racine: Path, eid: str):
 
 def _genre(p, ident: str) -> str | None:
     for col, g in ((p.entites, "entite"), (p.listes, "liste"), (p.acteurs, "acteur"), (p.regles, "regle"),
-                   (p.ecrans, "ecran"), (p.scenarios, "scenario")):
+                   (p.ecrans, "ecran"), (p.scenarios, "scenario"), (p.flux, "flux")):
         if ident in col:
             return g
     return None
 
 
 def _nom(p, ident: str) -> str:
-    for col in (p.entites, p.listes, p.acteurs, p.regles, p.ecrans, p.scenarios):
+    for col in (p.entites, p.listes, p.acteurs, p.regles, p.ecrans, p.scenarios, p.flux):
         if ident in col:
             return col[ident].get("titre") or col[ident].get("nom") or ident
     return ident
@@ -152,11 +152,11 @@ def impact(racine: Path, touches: list[dict]) -> dict:
                 for tr in p.entites[r["id"]].get("transitions") or []:
                     if d in (tr.get("regles") or []) or d in (tr.get("acteurs") or []):
                         transitions[tr["id"]] = (tr.get("nom") or tr["id"], elements[d]["nom"])
-            if ajouter(r["id"], "cite", f"{r['comment']} : {elements[d]['nom']}") and g in ("ecran", "scenario", "regle"):
+            if ajouter(r["id"], "cite", f"{r['comment']} : {elements[d]['nom']}") and g in ("ecran", "scenario", "regle", "flux"):
                 suivants.append(r["id"])
     for d in suivants:
         for r in references(p, d):
-            if _genre(p, r["id"]) in ("ecran", "scenario", "regle"):
+            if _genre(p, r["id"]) in ("ecran", "scenario", "regle", "flux"):
                 ajouter(r["id"], "indirect", f"{r['comment']} : {elements[d]['nom']}")
     ecrans_dir = {i for i, x in elements.items() if x["genre"] == "ecran"}
     for sc in p.scenarios.values():
@@ -180,7 +180,7 @@ def impact(racine: Path, touches: list[dict]) -> dict:
         x["onglet"] = ONGLETS[x["genre"]]
         x["genre_libelle"] = GENRES[x["genre"]]
     rejouer = [{"id": x["id"], "nom": x["nom"], "genre": x["genre_libelle"], "pourquoi": x["pourquoi"]}
-               for x in liste_el if x["genre"] in ("scenario", "regle")]
+               for x in liste_el if x["genre"] in ("scenario", "regle", "flux")]
     return {"elements": liste_el, "a_rejouer": rejouer, "calcule_le": aujourdhui()}
 
 

@@ -33,7 +33,8 @@ from .chargement import Projet, charger
 
 PREFIXE = "spec-"
 TRAVAIL = "travail"
-COLLECTIONS = {"acteurs": "acteur", "entites": "entité", "regles": "règle", "cas_usage": "parcours", "ecrans": "écran"}
+COLLECTIONS = {"acteurs": "acteur", "listes": "liste de valeurs", "entites": "entité", "regles": "règle", "cas_usage": "parcours",
+               "ecrans": "écran", "scenarios": "scénario", "flux": "flux"}
 
 _cache: dict[tuple[str, str], Projet] = {}
 _dossiers: list[tempfile.TemporaryDirectory] = []

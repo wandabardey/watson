@@ -1,0 +1,14 @@
+id: FLX-002
+nom: Export des expéditions livrées vers la comptabilité
+sens: sortant
+partenaire: ERP comptable du client
+application: APP-PORTAIL
+declencheur:
+  genre: planifie
+  frequence: Chaque nuit à 2 h
+moyen: fichier
+format: CSV
+donnees:
+  - entite: ENT-EXPEDITION
+    attributs: [expediteur, client_grand_compte]
+version: V2

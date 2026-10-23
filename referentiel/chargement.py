@@ -21,6 +21,7 @@ class Projet:
     cas_usage: dict = field(default_factory=dict)
     ecrans: dict = field(default_factory=dict)
     scenarios: dict = field(default_factory=dict)
+    flux: dict = field(default_factory=dict)
     decisions_trous: dict = field(default_factory=dict)
     fichiers: dict = field(default_factory=dict)  # id -> chemin relatif
     erreurs: list = field(default_factory=list)  # erreurs de structure
@@ -44,6 +45,7 @@ ATTRIBUTS_PAR_DOSSIER = {
     "cas-usage": "cas_usage",
     "ecrans": "ecrans",
     "scenarios": "scenarios",
+    "flux": "flux",
 }
 
 

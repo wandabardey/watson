@@ -372,6 +372,48 @@ SCENARIO = {
     "additionalProperties": False,
 }
 
+# Flux externe : un échange entre une application du produit et un système du client ou d'un partenaire.
+FLUX = {
+    "type": "object",
+    "required": ["id", "nom", "sens", "partenaire"],
+    "properties": {
+        "id": ID,
+        "nom": TEXTE,
+        "description": TEXTE,
+        "version": VERSION,
+        "a_trancher": {"type": "boolean"},
+        "sens": {"enum": ["entrant", "sortant", "bidirectionnel"]},
+        "partenaire": TEXTE,  # le système externe : « ERP du client (SAP) », « Douane (DELTA G) »
+        "application": ID,  # l'application du produit concernée
+        "declencheur": {
+            "type": "object",
+            "properties": {
+                "genre": {"enum": ["evenement", "planifie", "a_la_demande"]},
+                "transition": ID,  # l'action du cycle de vie qui déclenche l'échange
+                "frequence": TEXTE,
+                "description": TEXTE,
+            },
+            "additionalProperties": False,
+        },
+        "moyen": {"enum": ["api", "fichier", "mail", "edi", "autre"]},
+        "format": TEXTE,
+        "donnees": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["entite"],
+                "properties": {"entite": ID, "attributs": {"type": "array", "items": TEXTE}, "note": TEXTE},
+                "additionalProperties": False,
+            },
+        },
+        "regles": LISTE_ID,
+        "erreurs": TEXTE,  # que se passe-t-il si l'échange échoue
+        "volumetrie": TEXTE,
+        "responsable": TEXTE,
+    },
+    "additionalProperties": False,
+}
+
 DECISION_TROU = {
     "type": "object",
     "required": ["trou", "statut", "justification"],
@@ -394,6 +436,7 @@ TYPES = {
     "cas-usage": (CAS_USAGE, "cas d'usage"),
     "ecrans": (ECRAN, "écran"),
     "scenarios": (SCENARIO, "scénario"),
+    "flux": (FLUX, "flux"),
 }
 
 

@@ -17,13 +17,13 @@ from __future__ import annotations
 from .chargement import Projet
 from .controles import ALERTE, ERREUR, TROU, analyser
 
-SECTIONS = ["glossaire", "acteurs", "listes", "entites", "regles", "parcours", "scenarios", "ecrans", "trous"]
+SECTIONS = ["glossaire", "acteurs", "listes", "entites", "regles", "parcours", "scenarios", "ecrans", "flux", "trous"]
 STATUTS = {"validee": "validée", "proposee": "proposée, pas encore en vigueur", "obsolete": "obsolète, plus en vigueur"}
 GRAVITES = {ERREUR: "incohérence", TROU: "manque", ALERTE: "à vérifier"}
 
 
 def _nom(p: Projet, ident: str) -> str:
-    for attr in ("acteurs", "listes", "entites", "regles", "cas_usage", "ecrans", "scenarios"):
+    for attr in ("acteurs", "listes", "entites", "regles", "cas_usage", "ecrans", "scenarios", "flux"):
         el = getattr(p, attr).get(ident)
         if el:
             return el.get("nom") or el.get("titre") or ident
@@ -184,6 +184,26 @@ def generer_contexte(p: Projet, sections: list[str] | None = None, trous=None, i
                 l.append("  Liens : " + ", ".join(f"{x['de']}>{x['vers']}" + (f" « {x['libelle']} »" if x.get("libelle") else "")
                                                    + (f" {x['genre']}" if x.get("genre") else "") + (f" {x['version']}" if x.get("version") else "")
                                                    for x in sc["liens"]))
+        l.append("")
+
+    if "flux" in sections and p.flux:
+        l.append("## Flux externes (échanges avec d'autres systèmes)")
+        for i, fl in p.flux.items():
+            dec = fl.get("declencheur") or {}
+            morceaux = [f"{fl['sens']} avec {fl['partenaire']}"]
+            if fl.get("application"):
+                morceaux.append(f"application {fl['application']}")
+            if dec:
+                morceaux.append("déclenché " + (f"par {_nom(p, dec['transition'])}" if dec.get("transition") else dec.get("frequence") or dec.get("description") or dec.get("genre", "")))
+            if fl.get("moyen"):
+                morceaux.append(f"par {fl['moyen']}" + (f" ({fl['format']})" if fl.get("format") else ""))
+            if fl.get("donnees"):
+                morceaux.append("données : " + ", ".join(f"{_nom(p, d['entite'])}" + (f" ({', '.join(d['attributs'])})" if d.get("attributs") else "") for d in fl["donnees"]))
+            if fl.get("erreurs"):
+                morceaux.append(f"en cas d'échec : {fl['erreurs']}")
+            if fl.get("version"):
+                morceaux.append(f"version {fl['version']}")
+            l.append(f"- {_ref(p, i)} : " + " ; ".join(morceaux))
         l.append("")
 
     if "ecrans" in sections and p.ecrans:

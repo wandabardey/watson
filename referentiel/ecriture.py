@@ -28,6 +28,7 @@ TYPES = {
     "cas_usage": ("cas-usage", schemas.CAS_USAGE),
     "ecran": ("ecrans", schemas.ECRAN),
     "scenario": ("scenarios", schemas.SCENARIO),
+    "flux": ("flux", schemas.FLUX),
 }
 
 
@@ -301,6 +302,11 @@ def references(p: Projet, ident: str) -> list[dict]:
                 ident in (et.get("acteur"), et.get("ecran"), et.get("transition"), et.get("application"), et.get("statut"))
                 for et in sc.get("etapes") or [])):
             ajout(sc, "une de ses étapes")
+    for fl in p.flux.values():
+        dec = fl.get("declencheur") or {}
+        if fl["id"] != ident and (ident in (fl.get("application"), dec.get("transition")) or ident in (fl.get("regles") or [])
+                                  or any(d.get("entite") == ident for d in fl.get("donnees") or [])):
+            ajout(fl, "l'échange le concerne")
     for ec in p.ecrans.values():
         if ec["id"] != ident and (ident in (ec.get("acteurs") or []) or ident in str(ec.get("routages") or "") or ident in (ec.get("regles") or [])):
             ajout(ec, "le cite")

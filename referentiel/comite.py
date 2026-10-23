@@ -120,7 +120,7 @@ def cibles(racine: Path) -> list[dict]:
     if lire_proposition_deck(racine):
         r.append({"type": "proposition", "id": "proposition", "nom": "Proposition commerciale", "groupe": "Avant-projet"})
     for col, t, g in ((p.entites, "entite", "Objets métier"), (p.listes, "liste", "Listes de valeurs"), (p.regles, "regle", "Règles"),
-                      (p.scenarios, "scenario", "Scénarios"), (p.ecrans, "ecran", "Écrans")):
+                      (p.scenarios, "scenario", "Scénarios"), (p.ecrans, "ecran", "Écrans"), (p.flux, "flux", "Flux externes")):
         for i, e in col.items():
             r.append({"type": t, "id": i, "nom": e.get("titre") or e.get("nom") or i, "groupe": g})
     for q in lire_sujets(racine):

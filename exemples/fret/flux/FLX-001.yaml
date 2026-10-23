@@ -1,0 +1,16 @@
+id: FLX-001
+nom: Déclaration en douane
+description: Quand les documents d'une expédition sont validés, le portail transmet la déclaration à la douane et reçoit en retour l'accord de sortie.
+sens: bidirectionnel
+partenaire: Douane (DELTA G)
+application: APP-PORTAIL
+declencheur:
+  genre: evenement
+  transition: TR-VALIDER-DOCS
+moyen: api
+format: Message DELTA G (XML)
+donnees:
+  - entite: ENT-EXPEDITION
+    attributs: [expediteur, document_douanier, marchandise_dangereuse]
+erreurs: Si la douane ne répond pas sous une heure, l'agent de transit est prévenu et l'expédition reste en attente de documents.
+volumetrie: Environ 300 déclarations par jour

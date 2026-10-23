@@ -662,3 +662,16 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .md-encart.astuce { background: var(--indigo-pale); box-shadow: inset 3px 0 0 var(--indigo); }
 .md-encart.attention { background: #FFF7ED; box-shadow: inset 3px 0 0 #EA580C; }
 .lien-interne { color: var(--indigo); text-decoration: underline; cursor: pointer; }
+
+/* Flux externes */
+.carte-flux { width: 100%; height: auto; display: block; }
+.carte-flux .noeud-app rect { fill: #fff; stroke-width: 2; }
+.carte-flux .noeud-app text { font-weight: 600; font-size: 14px; fill: #18181B; }
+.carte-flux .noeud-partenaire rect { fill: #F4F4F5; stroke: #A1A1AA; stroke-dasharray: 4 3; }
+.carte-flux .noeud-partenaire text { font-size: 14px; fill: #3F3F46; }
+.carte-flux .lien-flux path { stroke: #A5B4FC; stroke-width: 2; }
+.carte-flux .lien-flux text { font-size: 12px; fill: #52525B; paint-order: stroke; stroke: #fff; stroke-width: 4px; }
+.carte-flux .lien-flux { cursor: pointer; }
+.carte-flux .lien-flux:hover path, .carte-flux .lien-flux.actif path { stroke: #4F46E5; stroke-width: 3; }
+.grille-flux { display: grid; grid-template-columns: 140px 1fr; gap: 6px 14px; align-items: baseline; }
+.donnee-flux { padding: 10px; border-radius: 12px; background: #FAFAFC; }

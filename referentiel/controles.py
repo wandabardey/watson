@@ -44,7 +44,7 @@ def _ajouter(trous, **kw):
 
 def libelle(p, ident: str) -> str:
     """Nom lisible d'un élément à partir de son identifiant."""
-    for attr, gabarit in (("listes", "La liste « {} »"), ("regles", "La règle « {} »"), ("cas_usage", "Le parcours « {} »"), ("ecrans", "L'écran « {} »"), ("scenarios", "Le scénario « {} »"),
+    for attr, gabarit in (("listes", "La liste « {} »"), ("regles", "La règle « {} »"), ("cas_usage", "Le parcours « {} »"), ("ecrans", "L'écran « {} »"), ("scenarios", "Le scénario « {} »"), ("flux", "Le flux « {} »"),
                           ("acteurs", "L'acteur « {} »"), ("entites", "{}")):
         el = getattr(p, attr).get(ident)
         if el:
@@ -94,7 +94,7 @@ def controler_references(p: Projet, trous: list):
         if valeur and valeur not in versions:
             inconnu(source, "version", valeur, "la version produit")
 
-    for col in (p.entites, p.listes, p.regles, p.ecrans, p.cas_usage, p.scenarios):
+    for col in (p.entites, p.listes, p.regles, p.ecrans, p.cas_usage, p.scenarios, p.flux):
         for el in col.values():
             verifier_version(el["id"], el.get("version"), "")
             for a in el.get("attributs") or []:
@@ -141,6 +141,23 @@ def controler_references(p: Projet, trous: list):
             for champ in ("de", "vers"):
                 if li[champ] not in etapes:
                     inconnu(sc["id"], f"liens.{champ}", li[champ], "l'étape")
+    for fl in p.flux.values():
+        if fl.get("application") and apps and fl["application"] not in apps:
+            inconnu(fl["id"], "application", fl["application"], "l'application")
+        tr = (fl.get("declencheur") or {}).get("transition")
+        if tr and tr not in transitions:
+            inconnu(fl["id"], "declencheur.transition", tr, "l'action")
+        for r in fl.get("regles") or []:
+            if r not in p.regles:
+                inconnu(fl["id"], "regles", r, "la règle")
+        for d in fl.get("donnees") or []:
+            if d["entite"] not in p.entites:
+                inconnu(fl["id"], "donnees.entite", d["entite"], "l'objet métier")
+                continue
+            noms = {a["nom"] for a in p.entites[d["entite"]].get("attributs") or []}
+            for a in d.get("attributs") or []:
+                if noms and a not in noms:
+                    inconnu(fl["id"], "donnees.attributs", f"{d['entite']}.{a}", "la donnée")
     for r in p.regles.values():
         for cible in r.get("porte_sur") or []:
             ident, donnee = cible_et_donnee(cible)
@@ -601,8 +618,30 @@ def controler_captures(p: Projet, trous: list):
 
 # ---------------------------------------------------------------- orchestration
 
+def controler_flux(p: Projet, trous: list):
+    """Ce qu'on oublie sur un échange : que faire s'il échoue, quoi transmettre, quand il part."""
+    for fl in p.flux.values():
+        nom = fl["nom"]
+        if not fl.get("erreurs"):
+            _ajouter(trous, id=f"FLUX_SANS_ERREUR:{fl['id']}", type="FLUX_SANS_ERREUR", gravite=TROU,
+                     message=f"Le flux « {nom} » ne dit pas ce qui se passe si l'échange échoue.",
+                     question=f"Si l'échange « {nom} » avec {fl['partenaire']} échoue, qui est prévenu, et que devient l'opération en cours ?",
+                     elements=[fl["id"]])
+        if not fl.get("donnees"):
+            _ajouter(trous, id=f"FLUX_SANS_DONNEES:{fl['id']}", type="FLUX_SANS_DONNEES", gravite=TROU,
+                     message=f"Le flux « {nom} » ne dit pas quelles données il transmet.",
+                     question=f"Quelles données passent dans l'échange « {nom} » avec {fl['partenaire']} ?",
+                     elements=[fl["id"]])
+        if not fl.get("declencheur"):
+            _ajouter(trous, id=f"FLUX_SANS_DECLENCHEUR:{fl['id']}", type="FLUX_SANS_DECLENCHEUR", gravite=TROU,
+                     message=f"Le flux « {nom} » ne dit pas quand il part.",
+                     question=f"Qu'est-ce qui déclenche l'échange « {nom} » : une action, une heure fixe, une demande ?",
+                     elements=[fl["id"]])
+
+
 CONTROLES = [
     controler_references,
+    controler_flux,
     controler_cycle_de_vie,
     controler_tables,
     controler_regles,

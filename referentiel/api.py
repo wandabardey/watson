@@ -207,6 +207,34 @@ def vue_ecrans(p) -> dict:
             "regles": [{"id": r, "titre": x["titre"], "statut": x["statut"]} for r, x in p.regles.items()]}
 
 
+def vue_flux(p) -> dict:
+    """Flux externes : chaque échange, lisible, et la carte des applications du produit et des systèmes partenaires."""
+    from .controles import analyser
+
+    apps = {a["id"]: a for a in p.meta.get("applications") or []}
+    transitions = p.transitions
+    trous = analyser(p)
+    flux = []
+    for i, fl in p.flux.items():
+        dec = fl.get("declencheur") or {}
+        tr = transitions.get(dec.get("transition") or "")
+        flux.append({**fl, "application_nom": (apps.get(fl.get("application")) or {}).get("nom") or fl.get("application") or "",
+                     "declencheur_texte": (f"Quand « {tr[1].get('nom', dec['transition'])} » ({tr[0]['nom']})" if tr
+                                           else dec.get("frequence") or dec.get("description") or {"a_la_demande": "À la demande"}.get(dec.get("genre"), "")),
+                     "donnees_noms": [{"entite": d["entite"], "nom": (p.entites.get(d["entite"]) or {}).get("nom", d["entite"]),
+                                       "attributs": [next((a.get("libelle") or a["nom"] for a in (p.entites.get(d["entite"]) or {}).get("attributs") or [] if a["nom"] == x), x)
+                                                     for x in d.get("attributs") or []]} for d in fl.get("donnees") or []],
+                     "regles_noms": [{"id": r, "titre": p.regles[r].get("titre", r)} for r in fl.get("regles") or [] if r in p.regles],
+                     "points": [t.vers_dict() for t in trous if t.statut == "ouvert" and i in t.elements]})
+    partenaires = sorted({fl["partenaire"] for fl in p.flux.values()})
+    return {"flux": flux, "applications": list(apps.values()), "partenaires": partenaires,
+            "versions_produit": p.meta.get("versions_produit") or [],
+            "entites": [{"id": e["id"], "nom": e["nom"], "attributs": [{"nom": a["nom"], "libelle": a.get("libelle") or a["nom"]} for a in e.get("attributs") or []]}
+                        for e in p.entites.values()],
+            "transitions": [{"id": t, "nom": tr.get("nom", t), "entite": ent["nom"]} for t, (ent, tr) in transitions.items()],
+            "regles": [{"id": r, "titre": x.get("titre", r)} for r, x in p.regles.items() if x.get("statut") != "obsolete"]}
+
+
 def vue_scenarios(p) -> dict:
     """Scénarios : étapes typées, liens (explicites, ou dans l'ordre), et ce que chaque étape cite."""
     apps = {a["id"]: a for a in p.meta.get("applications") or []}
@@ -830,6 +858,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
                 return vue_ecrans(p)
             if reste == ["scenarios"]:
                 return vue_scenarios(p)
+            if reste == ["flux"]:
+                return vue_flux(p)
             if reste == ["workflow"]:
                 return vue_workflow(p)
             if reste == ["regles"]:

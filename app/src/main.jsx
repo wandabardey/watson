@@ -28,6 +28,7 @@ import { Secteur } from './ecrans/studio.jsx';
 import { Evolutions } from './ecrans/evolutions.jsx';
 import { Recette } from './ecrans/recette.jsx';
 import { Documentation } from './ecrans/documentation.jsx';
+import { Flux } from './ecrans/flux.jsx';
 import './styles.css';
 
 // Catégories repliables de la barre latérale. [clé, libellé, icône, bientôt]
@@ -35,7 +36,7 @@ const GROUPES = [
   ['avant', 'Avant-projet', [['cahier', 'Cahier des charges', FileText], ['moodboard', 'Moodboard', Palette], ['maquettes', 'Maquettes', Frame],
     ['proposition', 'Proposition', Presentation]]],
   ['metier', 'Connaissance métier', [['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route], ['ecrans', 'Écrans', AppWindow],
-    ['regles', 'Règles', Scale], ['secteur', 'Fiche secteur', Landmark], ['flux', 'Flux externes', ArrowLeftRight, true]]],
+    ['regles', 'Règles', Scale], ['secteur', 'Fiche secteur', Landmark], ['flux', 'Flux externes', ArrowLeftRight]]],
   ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow],
     ['versions', 'Versions', GitBranch], ['recette', 'Recette et TNR', FlaskConical], ['documentation', 'Documentation', BookOpen]]],
   ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette, true]]],
@@ -43,7 +44,7 @@ const GROUPES = [
 
 const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: AccueilProjet, alimenter: AccueilProjet, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
-  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation };
+  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux };
 
 const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
 
