@@ -84,6 +84,13 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
           ? <div class="ligne" style="flex-wrap:nowrap;align-items:flex-start"><BookOpen size={18} color="#4F46E5" style="flex:0 0 auto;margin-top:2px" /><span class="pile espace" style="gap:2px;min-width:0"><strong>4ward {r.methode.version} {r.methode.choisi ? '(dossier choisi)' : '(trouvé automatiquement)'}</strong><span class="doux petit tronque">{r.methode.chemin}</span></span>
               {r.methode.choisi && <button class="bouton" onClick={() => changer({ dossier_4ward: '' })}>Détection automatique</button>}</div>
           : <p class="encart e-orange">{r.methode.choisi_introuvable ? 'Le dossier choisi ne contient plus 4ward.' : '4ward n\'a pas été trouvé sur ce poste.'} Watson applique ses consignes de base. Installe 4ward dans Claude, ou indique son dossier ci-dessous.</p>}
+        {r.methode.installations?.length > 1 && (
+          <div class="pile" style="gap:6px"><span class="doux petit">Installations trouvées sur ce poste :</span>
+            {r.methode.installations.map((x) => (
+              <div key={x.chemin} class="ligne" style="flex-wrap:nowrap;gap:8px"><strong style="width:70px">{x.version || '?'}</strong><span class="doux petit tronque espace">{x.chemin}</span>
+                {x.chemin === r.methode.chemin ? <span class="doux petit">utilisée</span> : <button class="bouton" onClick={() => changer({ dossier_4ward: x.chemin })}>Utiliser celle-ci</button>}</div>))}
+          </div>)}
+        <span class="ligne"><button class="bouton" onClick={() => changer({ dossier_4ward: r.methode.choisi || '' })}><RefreshCw size={14} /> Rechercher à nouveau</button></span>
         <span class="ligne"><input class="saisie espace" placeholder="Dossier du plugin 4ward (celui qui contient « skills »)" value={dossier} onInput={(e) => setDossier(e.target.value)} />
           <button class="bouton" disabled={!dossier.trim()} onClick={() => changer({ dossier_4ward: dossier.trim() })}>Utiliser ce dossier</button></span>
       </Section>

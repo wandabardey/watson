@@ -10,6 +10,7 @@ Watson applique ses consignes de base (ci-dessous), qui ne doivent rien à 4SH.
 from __future__ import annotations
 
 import json
+import time
 import os
 import re
 from pathlib import Path
@@ -83,7 +84,7 @@ def _cle(v: str):
     return tuple(int(x) for x in re.findall(r"\d+", v or "0"))
 
 
-def _chercher(racine: Path, profondeur: int = 7) -> list[Path]:
+def _chercher(racine: Path, profondeur: int = 11) -> list[Path]:
     trouves = []
     if not racine.is_dir():
         return trouves
@@ -124,9 +125,12 @@ def dossier() -> Path | None:
     choisi = reglages.lire().get("dossier_4ward")
     if choisi:
         return Path(choisi) if valide(choisi) else None
-    if "auto" not in _cache or (_cache["auto"] and not valide(_cache["auto"])):
+    # La détection est refaite toutes les deux minutes : une mise à jour de 4ward dans Claude est prise sans relancer Watson.
+    if "auto" not in _cache or time.time() - _cache.get("quand", 0) > 120 or (_cache["auto"] and not valide(_cache["auto"])):
         t = detecter()
         _cache["auto"] = t[0]["chemin"] if t else None
+        _cache["toutes"] = t
+        _cache["quand"] = time.time()
     return Path(_cache["auto"]) if _cache["auto"] else None
 
 
@@ -139,7 +143,10 @@ def etat() -> dict:
 
     d = dossier()
     choisi = reglages.lire().get("dossier_4ward") or ""
+    if "toutes" not in _cache:
+        _cache["toutes"] = detecter()
     return {"trouve": bool(d), "chemin": str(d) if d else "", "version": _version(d) if d else "", "choisi": choisi,
+            "installations": _cache["toutes"],
             "choisi_introuvable": bool(choisi) and not valide(choisi), "taches": LIBELLES}
 
 
