@@ -8,6 +8,7 @@ import { Attente, Entete } from './commun.jsx';
 import { Markdown } from './markdown.jsx';
 import { Rendu } from './maquettes.jsx';
 import { BoutonRevue } from './studio.jsx';
+import { ElementWatson } from '../contexte.js';
 
 const lireImage = (fichier) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = ko; r.readAsDataURL(fichier); });
 
@@ -88,6 +89,7 @@ export function Direct({ projet, aller }) {
   const ouverts = (e?.ecarts || []).filter((x) => x.statut === 'ouvert').length;
   return (
     <>
+      <ElementWatson type="écran" id={e?.id} nom={e?.nom} />
       <Entete titre="App en direct" description="L'application qui tourne, écran par écran, en face de ce que la base en dit : la spec, la maquette de référence, le guide utilisateur. Chaque écart se relève sur place." />
       {sansAdresse && <p class="encart e-orange">Aucune adresse d'application n'est renseignée. Ajoute-les dans Passage en code, Réglages de l'application (par exemple Local, http://localhost:4200, et Recette).</p>}
       <div class="direct">

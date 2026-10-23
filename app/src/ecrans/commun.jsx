@@ -1,14 +1,14 @@
+import { createPortal } from 'preact/compat';
 import { useEffect, useState } from 'preact/hooks';
 import { Sparkles } from 'lucide-preact';
 import { appel } from '../api.js';
+import imgDebout from '../images/watson-debout.png';
 import imgSalue from '../images/watson-salue.png';
-import imgSalueBuste from '../images/watson-salue-buste.png';
 import imgLit from '../images/watson-lit.png';
-import imgLitBuste from '../images/watson-lit-buste.png';
 import imgEcrit from '../images/watson-ecrit.png';
-import imgNote from '../images/watson-note.png';
-import imgReflechit from '../images/watson-reflechit.png';
-import imgReflechitBuste from '../images/watson-reflechit-buste.png';
+import imgQuestion from '../images/watson-question.png';
+import imgIdee from '../images/watson-idee.png';
+import imgValide from '../images/watson-valide.png';
 
 // Charge une vue du moteur et gère l'attente et l'erreur.
 export function useVue(chemin, deps = []) {
@@ -33,14 +33,19 @@ export function Statut({ s }) {
   return <span class={`badge ${c}`}>{t}</span>;
 }
 
-export function Entete({ titre, description, children }) {
+// En-tête d'un écran : le titre et la phrase qui dit à quoi il sert ; les actions principales montent dans la barre du
+// haut (elles restent dans la page s'il n'y a pas de barre, sur l'accueil général par exemple).
+export function Entete({ titre, description, children, actionsIci = false }) {
+  const [cible, setCible] = useState(actionsIci ? null : undefined);
+  useEffect(() => { if (!actionsIci) setCible(document.getElementById('barre-actions') || null); }, []);
   return (
-    <div class="ligne" style="align-items:flex-end">
-      <div style="flex:1 1 420px;display:flex;flex-direction:column;gap:6px">
+    <div class="entete">
+      <div class="pile" style="gap:4px;flex:1 1 420px;min-width:0">
         <h1>{titre}</h1>
-        {description && <p class="doux">{description}</p>}
+        {description && <p class="doux entete-texte">{description}</p>}
       </div>
-      {children}
+      {children && cible && createPortal(<div class="ligne barre-actions-ecran">{children}</div>, cible)}
+      {children && cible !== undefined && <div class={`ligne entete-actions ${cible ? '' : 'toujours'}`}>{children}</div>}
     </div>
   );
 }
@@ -74,17 +79,22 @@ export function ConnexionClaude({ claude, setClaude, usage }) {
 
 // Watson, la mascotte, selon ce qui se passe dans l'application.
 
+// D'autres poses viendront : une humeur inconnue retombe sur « debout ».
 const HUMEURS = {
-  salue: [imgSalue, imgSalueBuste],      // accueil, connexion, bienvenue
-  lit: [imgLit, imgLitBuste],            // Claude lit des documents
-  ecrit: [imgEcrit, imgEcrit],           // c'est noté, enregistré
-  note: [imgNote, imgNote],              // carnet en main : invitation à alimenter, page vide
-  reflechit: [imgReflechit, imgReflechitBuste] // il cherche, il manque quelque chose, une erreur
+  debout: imgDebout,     // présent, disponible : en-têtes, panneau de conversation
+  salue: imgSalue,       // accueil, connexion, bienvenue
+  lit: imgLit,           // Claude lit des documents, cherche dans la base
+  ecrit: imgEcrit,       // Watson rédige
+  note: imgEcrit,        // invitation à alimenter, page vide
+  question: imgQuestion, // il manque quelque chose, une question à poser, une erreur
+  reflechit: imgLit,     // Claude travaille
+  idee: imgIdee,         // une suggestion, une piste
+  valide: imgValide,     // c'est fait, c'est validé
 };
+export const HUMEURS_WATSON = Object.keys(HUMEURS);
 
 export const DEVISE = 'Réglementaire, mon cher Watson.';
 
-export function Watson({ humeur = 'salue', hauteur = 160, buste = false, flotte = true, style = '' }) {
-  const [entier, haut] = HUMEURS[humeur] || HUMEURS.salue;
-  return <img class={`watson ${flotte ? 'flotte' : ''}`} src={buste ? haut : entier} alt="" aria-hidden="true" style={`height:${hauteur}px;${style}`} />;
+export function Watson({ humeur = 'salue', hauteur = 160, flotte = true, style = '' }) {
+  return <img class={`watson ${flotte ? 'flotte' : ''}`} src={HUMEURS[humeur] || imgDebout} alt="" aria-hidden="true" style={`height:${hauteur}px;width:auto;${style}`} />;
 }

@@ -71,7 +71,7 @@ export function Workflow({ projet, aller, entite, integre }) {
         <span class="badge b-gris">Action</span><span class="badge b-orange">Information manquante</span><span class="badge b-rouge">Incohérence</span>
       </div>
       <div class="ligne" style="align-items:flex-start;gap:16px">
-        <div style="flex:1 1 600px;min-width:0;overflow:auto;border-radius:16px;background-color:#FAFAFB;background-image:radial-gradient(#D4D4D8 1px,transparent 1px);background-size:20px 20px;box-shadow:inset 0 0 0 1px var(--bord)">
+        <div style="flex:1 1 600px;min-width:0;overflow:auto;border-radius:16px;background-color:var(--surface-2);background-image:radial-gradient(var(--bord2) 1px,transparent 1px);background-size:20px 20px;box-shadow:inset 0 0 0 1px var(--bord)">
           <div style={`position:relative;width:${plan.largeur}px;height:${plan.hauteur + 60}px;margin:30px`}>
             <svg width={plan.largeur} height={plan.hauteur + 60} style="position:absolute;inset:0;overflow:visible">
               <defs><marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#A1A1AA" /></marker>
@@ -87,7 +87,7 @@ export function Workflow({ projet, aller, entite, integre }) {
             {e.etapes.map((s) => {
               const p = plan.pos[s.id]; const manque = s.points.length > 0; const choisi = sel === s.id;
               return (
-                <button key={s.id} onClick={() => setSel(s.id)} style={`position:absolute;left:${p.x}px;top:${p.y}px;width:${L}px;height:${H}px;padding:0 12px;border-radius:14px;text-align:left;cursor:pointer;background:#fff;display:flex;flex-direction:column;justify-content:center;border:${choisi ? '2px solid #4F46E5' : manque ? '1.5px dashed #FB923C' : '1px solid #E4E4E7'};box-shadow:0 4px 14px rgba(24,24,27,.05)`}>
+                <button key={s.id} onClick={() => setSel(s.id)} style={`position:absolute;left:${p.x}px;top:${p.y}px;width:${L}px;height:${H}px;padding:0 12px;border-radius:14px;text-align:left;cursor:pointer;background:var(--surface);color:var(--texte);display:flex;flex-direction:column;justify-content:center;border:${choisi ? '2px solid #4F46E5' : manque ? '1.5px dashed #FB923C' : '1px solid var(--bord)'};box-shadow:0 4px 14px rgba(24,24,27,.05)`}>
                   <strong>{s.nom}</strong><span class="petit doux">{s.id === e.initiale ? 'étape de départ' : s.finale ? 'étape finale' : `${e.actions.filter((a) => a.de === s.id).length} action(s) possible(s)`}</span>
                 </button>
               );
@@ -95,7 +95,7 @@ export function Workflow({ projet, aller, entite, integre }) {
             {(() => { const r2 = {}; return e.actions.map((a) => {
               const cle = `${a.de}>${a.vers}`; const rang = (r2[cle] = (r2[cle] ?? -1) + 1);
               const t = trace(a, plan.pos, rang); const manque = a.points.length > 0; const choisi = sel === a.id;
-              return <button key={a.id} onClick={() => setSel(a.id)} style={`position:absolute;left:${t.lx}px;top:${t.ly}px;transform:translate(-50%,-50%);white-space:nowrap;min-height:26px;padding:0 10px;border-radius:999px;font-size:12px;cursor:pointer;${choisi ? 'background:#4F46E5;color:#fff;border:1px solid #4F46E5' : manque ? 'background:#FFF7ED;color:#9A3412;border:1px dashed #FB923C' : 'background:#fff;color:#3F3F46;border:1px solid #E4E4E7'}`}>{a.nom}</button>;
+              return <button key={a.id} onClick={() => setSel(a.id)} style={`position:absolute;left:${t.lx}px;top:${t.ly}px;transform:translate(-50%,-50%);white-space:nowrap;min-height:26px;padding:0 10px;border-radius:999px;font-size:12px;cursor:pointer;${choisi ? 'background:#4F46E5;color:#fff;border:1px solid #4F46E5' : manque ? 'background:#FFF7ED;color:#9A3412;border:1px dashed #FB923C' : 'background:var(--surface);color:var(--texte);border:1px solid var(--bord)'}`}>{a.nom}</button>;
             }); })()}
           </div>
         </div>

@@ -56,7 +56,7 @@ export function Versions({ projet }) {
           <div class="carte pile" style="gap:2px;min-width:170px;background:var(--indigo-pale)"><strong style="font-size:17px">Travail</strong><span class="petit doux">en cours</span></div>
         </div>
       </section>
-      <section class="pile carte" style="background:#FAFAFA">
+      <section class="pile carte" style="background:var(--surface-2)">
         <div class="ligne"><h2 class="espace">Comparer deux versions</h2>
           <span class="doux">De</span><select class="saisie" value={depart} onChange={(e) => setDe(e.target.value)}>{choix.map((v) => <option key={v} value={v}>{v === 'travail' ? 'Travail' : v}</option>)}</select>
           <span class="doux">à</span><select class="saisie" value={a} onChange={(e) => setA(e.target.value)}>{choix.map((v) => <option key={v} value={v}>{v === 'travail' ? 'Travail' : v}</option>)}</select>

@@ -267,7 +267,10 @@ export function Alimenter({ projet, etat, aller, integre }) {
   useEffect(() => {
     let voulu = null;
     try { voulu = sessionStorage.getItem('watson.resultat'); sessionStorage.removeItem('watson.resultat'); } catch { /* rien */ }
-    if (voulu === 'alimenter') appel(`/projets/${projet.id}/alimenter`).then((r) => { if (r.lots?.[0]) reprendre(r.lots[0].id); }).catch(() => {});
+    let lot = null;
+    try { lot = sessionStorage.getItem('watson.lot'); sessionStorage.removeItem('watson.lot'); } catch { /* rien */ }
+    if (lot) reprendre(lot);
+    else if (voulu === 'alimenter') appel(`/projets/${projet.id}/alimenter`).then((r) => { if (r.lots?.[0]) reprendre(r.lots[0].id); }).catch(() => {});
   }, []);
   const lancer = async (documents, noms) => {
     setErreur(null); setPhase({ nom: 'lecture', noms });

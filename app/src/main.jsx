@@ -1,16 +1,14 @@
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import {
-  AppWindow, ArrowLeftRight, BookOpen, ChevronsUpDown, Database, Route, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
-  Code2, ListChecks, MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, ChevronRight, MessagesSquare, Landmark, KeyRound, BookMarked, MessageCircleQuestion, FileUp
-} from 'lucide-preact';
+import { RefreshCw } from 'lucide-preact';
 import { appel, attendreMoteur, lancerMiseAJour, suivreMiseAJour, verifierMiseAJour } from './api.js';
 import { ConnexionGitHub } from './ecrans/connexion.jsx';
 import { Accueil, Tuile } from './ecrans/accueil.jsx';
 import { DEVISE, Watson } from './ecrans/commun.jsx';
-import logo from './images/logo.png';
-import { AccueilProjet, EcranAlimenter, EcranDemander } from './ecrans/projet.jsx';
-import { Travaux } from './ecrans/travaux.jsx';
+import { AccueilProjet, EcranAlimenter } from './ecrans/projet.jsx';
+import { BarreHaut, Rail, SousMenu, categorieDe, libelleDe } from './coquille.jsx';
+import { PanneauWatson } from './ecrans/watson.jsx';
+import { definirContexte, ouvrirWatson, surOuverture } from './contexte.js';
 import { Referentiels } from './ecrans/referentiels.jsx';
 import { Ecrans } from './ecrans/ecrans.jsx';
 import { Regles } from './ecrans/regles.jsx';
@@ -36,107 +34,20 @@ import { Avancement } from './ecrans/avancement.jsx';
 import { Code } from './ecrans/code.jsx';
 import { Direct } from './ecrans/direct.jsx';
 import { Specifications } from './ecrans/specifications.jsx';
+import '@fontsource-variable/inter';
 import './styles.css';
 
-// Catégories repliables de la barre latérale. [clé, libellé, icône, bientôt]
-const GROUPES = [
-  ['avant', 'Avant-projet', [['cahier', 'Cahier des charges', FileText], ['moodboard', 'Moodboard', Palette], ['maquettes', 'Maquettes', Frame],
-    ['proposition', 'Proposition', Presentation]]],
-  ['metier', 'Connaissance métier', [['referentiels', 'Référentiels', Database], ['scenarios', 'Scénarios', Route], ['ecrans', 'Écrans', AppWindow],
-    ['regles', 'Règles', Scale], ['crud', 'Qui fait quoi', KeyRound], ['secteur', 'Fiche secteur', Landmark], ['flux', 'Flux externes', ArrowLeftRight]]],
-  ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow],
-    ['versions', 'Versions', GitBranch], ['specifications', 'Spécifications Confluence', BookMarked], ['recette', 'Recette et TNR', FlaskConical], ['documentation', 'Documentation', BookOpen]]],
-  ['produit', 'Produit', [['direct', 'App en direct', MonitorPlay], ['design', 'Design system', Palette], ['avancement', 'Avancement des écrans', ListChecks], ['code', 'Passage en code', Code2]]],
-];
-
-const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: EcranDemander, alimenter: EcranAlimenter, sujets: Sujets, comite: Comite,
+const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: AccueilProjet, alimenter: EcranAlimenter, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
   workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud, specifications: Specifications, design: Design, avancement: Avancement, code: Code, direct: Direct };
 
-const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
+const lire = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
+const garder = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sans importance */ } };
 
-function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerProjet }) {
-  const [projets, setProjets] = useState([]);
-  const [liste, setListe] = useState(false);
-  const [ouverts, setOuverts] = useState(lireOuverts);
-  const [questions, setQuestions] = useState(null);
-  useEffect(() => { appel('/projets').then((d) => setProjets(d.projets.filter((p) => !p.absent))).catch(() => {}); }, []);
-  useEffect(() => { appel(`/projets/${projet.id}/compteurs`).then((d) => setQuestions(d.questions_ouvertes)).catch(() => {}); }, [ecran]);
-  const groupeCourant = GROUPES.find(([, , items]) => items.some(([cle]) => cle === ecran))?.[0];
-  const basculer = (g) => {
-    const n = ouverts.includes(g) ? ouverts.filter((x) => x !== g) : [...ouverts, g];
-    setOuverts(n);
-    try { localStorage.setItem('watson.menu.ouverts', JSON.stringify(n)); } catch { /* sans importance */ }
-  };
-  return (
-    <nav class="panneau lateral" aria-label="Navigation du projet">
-      <button class="marque" onClick={quitter} title="Retour à l'accueil">
-        <img class="marque-logo" src={logo} alt="" />
-        <strong class="marque-nom">Watson</strong>
-        <span class="petit doux" style="margin-left:auto">Accueil</span>
-      </button>
-      <div class="bloc-projet-cadre">
-        <button class="bloc-projet" onClick={() => setListe(!liste)} title="Changer de projet" aria-expanded={liste}>
-          <Tuile nom={projet.nom} taille={34} />
-          <span style="display:flex;flex-direction:column;min-width:0;flex:1">
-            <strong style="font-size:14px" class="tronque">{projet.nom}</strong>
-            <span class="petit doux tronque">{projet.depot}</span>
-          </span>
-          <ChevronsUpDown size={15} color="#A1A1AA" />
-        </button>
-        {liste && (
-          <div class="liste-projets">
-            {projets.map((p) => (
-              <button key={p.id} class={`menu ${p.id === projet.id ? 'actif' : ''}`} onClick={() => { setListe(false); if (p.id !== projet.id) changerProjet(p); }}>
-                <Tuile nom={p.nom} taille={24} /> <span class="tronque">{p.nom}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      <div class="menu-defilant">
-        <button class={`menu ${['projet', 'synthese'].includes(ecran) ? 'actif' : ''}`} onClick={() => choisir('projet')}>
-          <LayoutDashboard size={18} strokeWidth={1.8} /> Accueil du projet
-        </button>
-        <button class={`menu ${ecran === 'demander' ? 'actif' : ''}`} onClick={() => choisir('demander')}>
-          <MessageCircleQuestion size={18} strokeWidth={1.8} /> Demander à Watson
-        </button>
-        <button class={`menu ${ecran === 'alimenter' ? 'actif' : ''}`} onClick={() => choisir('alimenter')}>
-          <FileUp size={18} strokeWidth={1.8} /> Alimenter
-        </button>
-        <button class={`menu ${ecran === 'sujets' ? 'actif' : ''}`} onClick={() => choisir('sujets')}>
-          <CircleHelp size={18} strokeWidth={1.8} /> Questions ouvertes
-          {questions > 0 && <span class="compte b-ambre">{questions}</span>}
-        </button>
-        {GROUPES.map(([g, titre, items]) => {
-          const ouvert = ouverts.includes(g) || g === groupeCourant;
-          return (
-            <div key={g} class="groupe-menu">
-              <button class="section-menu" aria-expanded={ouvert} onClick={() => basculer(g)}>
-                <ChevronRight size={14} class={`chevron ${ouvert ? 'ouvert' : ''}`} /> {titre}
-              </button>
-              {ouvert && items.map(([cle, libelle, Icone, bientot]) => (
-                <button key={cle} class={`menu ${ecran === cle ? 'actif' : ''}`} disabled={bientot} onClick={() => choisir(cle)} title={bientot ? 'Dans une prochaine version' : ''}>
-                  <Icone size={18} strokeWidth={1.8} /> {libelle}
-                  {bientot && <span class="compte b-gris">bientôt</span>}
-                </button>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-      <Travaux projet={projet} aller={choisir} />
-      <button class={`menu petit-menu ${ecran === 'administration' ? 'actif' : ''}`} onClick={() => choisir('administration')}><Settings size={16} strokeWidth={1.8} /> Administration du projet</button>
-      {compte && (
-        <div class="profil">
-          {compte.avatar ? <img class="avatar" src={compte.avatar} alt="" /> : <span class="avatar" />}
-          <span style="display:flex;flex-direction:column;flex:1;min-width:0"><span style="font-weight:500">{compte.nom}</span><span class="petit doux">@{compte.login}</span></span>
-          <button class="bouton icone" title="Paramètres" aria-label="Paramètres" onClick={parametres}><Settings size={16} /></button>
-        </div>
-      )}
-    </nav>
-  );
-}
+// Thème : clair, sombre, ou celui du système tant que la personne n'a pas choisi.
+function appliquerTheme(t) { document.documentElement.dataset.theme = t; }
+const themeInitial = () => lire('watson.theme', null) || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'sombre' : 'clair');
+appliquerTheme(themeInitial());
 
 function BandeauMiseAJour({ maj }) {
   const [etat, setEtat] = useState(null);
@@ -178,7 +89,7 @@ function App() {
   };
 
   if (erreur) return <div class="coquille"><div class="panneau principal"><Watson humeur="reflechit" hauteur={180} /><h1>Watson ne démarre pas</h1><pre class="encart e-rouge" style="white-space:pre-wrap;font-size:12px">{erreur}</pre><p class="doux">Envoie ce message à la personne qui maintient Watson.</p></div></div>;
-  if (!etat) return <div class="demarrage"><img src={logo} alt="" /><span class="doux">Watson arrive…</span><span class="devise">{DEVISE}</span></div>;
+  if (!etat) return <div class="demarrage"><Watson humeur="salue" hauteur={150} /><span class="doux">Watson arrive…</span><span class="devise">{DEVISE}</span></div>;
   if (!etat.github.connecte) return <ConnexionGitHub version={etat.version} connecte={charger} />;
   if (parametres) {
     return (
@@ -190,27 +101,65 @@ function App() {
   }
   if (!projet) {
     return (
-      <div style="padding:12px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;flex-direction:column">
         <BandeauMiseAJour maj={maj} />
         <Accueil etat={etat} ouvrir={ouvrir} deconnecte={charger} parametres={() => setParametres(true)} />
       </div>
     );
   }
-  const Ecran = ECRANS[ecran];
+  return <Espace projet={projet} etat={etat} ecran={ecran} setEcran={setEcran} questionInitiale={questionInitiale} setQuestionInitiale={setQuestionInitiale}
+    maj={maj} synchro={synchro} synchroniser={() => ouvrir(projet, ecran)} quitter={() => setProjet(null)} parametres={() => setParametres(true)} changerProjet={(p) => ouvrir(p)} />;
+}
+
+function Espace({ projet, etat, ecran, setEcran, questionInitiale, setQuestionInitiale, maj, synchro, synchroniser, quitter, parametres, changerProjet }) {
+  const [categorie, setCategorie] = useState(categorieDe(ecran));
+  const [menu, setMenu] = useState(lire('watson.menu', '1') === '1');
+  const [watson, setWatson] = useState(lire('watson.panneau', '0') === '1');
+  const [theme, setTheme] = useState(themeInitial());
+  const [compteurs, setCompteurs] = useState({});
+  const [recherche, setRecherche] = useState(0);
+  const aller = (e) => {
+    if (e === 'watson' || e === 'demander') { setWatson(true); garder('watson.panneau', '1'); return; }
+    setQuestionInitiale(null); setEcran(e); setCategorie(categorieDe(e));
+  };
+  useEffect(() => { definirContexte({ zone: ecran, libelle: libelleDe(ecran) || 'Vue d\'ensemble', element: null }); }, [ecran]);
+  useEffect(() => { appel(`/projets/${projet.id}/compteurs`).then(setCompteurs).catch(() => {}); }, [ecran, projet.id, synchro?.etat]);
+  const basculerWatson = (v) => { const n = typeof v === 'boolean' ? v : !watson; setWatson(n); garder('watson.panneau', n ? '1' : '0'); };
+  useEffect(() => surOuverture(() => basculerWatson(true)), [watson]);
+  useEffect(() => {
+    const touche = (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key.toLowerCase() === 'j') { e.preventDefault(); basculerWatson(); }
+      if (e.key.toLowerCase() === 'k') { e.preventDefault(); setMenu(true); setRecherche((n) => n + 1); }
+    };
+    window.addEventListener('keydown', touche);
+    return () => window.removeEventListener('keydown', touche);
+  }, [watson]);
+  useEffect(() => {
+    if (ecran === 'demander') setEcran('projet');
+    if (questionInitiale) { basculerWatson(true); setTimeout(() => ouvrirWatson({ texte: questionInitiale, envoyer: true }), 300); setQuestionInitiale(null); }
+  }, [questionInitiale]);
+  const choisirCategorie = (k) => {
+    if (k === categorie && menu) { setMenu(false); garder('watson.menu', '0'); return; }
+    setCategorie(k); setMenu(true); garder('watson.menu', '1');
+  };
+  const basculerTheme = () => { const n = theme === 'sombre' ? 'clair' : 'sombre'; setTheme(n); appliquerTheme(n); garder('watson.theme', n); };
+  const Ecran = ECRANS[ecran] || AccueilProjet;
   return (
-    <div class="coquille">
-      <Lateral key={projet.id} projet={projet} ecran={ecran} choisir={(e) => { setQuestionInitiale(null); setEcran(e); }} quitter={() => setProjet(null)} compte={etat.github.compte} parametres={() => setParametres(true)} changerProjet={(p) => ouvrir(p)} />
-      <main class="panneau principal">
-        <BandeauMiseAJour maj={maj} />
-        <div class="ligne petit doux">
-          <span>{projet.nom}</span><span class="espace" />
-          {synchro?.etat === 'en_cours' && <span>Synchronisation avec GitHub…</span>}
-          {synchro?.erreur && <span class="badge b-rouge" title={synchro.erreur}>Synchronisation impossible</span>}
-          {synchro && !synchro.erreur && synchro.etat !== 'en_cours' && <span class="badge b-vert">À jour avec GitHub</span>}
-          <button class="bouton" style="min-height:30px" onClick={() => ouvrir(projet)}><RefreshCw size={14} /> Synchroniser</button>
-        </div>
-        <Ecran key={`${projet.id}-${ecran}-${synchro?.etat === 'en_cours' ? 'a' : 'b'}`} projet={projet} etat={etat} aller={setEcran} questionInitiale={questionInitiale} zone={ecran} />
-      </main>
+    <div class={`espace-projet ${menu ? 'avec-menu' : ''} ${watson ? 'avec-watson' : ''}`}>
+      <Rail categorie={categorie} choisirCategorie={choisirCategorie} compte={etat.github.compte} theme={theme} basculerTheme={basculerTheme}
+        parametres={parametres} quitter={quitter} questions={compteurs.questions} />
+      {menu && <SousMenu key={projet.id} projet={projet} categorie={categorie} ecran={ecran} choisir={aller} changerProjet={changerProjet} compteurs={compteurs}
+        ouvrirWatson={() => basculerWatson(true)} recherche={recherche} />}
+      <div class="colonne">
+        <BarreHaut projet={projet} ecran={ecran} aller={aller} basculerMenu={() => { setMenu(!menu); garder('watson.menu', menu ? '0' : '1'); }} menuOuvert={menu}
+          synchro={synchro} synchroniser={synchroniser} watsonOuvert={watson} basculerWatson={() => basculerWatson()} ouvrirWatson={() => basculerWatson(true)} />
+        <main class="contenu">
+          <BandeauMiseAJour maj={maj} />
+          <Ecran key={`${projet.id}-${ecran}-${synchro?.etat === 'en_cours' ? 'a' : 'b'}`} projet={projet} etat={etat} aller={aller} zone={ecran} />
+        </main>
+      </div>
+      <PanneauWatson projet={projet} etat={etat} ouvert={watson} fermer={() => basculerWatson(false)} aller={aller} />
     </div>
   );
 }

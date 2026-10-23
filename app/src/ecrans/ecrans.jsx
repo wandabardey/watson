@@ -10,6 +10,7 @@ import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
 import { DemandeWatson, GererVersions, LotEnCours } from './edition.jsx';
 import { horsVersion } from './referentiels.jsx';
 import { Fleches, Toile, largeurTexte, teinteClaire, trace } from './toile.jsx';
+import { ElementWatson } from '../contexte.js';
 
 const elk = new ELK();
 export const TYPES_ECRAN = { page: 'Page', formulaire: 'Formulaire', liste: 'Liste', panneau: 'Panneau', modale: 'Modale', tableau_de_bord: 'Tableau de bord' };
@@ -392,6 +393,7 @@ export function Ecrans({ projet, aller }) {
   else if (choisi && tout[choisi]) cote = <FicheEcran e={tout[choisi]} tout={tout} choisir={setChoisi} aller={aller} fermer={() => setChoisi(null)} versions={versions} projet={projet} lance={lancerLot} modifier={() => setPanneau({ mode: 'edition', id: choisi })} />;
   return (
     <div class="pile referentiels" style="gap:16px">
+      <ElementWatson type="écran" id={choisi} nom={tout[choisi]?.nom} />
       <Entete titre="Écrans" description="Les écrans de chaque application, ce qu'ils contiennent et où ils mènent. Les scénarios s'y réfèrent étape par étape.">
         <div class="ligne">
           <label class="ligne saisie" style="gap:6px;min-height:36px"><Search size={15} /><input style="border:0;outline:none;width:150px" placeholder="Chercher un écran" value={recherche} onInput={(e) => setRecherche(e.target.value)} /></label>

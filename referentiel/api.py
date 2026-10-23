@@ -450,6 +450,24 @@ def _crud(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _watson(methode, pid, reste, corps):
+    from . import conversation as cv
+
+    racine = application.chemin(pid)
+    try:
+        if not reste and methode == "GET":
+            return cv.lire(pid)
+        if not reste and methode == "POST":
+            pieces = corps.get("pieces") if isinstance(corps.get("pieces"), list) else []
+            return cv.envoyer(pid, racine, str(corps.get("texte") or "")[:8000], pieces[:10],
+                              corps.get("ecran") if isinstance(corps.get("ecran"), dict) else {}, github.compte()["nom"])
+        if not reste and methode == "DELETE":
+            return cv.effacer(pid)
+    except cv.ErreurConversation as e:
+        raise Erreur(str(e), 400) from e
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _direct(methode, pid, reste, corps):
     from . import direct as di
 
@@ -1142,6 +1160,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _specifications(methode, pid, reste[1:], corps)
         if reste[:1] == ["crud"]:
             return _crud(methode, pid, reste[1:], corps)
+        if reste[:1] == ["watson"]:
+            return _watson(methode, pid, reste[1:], corps)
         if reste[:1] == ["direct"]:
             return _direct(methode, pid, reste[1:], corps)
         if reste[:1] == ["code"]:
@@ -1170,7 +1190,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
                         "questions_ouvertes": sj["ouverts"], "a_trancher": len(sj["a_trancher"])}
             if reste == ["compteurs"]:
                 from .sujets import vue as vue_sujets
-                return {"questions_ouvertes": vue_sujets(racine)["ouverts"]}
+                return {"questions_ouvertes": vue_sujets(racine)["ouverts"], "questions": vue_sujets(racine)["ouverts"],
+                        "lots": len(alimentation.lots(pid)), "entites": len(p.entites), "regles": len(p.regles), "ecrans": len(p.ecrans)}
             if reste == ["catalogue"]:
                 return vue_catalogue(p)
             if reste == ["referentiels"]:

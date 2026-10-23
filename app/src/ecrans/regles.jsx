@@ -3,6 +3,7 @@ import { Check } from 'lucide-preact';
 import { appel } from '../api.js';
 import { BoutonComite } from './comite.jsx';
 import { Attente, Entete, Point, Statut, useVue } from './commun.jsx';
+import { ElementWatson } from '../contexte.js';
 
 const FILTRES = [['tous', 'Toutes'], ['validee', 'Validées'], ['proposee', 'À valider'], ['obsolete', 'Obsolètes']];
 
@@ -18,7 +19,7 @@ function Valider({ projet, regle, fait }) {
     } catch (e) { setMessage(e.message); setOccupe(false); }
   };
   return (
-    <div class="pile" style="gap:8px;padding:12px;border-radius:12px;background:#FAFAFA;box-shadow:inset 0 0 0 1px var(--bord)">
+    <div class="pile" style="gap:8px;padding:12px;border-radius:12px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--bord)">
       <label class="champ">D'où vient la décision<input placeholder="Par exemple : comité produit du 21/10/2026" value={source} onInput={(e) => setSource(e.target.value)} /></label>
       <button class="bouton principal-b" disabled={occupe} onClick={valider}><Check size={16} />{occupe ? 'Enregistrement…' : 'Valider la règle'}</button>
       <span class="petit doux">Signée à ton nom, datée du jour, enregistrée dans le dépôt GitHub du projet.</span>
@@ -39,6 +40,7 @@ export function Regles({ projet, aller }) {
   return (
     <>
       <Entete titre="Règles et décisions" description="Les règles du projet, leur statut et leur histoire : qui a décidé quoi, quand, et ce que chaque règle remplace." />
+      <ElementWatson type="règle" id={r?.id} nom={r?.titre} />
       <div class="segments">{FILTRES.map(([k, t]) => <button key={k} class={`segment ${filtre === k ? 'actif' : ''}`} onClick={() => setFiltre(k)}>{t} {compte(k)}</button>)}</div>
       {info && <p class="encart e-vert">{info}</p>}
       <div class="ligne" style="align-items:flex-start;gap:16px">

@@ -6,6 +6,7 @@ import { appel } from '../api.js';
 import { BoutonComite } from './comite.jsx';
 import { BoutonRevue } from './studio.jsx';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
+import { ElementWatson } from '../contexte.js';
 
 const LARGEURS = { desktop: 1280, tablette: 900, mobile: 390 };
 const HAUTEURS = { desktop: 800, tablette: 1100, mobile: 844 };
@@ -51,6 +52,7 @@ function Visionneuse({ projet, m, d, fermer, faire, reprendre, occupe }) {
   const modifier = (champs) => faire(() => appel(`/projets/${projet.id}/avant-projet/maquettes/modifier`, { corps: { id: m.id, champs } }));
   return (
     <div class="visionneuse" onClick={fermer}>
+      <ElementWatson type="maquette" id={m.id} nom={m.titre} />
       <div class="visionneuse-corps" onClick={(e) => e.stopPropagation()}>
         <div class="visionneuse-scene" ref={cadre}>
           <Rendu projet={projet} m={{ ...m, support }} largeurCadre={support === 'mobile' ? 390 : l} />

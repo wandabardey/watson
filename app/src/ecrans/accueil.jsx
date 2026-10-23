@@ -2,7 +2,6 @@ import { useEffect, useState } from 'preact/hooks';
 import { ArrowUp, FilePlus2, FolderGit2, Plus, Settings } from 'lucide-preact';
 import { appel } from '../api.js';
 import { Creer, Ouvrir } from './projets.jsx';
-import logo from '../images/logo.png';
 import { DEVISE, Watson } from './commun.jsx';
 
 const TEINTES = [['#EFEDFF', '#4B3BD6'], ['#FFF3E0', '#9A5A00'], ['#E8F6EE', '#1E7A3C'], ['#FDECEF', '#A3263F'], ['#E7F1FD', '#1D5FA8'], ['#F3ECFB', '#7A2FB0']];
@@ -91,7 +90,7 @@ export function Accueil({ etat, ouvrir, parametres, deconnecte }) {
   return (
     <div class="accueil">
       <nav class="rail" aria-label="Projets">
-        <button class="rail-logo" title="Accueil" aria-label="Accueil"><img src={logo} alt="Watson" /></button>
+        <button class="rail-logo" title="Accueil" aria-label="Accueil"><span>W</span></button>
         <span class="rail-sep" />
         {projets.map((p) => (
           <button key={p.id} class="rail-projet" title={p.nom} onClick={() => !p.absent && ouvrir(p)}><Tuile nom={p.nom} taille={42} /></button>

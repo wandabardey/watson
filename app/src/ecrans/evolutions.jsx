@@ -7,6 +7,7 @@ import { appel } from '../api.js';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 import { LotEnCours } from './edition.jsx';
 import { BoutonRevue } from './studio.jsx';
+import { ElementWatson } from '../contexte.js';
 
 const COULEUR = { a_qualifier: 'b-gris', prete: 'b-indigo', en_cours: 'b-ambre', livree: 'b-vert', abandonnee: 'b-rouge' };
 const PRIO = { haute: 'b-rouge', normale: 'b-gris', basse: 'b-gris' };
@@ -146,6 +147,7 @@ function Fiche({ projet, d, faire, occupe, attente, claude, aller, retour }) {
         {confirmer ? <button class="bouton danger" onClick={async () => { await faire(`/evolutions/${e.id}`, {}, 'DELETE'); retour(); }}>Supprimer l'évolution</button>
           : <button class="bouton icone" title="Supprimer" onClick={() => setConfirmer(true)}><Trash2 size={14} /></button>}
       </div>
+      <ElementWatson type="évolution" id={e.id} nom={e.titre} />
       <Entete titre={e.titre} description={`${e.id} · créée le ${date(e.date)}${e.par ? ` par ${e.par}` : ''}${e.origine ? ` · ${e.origine}` : ''}${e.demandeur ? ` · demandée par ${e.demandeur}` : ''}`}>
         <div class="ligne">
           <select class="saisie" value={e.statut} onChange={(x) => faire(`/evolutions/${e.id}`, { statut: x.target.value })} aria-label="Statut">{Object.entries(d.statuts).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>

@@ -56,7 +56,7 @@ export function Synthese({ projet, aller }) {
           <h2>Derniers changements</h2>
           {d.historique.length === 0 && <p class="doux">Aucun historique.</p>}
           {d.historique.map((h, i) => (
-            <div key={i} class="pile" style="gap:2px;padding-bottom:10px;border-bottom:1px solid #F4F4F5">
+            <div key={i} class="pile" style="gap:2px;padding-bottom:10px;border-bottom:1px solid var(--bord)">
               <span><strong>{h.regle}</strong> : {h.changement}</span>
               <span class="petit doux">{h.date} · {h.auteur}{h.raison ? ` · ${h.raison}` : ''}</span>
             </div>

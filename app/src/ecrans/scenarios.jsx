@@ -11,6 +11,7 @@ import { Attente, Entete, Statut, useVue, Watson } from './commun.jsx';
 import { DemandeWatson, GererVersions, LotEnCours, slug } from './edition.jsx';
 import { horsVersion } from './referentiels.jsx';
 import { Fleches, Toile, largeurTexte, teinteClaire, trace } from './toile.jsx';
+import { ElementWatson } from '../contexte.js';
 
 const GENRES = { debut: 'Début', etape: 'Étape', decision: 'Décision', statut: 'Statut apposé', fin: 'Fin' };
 const GENRES_LIEN = { suite: 'Suite', refus: 'Refus, rejet', retour: 'Retour en arrière' };
@@ -502,6 +503,7 @@ export function Scenarios({ projet, aller }) {
   const nomV = (v) => versions.find((x) => x.id === v)?.nom || v;
   return (
     <div class="pile referentiels" style="gap:16px">
+      <ElementWatson type="scénario" id={sc?.id} nom={sc?.nom} />
       <Entete titre="Scénarios" description="Les parcours de bout en bout : qui fait quoi, sur quel écran, et quel statut l'objet prend à chaque étape.">
         <div class="ligne">
           <label class="ligne saisie" style="gap:6px;min-height:36px"><Search size={15} /><input style="border:0;outline:none;width:150px" placeholder="Chercher une étape" value={recherche} onInput={(e) => setRecherche(e.target.value)} /></label>

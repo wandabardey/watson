@@ -345,7 +345,7 @@ function CompteRendu({ projet, a, faire, occupe, claude, aller }) {
           <section class="carte pile" style="flex:1 1 340px;gap:10px">
             <h2>Réponses obtenues</h2>
             {cr.reponses.map((r, i) => (
-              <div key={i} class="pile" style="gap:4px;padding-bottom:8px;border-bottom:1px solid #F4F4F5">
+              <div key={i} class="pile" style="gap:4px;padding-bottom:8px;border-bottom:1px solid var(--bord)">
                 <span class="doux petit">{r.question}</span><span>{r.reponse}</span>
                 {r.sujet && (tranchees[r.sujet] ? <span class="badge b-vert" style="align-self:flex-start">Question ouverte tranchée</span>
                   : <button class="bouton" style="align-self:flex-start" onClick={() => trancher(r)}><Check size={14} /> Trancher la question ouverte</button>)}
