@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.37.0 (2026-10-23)
+
+- Nouvelle interface : Watson se convoque de partout (panneau de conversation qui tient compte de l'écran, lit documents et liens, propose des changements, pose des questions), navigation en deux niveaux, barre du haut, thème sombre, nouvelle mascotte
+
 ## 0.36.0 (2026-10-23)
 
 - App en direct : l'application qui tourne, écran par écran, en face de la spec, de la maquette et du guide utilisateur ; écarts relevés en anomalie, évolution ou question ; critique UX de l'écran réel
