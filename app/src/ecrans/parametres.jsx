@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { ArrowLeft, BookOpen, Check, LogOut, RefreshCw, Sparkles } from 'lucide-preact';
+import { ArrowLeft, BookOpen, Check, LogOut, Presentation, RefreshCw, Sparkles } from 'lucide-preact';
 import { appel, verifierMiseAJour } from '../api.js';
 import { ConnexionClaude } from './commun.jsx';
 
@@ -20,6 +20,10 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
   const [claude, setClaude] = useState(etat.claude);
   const [maj, setMaj] = useState(undefined);
   const [dossier, setDossier] = useState('');
+  const [kit, setKit] = useState(null);
+  const [dossierKit, setDossierKit] = useState('');
+  useEffect(() => { appel('/kit').then(setKit).catch(() => {}); }, []);
+  const changerKit = async (methode, corps) => { setMessage(null); try { setKit(await appel('/kit', methode === 'DELETE' ? { methode } : { corps })); setDossierKit(''); } catch (e) { setMessage(e.message); } };
   useEffect(() => { appel('/reglages').then((x) => { setR(x); if (!x.modeles.some((m) => m.id === x.modele)) setAutre(x.modele); }); }, []);
   const changer = async (c) => {
     setMessage(null); setTest(null);
@@ -78,6 +82,17 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
           : <p class="encart e-orange">{r.methode.choisi_introuvable ? 'Le dossier choisi ne contient plus 4ward.' : '4ward n\'a pas été trouvé sur ce poste.'} Watson applique ses consignes de base. Installe 4ward dans Claude, ou indique son dossier ci-dessous.</p>}
         <span class="ligne"><input class="saisie espace" placeholder="Dossier du plugin 4ward (celui qui contient « skills »)" value={dossier} onInput={(e) => setDossier(e.target.value)} />
           <button class="bouton" disabled={!dossier.trim()} onClick={() => changer({ dossier_4ward: dossier.trim() })}>Utiliser ce dossier</button></span>
+      </Section>
+
+      <Section titre="Kit de présentation 4SH" description="Les visuels du modèle de présentation 4SH (photos en losanges, logo, coin rouge, losanges) et la présentation de 4SH réutilisable, pour mettre le deck à la charte. Le kit reste sur ce poste : il n'est jamais copié dans les dépôts.">
+        {kit?.present
+          ? <div class="ligne" style="flex-wrap:nowrap;align-items:flex-start"><Presentation size={18} color="#4F46E5" style="flex:0 0 auto;margin-top:2px" /><span class="pile espace" style="gap:2px;min-width:0">
+              <strong>Kit importé : {kit.images.length} visuels{kit.presentation ? `, présentation de 4SH en ${kit.presentation} slides` : ''}</strong>
+              <span class="doux petit">{kit.releve ? `Chiffres de 4SH relevés en ${kit.releve} : à vérifier avant chaque soutenance.` : ''}{kit.manquantes.length ? ` Manquent : ${kit.manquantes.join(', ')}.` : ''}</span></span>
+              <button class="bouton" onClick={() => changerKit('DELETE')}>Retirer</button></div>
+          : <p class="encart e-orange">Pas de kit sur ce poste : le deck garde les couleurs et la typographie de la charte, sans les visuels.</p>}
+        <span class="ligne"><input class="saisie espace" placeholder="Dossier du kit (celui qui contient « logo-4sh-couleur.png »)" value={dossierKit} onInput={(e) => setDossierKit(e.target.value)} />
+          <button class="bouton" disabled={!dossierKit.trim()} onClick={() => changerKit('POST', { dossier: dossierKit.trim() })}>{kit?.present ? 'Remplacer' : 'Importer'}</button></span>
       </Section>
 
       <Section titre="GitHub" description="Les dépôts de connaissance sont lus et enregistrés avec ce compte.">

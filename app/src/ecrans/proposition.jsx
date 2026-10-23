@@ -1,7 +1,7 @@
 // Avant-projet : la proposition commerciale. Watson écrit le deck (trame du deck commercial), on le relit slide
 // par slide, on le présente, on l'exporte en PDF ou en PowerPoint (notes de l'orateur comprises).
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { ArrowDown, ArrowUp, Check, ChevronLeft, ChevronRight, FileDown, Play, Plus, Presentation, Sparkles, Trash2, X } from 'lucide-preact';
+import { ArrowDown, ArrowUp, Check, ChevronLeft, ChevronRight, FileDown, Play, Plus, Presentation, RefreshCw, Sparkles, Trash2, X } from 'lucide-preact';
 import { appel } from '../api.js';
 import { BoutonComite } from './comite.jsx';
 import { BoutonMail, BoutonRevue } from './studio.jsx';
@@ -12,6 +12,13 @@ import { Chiffrage } from './chiffrage.jsx';
 import { Ecrite } from './ecrite.jsx';
 
 const imagesMaquettes = {};
+let kitCache = null;
+
+function useKit() {
+  const [kit, setKit] = useState(kitCache);
+  useEffect(() => { if (!kitCache) appel('/kit?images=1').then((k) => { kitCache = k; setKit(k); }).catch(() => setKit({ present: false, visuels: {} })); }, []);
+  return kit;
+}
 
 function useImages(projet, slides, maquettes) {
   const [images, setImages] = useState({});
@@ -42,8 +49,17 @@ function Echelle({ largeur, children }) {
 }
 
 const lignes = (t) => (t || '').split('\n').map((x) => x.trim()).filter(Boolean);
-const enPoints = (t) => lignes(t).map((x) => { const [a, ...b] = x.split(' : '); return b.length ? { titre: a.trim(), texte: b.join(' : ').trim() } : { titre: a.trim() }; });
-const dePoints = (p) => (p || []).map((x) => (x.texte ? `${x.titre} : ${x.texte}` : x.titre)).join('\n');
+const enPoints = (t) => lignes(t).map((x) => {
+  const [tete, valeur, legende, icone] = x.split('|').map((v) => (v || '').trim());
+  const [a, ...b] = tete.split(' : ');
+  return { titre: a.trim(), ...(b.length ? { texte: b.join(' : ').trim() } : {}), ...(valeur ? { valeur } : {}), ...(legende ? { legende } : {}), ...(icone ? { icone } : {}) };
+});
+const dePoints = (p) => (p || []).map((x) => {
+  const tete = x.texte ? `${x.titre} : ${x.texte}` : x.titre;
+  const suite = [x.valeur || '', x.legende || '', x.icone || ''];
+  while (suite.length && !suite[suite.length - 1]) suite.pop();
+  return [tete, ...suite].join(' | ');
+}).join('\n');
 const parBarres = (t, cles) => lignes(t).map((x) => Object.fromEntries(x.split('|').map((v, i) => [cles[i], v.trim()]).filter(([k, v]) => k && v)));
 
 function Formulaire({ s, d, changer, reprendre, occupe }) {
@@ -59,12 +75,19 @@ function Formulaire({ s, d, changer, reprendre, occupe }) {
       {t === 'section' && champ('sur_titre', 'Numéro (01, 02…)')}
       {champ('titre', 'Titre (le message)')}
       {['couverture', 'section', 'merci'].includes(t) && champ('sous_titre', 'Sous-titre')}
-      {['message', 'parcours', 'identite', 'budget', 'cartes', 'texte'].includes(t) && champ('texte', t === 'budget' ? 'Base de calcul' : t === 'parcours' ? 'Chemin alternatif' : t === 'identite' ? 'Parti pris' : 'Phrase', true)}
-      {['besoin', 'cartes', 'texte', 'questions', 'maquette', 'message', 'identite', 'parcours'].includes(t) && (
-        <label class="champ">{t === 'maquette' ? 'Trois repères' : 'Points'} (un par ligne, « Titre : détail »)<textarea rows={5} value={dePoints(s.points)} onInput={(e) => changer({ ...s, points: enPoints(e.target.value) })} /></label>)}
-      {(t === 'besoin' || t === 'budget') && (<>
-        <label class="champ">{t === 'besoin' ? 'Colonne rouge : titre' : 'Encart : titre'}<input value={s.colonne?.titre || ''} onInput={(e) => changer({ ...s, colonne: { ...(s.colonne || {}), titre: e.target.value } })} /></label>
-        <label class="champ">{t === 'besoin' ? 'Objectifs' : 'Lignes'} (un par ligne)<textarea rows={4} value={(s.colonne?.points || []).join('\n')} onInput={(e) => changer({ ...s, colonne: { ...(s.colonne || {}), points: lignes(e.target.value) } })} /></label>
+      {['message', 'parcours', 'identite', 'budget', 'cartes', 'texte', 'equipe'].includes(t) && champ('texte', t === 'budget' ? 'Base de calcul' : t === 'parcours' ? 'Chemin alternatif' : t === 'identite' ? 'Parti pris' : 'Phrase', true)}
+      {t === 'image' && champ('image', 'Image du kit (nom du fichier)')}
+      {['besoin', 'cartes', 'texte', 'questions', 'maquette', 'message', 'identite', 'parcours', 'equipe', 'grille', 'references'].includes(t) && (
+        <label class="champ">{t === 'maquette' ? 'Trois repères' : t === 'grille' || t === 'references' ? 'Cartes' : 'Points'} (un par ligne, « Titre : détail »{t === 'grille' || t === 'references' ? ', puis « | valeur | légende »' : ''}{['cartes', 'besoin', 'equipe', 'identite', 'parcours'].includes(t) ? ', puis « | picto »' : ''})<textarea rows={5} value={dePoints(s.points)} onInput={(e) => changer({ ...s, points: enPoints(e.target.value) })} /></label>)}
+      {t === 'perimetre' && (<>
+        <label class="champ">Application : nom<input value={s.centre?.titre || ''} onInput={(e) => changer({ ...s, centre: { ...(s.centre || {}), titre: e.target.value } })} /></label>
+        <label class="champ">Modules (un par ligne)<textarea rows={4} value={(s.centre?.modules || []).join('\n')} onInput={(e) => changer({ ...s, centre: { ...(s.centre || {}), modules: lignes(e.target.value) } })} /></label>
+        <label class="champ">Systèmes à gauche (« Nom : rôle »)<textarea rows={3} value={dePoints(s.gauche)} onInput={(e) => changer({ ...s, gauche: enPoints(e.target.value) })} /></label>
+        <label class="champ">Systèmes à droite (« Nom : rôle »)<textarea rows={3} value={dePoints(s.droite)} onInput={(e) => changer({ ...s, droite: enPoints(e.target.value) })} /></label>
+      </>)}
+      {(t === 'besoin' || t === 'budget' || t === 'equipe') && (<>
+        <label class="champ">{t === 'budget' ? 'Encart : titre' : 'Colonne rouge : titre'}<input value={s.colonne?.titre || ''} onInput={(e) => changer({ ...s, colonne: { ...(s.colonne || {}), titre: e.target.value } })} /></label>
+        <label class="champ">{t === 'besoin' ? 'Objectifs' : t === 'equipe' ? 'Engagements' : 'Lignes'} (un par ligne)<textarea rows={4} value={(s.colonne?.points || []).join('\n')} onInput={(e) => changer({ ...s, colonne: { ...(s.colonne || {}), points: lignes(e.target.value) } })} /></label>
       </>)}
       {(t === 'chiffres' || t === 'budget') && <label class="champ">Chiffres (« valeur | unité | légende », un par ligne)<textarea rows={4} value={(s.chiffres || []).map((c) => [c.valeur, c.unite || '', c.legende || ''].join(' | ')).join('\n')} onInput={(e) => changer({ ...s, chiffres: parBarres(e.target.value, ['valeur', 'unite', 'legende']).filter((c) => c.valeur) })} /></label>}
       {t === 'lots' && <label class="champ">Lots (« nom | sous-titre | durée | élément ; élément », un par ligne, le premier mis en avant)<textarea rows={5} value={(s.lots || []).map((l) => [l.nom, l.sous_titre || '', l.duree || '', (l.elements || []).join(' ; ')].join(' | ')).join('\n')}
@@ -77,7 +100,7 @@ function Formulaire({ s, d, changer, reprendre, occupe }) {
           onInput={(e) => changer({ ...s, jalons: parBarres(e.target.value, ['libelle', 'semaine']).filter((j) => j.libelle).map((j) => ({ ...j, ...(j.semaine ? { semaine: Number(j.semaine) || 1 } : {}) })) })} /></label>
       </>)}
       {(t === 'maquette' || t === 'message') && <label class="champ">Maquette<select value={s.maquette || ''} onChange={(e) => changer({ ...s, maquette: e.target.value || undefined })}><option value="">Aucune</option>{d.maquettes.map((m) => <option key={m.id} value={m.id}>{m.titre}{m.ecran_nom ? ` (${m.ecran_nom})` : ''}</option>)}</select></label>}
-      {['cartes', 'chiffres', 'lots', 'texte'].includes(t) && (
+      {['cartes', 'chiffres', 'lots', 'texte', 'grille', 'perimetre'].includes(t) && (
         <div class="ligne" style="gap:6px;flex-wrap:nowrap"><label class="champ" style="width:110px">Bandeau<input value={s.bandeau?.libelle || ''} placeholder="Règle d'or" onInput={(e) => changer({ ...s, bandeau: { ...(s.bandeau || {}), libelle: e.target.value } })} /></label>
           <label class="champ espace">&nbsp;<input value={s.bandeau?.texte || ''} placeholder="La phrase à retenir" onInput={(e) => changer({ ...s, bandeau: { ...(s.bandeau || {}), texte: e.target.value } })} /></label></div>)}
       {champ('notes', 'Notes de l\'orateur', true)}
@@ -125,7 +148,7 @@ function Deck({ projet, etat }) {
   const [largeur, setLargeur] = useState(760);
   useEffect(() => {
     if (!scene.current) return undefined;
-    const o = new ResizeObserver(() => setLargeur(Math.min(L, scene.current.clientWidth)));
+    const o = new ResizeObserver(() => setLargeur(Math.min(L, scene.current?.clientWidth || L)));
     o.observe(scene.current);
     return () => o.disconnect();
   }, [scene.current]);
@@ -134,10 +157,11 @@ function Deck({ projet, etat }) {
   useEffect(() => { police('Asap'); appel(base).then(recevoir).catch((e) => setErreur(e.message)); }, []);
   const vus = d?.en_attente ? d.en_attente : deck;
   const images = useImages(projet, vus?.slides || [], d?.maquettes || []);
+  const kit = useKit();
   if (!d || !deck) return <Attente erreur={erreur} />;
   const affiche = d.en_attente ? { ...deck, titre: d.en_attente.titre, client: d.en_attente.client, date: deck.date || d.en_attente.date, slides: d.en_attente.slides } : deck;
   const secs = sections(affiche.slides);
-  const rendu = (s, i) => <Slide s={s} deck={affiche} n={i + 1} section={secs[i]} images={images} maquettes={d.maquettes} piste={d.piste} />;
+  const rendu = (s, i) => <Slide s={s} deck={affiche} n={i + 1} section={secs[i]} images={images} maquettes={d.maquettes} piste={d.piste} kit={kit?.visuels || {}} />;
   const faire = async (f) => { setOccupe(true); setMessage(null); try { recevoir(await f()); return true; } catch (e) { setMessage(e.message); return false; } finally { setOccupe(false); } };
   const enregistrer = () => faire(() => appel(base, { corps: { proposition: deck, message: 'Proposition : relecture' } }));
   const changerSlide = (ns) => { setDeck({ ...deck, slides: deck.slides.map((x, j) => (j === sel ? ns : x)) }); setModifie(true); };
@@ -176,6 +200,7 @@ function Deck({ projet, etat }) {
           {d.existe && <BoutonRevue projet={projet} cible={{ type: 'proposition', id: 'proposition' }} titre="Proposition commerciale" corriger={(consigne) => rediger({ demande: consigne })} />}
           {d.existe && <BoutonComite projet={projet} cible={{ type: 'proposition', id: 'proposition' }} />}
           {d.existe && <BoutonMail projet={projet} genre="proposition" source={{ type: 'proposition', id: 'proposition' }} libelle="Mail d'envoi" />}
+          {d.existe && <button class="bouton" disabled={occupe} title="Reprend le planning et le budget du chiffrage, et la présentation de 4SH du kit" onClick={() => faire(() => appel(`${base}/actualiser`, { corps: {} }))}><RefreshCw size={15} /> Reprendre le chiffrage</button>}
           {d.existe && <button class="bouton" onClick={() => setPresenter(true)}><Play size={15} /> Présenter</button>}
           {d.existe && <button class="bouton" disabled={!!export_ && !export_.fini} onClick={() => exporter('pdf')}><FileDown size={15} /> PDF</button>}
           {d.existe && <button class="bouton" disabled={!!export_ && !export_.fini} onClick={() => exporter('pptx')}><Presentation size={15} /> PowerPoint</button>}
@@ -193,6 +218,7 @@ function Deck({ projet, etat }) {
     <>
       {entete}
       <ConnexionClaude claude={claude} setClaude={setClaude} usage="La rédaction de la proposition" />
+      {kit && !kit.present && <p class="encart e-orange">Le kit de présentation 4SH n'est pas importé sur ce poste : le deck garde les couleurs et la typographie de la charte, sans les photos, le logo ni les losanges. Importe-le dans Paramètres.</p>}
       {message && <p class="encart e-rouge">{message}</p>}
       {export_ && (
         <div class="encart e-indigo"><span class="espace">{export_.fini ? <>Enregistré dans Téléchargements : <strong>{export_.fini.nom}</strong></> : `Préparation de l'export, slide ${export_.i || 1} sur ${export_.n || deck.slides.length}…`}</span>

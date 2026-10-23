@@ -27,6 +27,7 @@ from .backlog import ErreurEvolution
 from .campagnes import ErreurRecette
 from .documentation import ErreurDocumentation
 from .crud import ErreurCrud
+from .kit import ErreurKit
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -691,6 +692,9 @@ def _proposition(methode, pid, racine, reste, corps):
         return pr.vue(racine, pid)
     if reste == ["exporter"] and methode == "POST":
         return pr.exporter(racine, str(corps.get("format", "")), corps.get("images") or [], corps.get("nom") or None)
+    if reste == ["actualiser"] and methode == "POST":
+        pr.actualiser(racine)
+        return {**pr.vue(racine, pid), **application.enregistrer_et_envoyer(pid, "Proposition : chiffrage et présentation de 4SH repris")}
     raise Erreur("Ressource inconnue.", 404)
 
 
@@ -847,6 +851,13 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return github.proprietaires()
         if methode == "GET" and morceaux[1:] == ["depots"]:
             return {"depots": github.depots(requete.get("q", [""])[0])}
+    if morceaux == ["kit"]:
+        from . import kit
+        if methode == "POST":
+            kit.importer(str(corps.get("dossier") or ""))
+        if methode == "DELETE":
+            kit.oublier()
+        return {**kit.etat(), "visuels": kit.images() if requete.get("images") else {}}
     if morceaux == ["reglages"]:
         if methode == "POST":
             reglages.ecrire(corps)
@@ -1007,7 +1018,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, ErreurDocumentation, ErreurCrud, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, ErreurDocumentation, ErreurCrud, ErreurKit, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

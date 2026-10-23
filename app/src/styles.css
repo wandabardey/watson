@@ -392,116 +392,137 @@ details summary { cursor: pointer; display: inline-flex; align-items: center; ga
 .presentation-barre .bouton { background: #1F1D1F; color: #fff; border-color: #333; }
 .presentation-notes { flex: 1; color: #71717A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Proposition commerciale : les slides (charte 4SH affinée, couverture Nuit) */
-.sl { --rouge:#E62D36; --rouge-p:#B8141D; --encre:#211E1E; --t:#5C5757; --d:#8F8989; --l:#ECE8E6; --chaud:#F7F4F2;
-  position: relative; width: 960px; height: 540px; overflow: hidden; background: #fff; font-family: Asap, Arial, sans-serif; color: var(--t); text-align: left; }
+/* Proposition commerciale : les slides, à la charte des présentations 4SH (canevas 960 × 540, moitié du 1920 × 1080).
+   Les visuels (photos en losanges, coin rouge, losanges, encoche, logos) viennent du kit : jamais redessinés. */
+.sl { --rouge:#E62D36; --rouge-f:#C6131D; --anth:#4B4949; --t:#5A5A5A; --fort:#3A3838; --surf:#F5F5F7; --rose:#FDEBEC;
+  position: relative; width: 960px; height: 540px; overflow: hidden; background: #fff; font-family: Asap, Arial, sans-serif; color: var(--t); text-align: left; line-height: 1.3; }
 .sl * { box-sizing: border-box; }
-.sl-sur { position: absolute; left: 56px; top: 44px; font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--rouge); }
-.sl-sur::before { content: ""; display: inline-block; width: 7px; height: 7px; background: var(--rouge); transform: rotate(45deg); margin: 0 10px 1px 1px; }
-.sl-titre { position: absolute; left: 56px; top: 64px; width: 820px; margin: 0; font-weight: 800; font-size: 30px; line-height: 1.15; letter-spacing: -.01em; color: var(--encre); }
-.sl-pied { position: absolute; left: 56px; right: 56px; bottom: 22px; display: flex; justify-content: space-between; font-size: 10.5px; color: var(--d); border-top: 1px solid var(--l); padding-top: 9px; }
-.sl-pied b { color: var(--rouge); font-weight: 800; }
-.sl-trait { position: absolute; width: 420px; height: 420px; border: 1.5px solid rgba(255,255,255,.18); transform: rotate(45deg); }
-.sl-trait.petit { width: 220px; height: 220px; right: -110px; bottom: -110px; }
-.sl-losange { display: inline-block; flex: 0 0 8px; width: 8px; height: 8px; background: var(--rouge); transform: rotate(45deg); }
-/* couverture et fin : Nuit */
-.sl-nuit { background: #121012; color: #fff; }
-.sl-lum { position: absolute; right: -140px; top: -120px; width: 620px; height: 620px; background: radial-gradient(closest-side, rgba(230,45,54,.55), rgba(230,45,54,0)); }
-.sl-los1 { position: absolute; right: 120px; top: 120px; width: 250px; height: 250px; border: 1.5px solid rgba(255,255,255,.22); transform: rotate(45deg); }
-.sl-los2 { position: absolute; right: 205px; top: 205px; width: 80px; height: 80px; background: var(--rouge); transform: rotate(45deg); }
-.sl-haut { position: absolute; left: 60px; top: 46px; right: 60px; display: flex; justify-content: space-between; font-size: 13px; color: rgba(255,255,255,.6); }
-.sl-haut strong { color: #fff; font-size: 18px; font-weight: 900; }
-.sl-tag { position: absolute; left: 60px; top: 190px; display: inline-flex; gap: 8px; align-items: center; padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(255,255,255,.22); font-size: 12.5px; color: rgba(255,255,255,.85); }
-.sl-tag i { width: 7px; height: 7px; background: var(--rouge); transform: rotate(45deg); }
-.sl-couv-titre { position: absolute; left: 60px; top: 236px; width: 580px; margin: 0; font-size: 50px; line-height: 1.02; letter-spacing: -.04em; font-weight: 800; color: #fff; }
-.sl-couv-titre span { color: rgba(255,255,255,.45); }
-.sl-couv-bas { position: absolute; left: 60px; bottom: 44px; font-size: 13px; color: rgba(255,255,255,.55); }
-/* intercalaire */
-.sl-section { background: var(--rouge-p); color: #fff; }
-.sl-grand { position: absolute; left: 44px; top: 96px; font-size: 230px; font-weight: 800; line-height: 1; color: transparent; -webkit-text-stroke: 1.5px rgba(255,255,255,.35); letter-spacing: -.04em; }
-.sl-section-titre { position: absolute; left: 60px; top: 330px; font-size: 36px; font-weight: 800; letter-spacing: -.01em; }
-.sl-section-sous { position: absolute; left: 60px; top: 380px; font-size: 17px; color: rgba(255,255,255,.82); }
-/* besoin */
-.sl-constats { position: absolute; left: 56px; top: 150px; width: 430px; }
-.sl-constat { display: flex; gap: 16px; padding: 15px 0; border-top: 1px solid var(--l); }
-.sl-constat > span { font-size: 13px; font-weight: 800; color: var(--rouge); width: 22px; }
-.sl-constat b { display: block; color: var(--encre); font-size: 16px; margin-bottom: 3px; }
-.sl-constat em { font-style: normal; font-size: 13px; line-height: 1.45; }
-.sl-objectifs { position: absolute; right: 40px; top: 132px; width: 380px; bottom: 62px; background: var(--rouge-p); border-radius: 18px; color: #fff; padding: 28px 30px; overflow: hidden; }
-.sl-objectifs h3 { margin: 0 0 20px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.75); }
-.sl-obj { display: flex; gap: 14px; margin-bottom: 16px; font-size: 15px; line-height: 1.35; font-weight: 500; }
-.sl-obj b { opacity: .6; font-weight: 800; }
-/* points, cartes */
-.sl-points { position: absolute; left: 56px; top: 150px; display: flex; flex-direction: column; }
-.sl-point { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--l); flex: 1; }
-.sl-points[style*="row"] { left: 56px; right: 56px; gap: 24px; }
-.sl-n { flex: 0 0 22px; height: 22px; border-radius: 50%; background: var(--rouge); color: #fff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-.sl-point b { display: block; color: var(--encre); font-size: 15.5px; margin-bottom: 2px; }
-.sl-point span { font-size: 12.5px; line-height: 1.45; }
-.sl-cartes { position: absolute; left: 56px; right: 56px; top: 150px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.sl-cartes.quatre { grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
-.sl-carte { display: flex; flex-direction: column; gap: 6px; padding: 22px 22px; border-radius: 16px; background: var(--chaud); }
-.sl-carte .sl-losange { margin-bottom: 8px; }
-.sl-carte b { color: var(--encre); font-size: 17px; }
-.sl-carte span { font-size: 13px; line-height: 1.45; }
-.sl-texte-bas { position: absolute; left: 56px; right: 56px; bottom: 112px; font-size: 14px; color: var(--encre); }
-.sl-bandeau { position: absolute; left: 56px; right: 56px; bottom: 56px; font-size: 14px; color: var(--encre); }
-.sl-bandeau b { color: var(--rouge); }
-/* chiffres, budget */
-.sl-chiffres { position: absolute; left: 56px; right: 56px; top: 170px; display: grid; grid-template-columns: repeat(3, 1fr); }
-.sl-chiffre { padding: 0 26px; border-left: 1px solid var(--l); }
-.sl-chiffre:first-child { padding-left: 0; border-left: 0; }
-.sl-chiffre .v { font-size: 52px; font-weight: 800; letter-spacing: -.03em; color: var(--rouge); line-height: 1; }
-.sl-chiffre .v small { font-size: 24px; letter-spacing: 0; }
-.sl-chiffre p { margin: 12px 0 0; font-size: 14px; line-height: 1.45; }
-.sl-inclus { position: absolute; left: 56px; right: 56px; top: 330px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--encre); }
-.sl-inclus b { width: 100%; color: var(--rouge); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
-.sl-mention { position: absolute; left: 56px; right: 56px; bottom: 60px; font-size: 11px; color: var(--d); }
-/* lots */
-.sl-lots { position: absolute; left: 56px; right: 56px; top: 140px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; }
-.sl-lots:has(> :nth-child(3)) { grid-template-columns: repeat(3, 1fr); }
-.sl-lot { border-radius: 16px; padding: 22px 24px; border: 1px solid var(--l); background: #fff; }
-.sl-lot.mvp { background: var(--chaud); border-color: transparent; box-shadow: inset 4px 0 0 var(--rouge); }
-.sl-lot-tete { display: flex; align-items: baseline; justify-content: space-between; }
-.sl-lot h4 { margin: 0; font-size: 22px; font-weight: 800; color: var(--encre); }
-.sl-lot.mvp h4 { color: var(--rouge); }
-.sl-lot-tete span { font-size: 12px; font-weight: 700; color: var(--d); }
-.sl-lot-sous { font-size: 13px; margin: 4px 0 10px; }
-.sl-lot ul { list-style: none; margin: 0; padding: 0; font-size: 13px; color: #3A3636; }
-.sl-lot li { display: flex; gap: 10px; align-items: center; padding: 5px 0; border-top: 1px solid rgba(0,0,0,.05); }
-.sl-lot li::before { content: ""; flex: 0 0 6px; height: 6px; background: var(--rouge); transform: rotate(45deg); }
-.sl-lot:not(.mvp) li::before { background: #C9C2C0; }
-/* parcours */
-.sl-flux { position: absolute; left: 56px; right: 56px; top: 170px; display: flex; align-items: center; gap: 10px; }
-.sl-etape { flex: 1; display: flex; align-items: center; gap: 10px; padding: 16px 16px; border-radius: 14px; background: var(--chaud); font-size: 14px; font-weight: 700; color: var(--encre); }
+.sl img.k { position: absolute; display: block; pointer-events: none; }
+.sl-num { position: absolute; right: 24px; bottom: 14px; font-size: 11px; color: #9A9696; }
+.sl-titre { position: absolute; left: 50px; top: 24px; right: 90px; margin: 0; font-size: 27px; font-weight: 800; color: var(--rouge); line-height: 1.15; }
+.sl-zone { position: absolute; left: 33px; right: 33px; top: 104px; bottom: 44px; display: flex; flex-direction: column; gap: 14px; }
+.sl-acf { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 99px; background: #FFF1CC; color: #8A5A00; font-size: 11px; font-weight: 700; vertical-align: middle; }
+.sl-ico { width: 32px; height: 32px; border-radius: 50%; background: var(--rose); color: var(--rouge); display: grid; place-items: center; flex: 0 0 auto; }
+.sl-ico svg { width: 16px; height: 16px; }
+.sl-pastille { width: 26px; height: 26px; border-radius: 50%; background: var(--rouge); color: #fff; font-weight: 700; font-size: 13px; display: grid; place-items: center; flex: 0 0 auto; }
+/* Couverture, intercalaire, fin */
+.sl-couv { position: absolute; left: 25px; top: 190px; width: 470px; display: flex; flex-direction: column; gap: 26px; }
+.sl-couv-titre { margin: 0; font-size: 34px; font-weight: 700; color: var(--rouge-f); line-height: 1.18; }
+.sl-couv-sous { font-size: 19px; font-weight: 600; color: var(--anth); }
+.sl-section { background: var(--rouge); }
+.sl-section-titre { position: absolute; left: 0; right: 0; top: 318px; text-align: center; color: #fff; font-size: 30px; font-weight: 700; white-space: pre; }
+.sl-section-sous { position: absolute; left: 0; right: 0; top: 400px; text-align: center; color: #fff; font-size: 17px; font-weight: 600; }
+.sl-merci { position: absolute; left: 176px; top: 196px; font-size: 30px; font-weight: 700; color: var(--anth); }
+.sl-liens { position: absolute; left: 30px; bottom: 60px; display: flex; flex-direction: column; gap: 14px; font-size: 13px; font-weight: 700; color: var(--anth); }
+.sl-liens span { display: flex; align-items: center; gap: 10px; }
+.sl-liens i { width: 20px; height: 20px; border-radius: 50%; background: var(--rouge); color: #fff; display: grid; place-items: center; font-style: normal; font-size: 10px; font-weight: 800; }
+/* Cartes, chiffres, grilles */
+.sl-cartes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.sl-cartes.quatre { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sl-carte { background: var(--surf); border-radius: 12px; padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 150px; }
+.sl-carte b { color: var(--rouge); font-size: 16px; font-weight: 700; }
+.sl-carte span { font-size: 12.5px; color: var(--t); }
+.sl-chiffres { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 18px; margin-top: 30px; }
+.sl-chiffre .v { font-size: 36px; font-weight: 700; color: var(--rouge); line-height: 1.05; white-space: nowrap; }
+.sl-chiffre .v small { font-size: 18px; }
+.sl-chiffre p { margin: 8px 0 0; font-size: 12.5px; color: var(--t); }
+.sl-grille { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.sl-grille.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.sl-case { background: var(--surf); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-height: 76px; }
+.sl-case .v { font-size: 25px; font-weight: 700; color: var(--rouge); line-height: 1.1; }
+.sl-case b { font-size: 12.5px; font-weight: 700; color: #262626; }
+.sl-case span { font-size: 11.5px; }
+.sl-grille.trois .sl-case { min-height: 104px; }
+.sl-grille.trois .sl-case .v { font-size: 20px; }
+.sl-refs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; height: 250px; }
+.sl-ref { background: var(--surf); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.sl-ref b { font-size: 14px; color: #262626; }
+.sl-ref span { font-size: 11.5px; }
+.sl-ref .v { margin-top: auto; font-size: 28px; font-weight: 700; color: var(--rouge); }
+.sl-ref em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #262626; }
+.sl-image { flex: 1; display: grid; place-items: center; min-height: 0; }
+.sl-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.sl-bandeau { margin-top: auto; background: var(--rose); border-radius: 12px; min-height: 44px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--fort); }
+.sl-bandeau b { color: var(--rouge-f); }
+.sl-bandeau .sl-ico { width: 24px; height: 24px; background: #fff; }
+.sl-texte-bas { font-size: 13px; color: var(--t); }
+/* Colonne rouge (besoin, budget, équipe) */
+.sl-col { position: absolute; left: 479px; right: 0; top: 0; bottom: 0; background: var(--rouge); color: #fff; padding: 110px 50px 40px 56px; display: flex; flex-direction: column; gap: 14px; }
+.sl-col h3 { margin: 0; font-size: 19px; font-weight: 700; }
+.sl-col .obj { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 13px; align-items: baseline; }
+.sl-col .obj b { font-size: 18px; }
+.sl-gauche { position: absolute; left: 33px; top: 104px; width: 420px; bottom: 44px; display: flex; flex-direction: column; gap: 18px; }
+.sl-pt { display: flex; gap: 12px; align-items: flex-start; }
+.sl-pt div { display: flex; flex-direction: column; gap: 3px; }
+.sl-pt b { font-size: 13.5px; color: #262626; }
+.sl-pt span { font-size: 12px; }
+/* Périmètre */
+.sl-perim { display: grid; grid-template-columns: 160px 30px minmax(0, 1fr) 30px 160px; align-items: center; gap: 8px; flex: 1; }
+.sl-perim-cote { display: flex; flex-direction: column; gap: 10px; }
+.sl-sys { background: var(--surf); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.sl-sys b { font-size: 13px; color: #262626; } .sl-sys span { font-size: 11px; }
+.sl-fl { color: var(--rouge); font-size: 26px; font-weight: 700; text-align: center; }
+.sl-centre { background: var(--rouge); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; color: #fff; }
+.sl-centre h4 { margin: 0; font-size: 15px; }
+.sl-modules { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sl-modules span { background: #fff; color: #262626; border-radius: 7px; padding: 7px 8px; font-size: 11.5px; font-weight: 700; text-align: center; }
+/* Lots */
+.sl-lots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; }
+.sl-lot { background: var(--surf); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; color: #262626; }
+.sl-lot.mvp { background: var(--rouge); color: #fff; }
+.sl-lot-tete { display: flex; align-items: center; gap: 10px; }
+.sl-lot-tete h4 { margin: 0; font-size: 19px; flex: 1; }
+.sl-lot-tete span { border-radius: 99px; background: var(--rouge); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; }
+.sl-lot.mvp .sl-lot-tete span { background: #fff; color: var(--rouge); }
+.sl-lot-sous { font-size: 12px; opacity: .9; }
+.sl-lot ul { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; }
+.sl-lot li { display: flex; gap: 8px; align-items: center; }
+.sl-lot li svg { width: 15px; height: 15px; flex: 0 0 auto; }
+/* Parcours */
+.sl-flux { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.sl-etape { flex: 1; background: var(--surf); border-radius: 10px; min-height: 64px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #262626; text-align: center; }
 .sl-etape.fin { background: var(--rouge); color: #fff; }
-.sl-etape.fin .sl-losange { background: #fff; }
-.sl-fleche { color: var(--rouge); font-weight: 800; }
-.sl-alternatif { position: absolute; left: 56px; top: 250px; padding: 8px 14px; border-radius: 99px; background: #FCEDEC; font-size: 13px; color: var(--encre); }
-/* maquette, message */
-.sl-capture { position: absolute; left: 56px; top: 142px; width: 520px; height: 318px; background: var(--chaud); border-radius: 18px; padding: 20px 22px 0; overflow: hidden; display: flex; justify-content: center; }
-.sl-capture img { width: 100%; height: auto; align-self: flex-start; border-radius: 10px 10px 0 0; box-shadow: 0 12px 30px rgba(40,20,20,.10); }
-.sl-capture.mobile img { width: 180px; border-radius: 22px 22px 0 0; box-shadow: 0 0 0 5px #18181B; }
-.sl-vide { align-self: center; font-size: 13px; color: var(--d); }
-.sl-message { position: absolute; left: 612px; top: 150px; width: 300px; font-size: 17px; line-height: 1.35; color: var(--encre); font-weight: 600; }
-/* identité */
-.sl-parti { position: absolute; left: 56px; top: 142px; width: 500px; font-size: 15px; line-height: 1.5; color: var(--encre); }
-.sl-palette { position: absolute; left: 56px; top: 250px; display: grid; grid-template-columns: repeat(4, 112px); gap: 14px 12px; }
-.sl-palette div { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; }
-.sl-palette i { display: block; height: 52px; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
-.sl-typo { position: absolute; left: 56px; bottom: 60px; display: flex; align-items: baseline; gap: 12px; }
-.sl-typo span { font-size: 40px; font-weight: 700; color: var(--encre); }
-.sl-typo small { font-size: 12px; }
-/* planning */
-.sl-echelle span { position: absolute; top: 146px; font-size: 9.5px; color: var(--d); transform: translateX(-50%); }
-.sl-phase { position: absolute; left: 56px; right: 56px; height: 40px; }
-.sl-phase-nom { position: absolute; left: 0; width: 230px; display: flex; flex-direction: column; font-size: 11.5px; }
-.sl-phase-nom b { font-size: 14px; color: var(--encre); }
-.sl-barre { position: absolute; top: 8px; height: 20px; border-radius: 99px; background: var(--rouge); margin-left: -56px; }
-.sl-jalon { position: absolute; top: 400px; display: flex; flex-direction: column; align-items: center; gap: 4px; transform: translateX(-50%); font-size: 11.5px; color: var(--encre); font-weight: 700; }
-.sl-jalon i { width: 10px; height: 10px; background: #4B4949; transform: rotate(45deg); }
-.sl-acf { display: inline-flex; align-items: center; padding: 1px 9px; border-radius: 99px; background: #FFF1CC; color: #8A5A00; font-size: 12px; font-weight: 700; letter-spacing: 0; vertical-align: middle; }
-.sl-chiffre .v .sl-acf { font-size: 16px; padding: 4px 12px; }
+.sl-etape svg { width: 16px; height: 16px; color: var(--rouge); } .sl-etape.fin svg { color: #fff; }
+.sl-fleche { color: var(--rouge); font-weight: 800; font-size: 18px; }
+.sl-alternatif { align-self: center; background: var(--rose); border-radius: 99px; padding: 8px 22px; font-size: 12.5px; color: var(--fort); }
+.sl-alternatif b { color: var(--rouge-f); }
+.sl-ligne3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: auto; }
+/* Maquette commentée */
+.sl-capture { position: absolute; left: 29px; top: 104px; width: 548px; height: 374px; background: var(--surf); border-radius: 14px; overflow: hidden; display: grid; place-items: center; padding: 14px; }
+.sl-capture img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+.sl-capture.mobile img { border-radius: 18px; box-shadow: 0 0 0 5px #1F1F1F, 0 6px 18px rgba(0,0,0,.2); }
+.sl-vide { color: #A09A9A; font-size: 13px; }
+.sl-droite { position: absolute; left: 606px; right: 33px; top: 118px; display: flex; flex-direction: column; gap: 22px; }
+.sl-message { font-size: 15px; font-weight: 600; color: var(--fort); }
+/* Identité */
+.sl-palette { display: flex; flex-wrap: wrap; gap: 8px; }
+.sl-palette div { display: flex; flex-direction: column; gap: 4px; width: 62px; font-size: 10px; }
+.sl-palette i { height: 46px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+.sl-typo { display: flex; align-items: baseline; gap: 12px; } .sl-typo span { font-size: 54px; color: #262626; } .sl-typo small { font-size: 12px; }
+.sl-carte-d { position: absolute; left: 500px; right: 33px; top: 104px; bottom: 50px; background: var(--surf); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 18px; }
+/* Planning */
+.sl-echelle span { position: absolute; top: 112px; font-size: 9.5px; color: #8F8B8B; transform: translateX(-50%); }
+.sl-phase { position: absolute; left: 33px; right: 33px; height: 40px; }
+.sl-phase-nom { position: absolute; left: 0; width: 230px; display: flex; flex-direction: column; } .sl-phase-nom b { font-size: 13px; color: #262626; } .sl-phase-nom span { font-size: 10.5px; }
+.sl-barre { position: absolute; top: 6px; height: 20px; border-radius: 10px; background: var(--rouge); }
+.sl-jalon { position: absolute; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); font-size: 10.5px; text-align: center; color: var(--t); }
+.sl-jalon i { width: 10px; height: 10px; background: var(--anth); transform: rotate(45deg); margin-bottom: 7px; }
+.sl-jalon b { color: #262626; }
+.sl-pointille { position: absolute; width: 0; border-left: 1.5px dashed var(--anth); }
+/* Budget */
+.sl-budget { position: absolute; left: 33px; top: 104px; width: 410px; bottom: 30px; display: flex; flex-direction: column; gap: 10px; }
+.sl-budget .sur { font-size: 13px; font-weight: 700; color: #262626; }
+.sl-budget .gros { font-size: 38px; font-weight: 700; color: var(--rouge); line-height: 1.05; }
+.sl-lignes { display: flex; flex-direction: column; gap: 9px; font-size: 12px; }
+.sl-lignes div { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: baseline; }
+.sl-lignes b { color: #262626; } .sl-lignes em { font-style: normal; font-weight: 700; color: #262626; text-align: right; }
+.sl-col .sl-lignes b, .sl-col .sl-lignes em { color: #fff; }
+.sl-col .gros { font-size: 30px; font-weight: 700; line-height: 1.1; }
+.sl-mention { font-size: 10px; font-style: italic; color: var(--t); margin-top: auto; }
+.sl-col .sl-mention { color: #fff; font-style: normal; }
+.sl-coche { display: flex; gap: 10px; align-items: center; font-size: 13px; }
+.sl-coche svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.sl-rouge-txt { font-size: 13px; font-weight: 700; color: var(--rouge); }
 
 /* Sujets en attente */
 .sujet.tranche { background: #FCFCFD; }
