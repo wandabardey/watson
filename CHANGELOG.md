@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.35.0 (2026-10-23)
+
+- Passage en code : Watson code les écrans depuis les maquettes validées, reporte le design system ou crée l'application, sur une branche, construite puis proposée en demande de fusion
+
 ## 0.34.0 (2026-10-23)
 
 - Évolutions : la spec d'une évolution se travaille sur une branche de la base, se valide puis se fusionne dans la version de travail
