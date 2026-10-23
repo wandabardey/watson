@@ -44,7 +44,11 @@ def test_calcul_du_dossier_de_reference():
 
 def test_enregistrer_hypotheses_et_elements(projet):
     v = ch.vue(projet)
-    assert not v["existe"] and v["chiffrage"]["tjm"] is None
+    assert not v["existe"] and v["chiffrage"]["tjm"] == 640  # taux par défaut
+    assert ch.changer_defaut({"tjm": "650,5"})["tjm"] == 650.5 and ch.lire(projet)["tjm"] == 650.5
+    with pytest.raises(ErreurAvantProjet):
+        ch.changer_defaut({"tjm": "beaucoup"})
+    assert ch.changer_defaut({"tjm": ""})["tjm"] is None
     assert v["elements"][0]["ecrans"] > 0 and sum(x["flux"] for x in v["elements"]) == 2
     c = ch.enregistrer(projet, {"tjm": "620", "duree_sprint": 1, "profils": [{"nom": "PO", "jours_par_sprint": 5}],
                                 "phases": [{"nom": "MVP \u2014 premier lot", "modalite": "sprints", "sprints": 2}, {"id": "mvp", "nom": "Bis", "modalite": "forfait", "jours": 3}],
@@ -68,7 +72,7 @@ def test_proposition(projet):
                                 result=json.dumps({"phases": PHASES[:2] + [{"nom": "x", "modalite": "inconnue"}], "annonce": ["cadrage", "mvp"],
                                                    "profils": [{"nom": "PO/UX", "jours_par_sprint": 5}], "a_confirmer": ["Équipe type"], "resume": "Deux phases."}))
     v = ch.proposer("p1", projet, requete=requete)
-    assert "Taux journalier : non renseigné" in vus[0] and "flux externes" in vus[0]
+    assert "Taux journalier : 640" in vus[0] and "flux externes" in vus[0]
     att = v["en_attente"]
     assert [p["id"] for p in att["chiffrage"]["phases"]] == ["cadrage", "mvp"] and att["chiffrage"]["profils"][0]["nom"] == "PO/UX"
     v = ch.garder("p1", projet)

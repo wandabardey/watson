@@ -1,4 +1,4 @@
-"""Avant-projet : le chiffrage. Le commerce fixe les prix ; Watson pose les hypothèses (taux journalier, équipe type,
+"""Avant-projet : le chiffrage. Le commerce fixe les prix ; Watson pose les hypothèses (taux journalier, 640 € HT par défaut et modifiable, équipe type,
 durée d'un sprint), calcule les montants de chaque phase et la fourchette du socle, tire de la base les éléments qui
 justifient une durée (ce que contient chaque lot), et peut proposer un découpage en phases et en sprints argumenté.
 
@@ -21,6 +21,7 @@ from .avant_projet import DOSSIER, ErreurAvantProjet, _dossier_propositions, eca
 from .chargement import charger
 from .ecriture import aujourdhui, dump
 
+TJM_DEFAUT = 640  # € HT par jour, modifiable dans les Paramètres et pour chaque projet
 MODALITES = {"forfait": "Forfait", "sprints": "Sprints", "estimation": "Sprints, estimation", "fourchette": "Forfait après cadrage"}
 TXT = {"type": "string"}
 NOMBRE = {"type": "number", "minimum": 0}
@@ -65,7 +66,26 @@ def defaut() -> dict:
         d = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
     except ValueError:
         d = {}
-    return {"tjm": d.get("tjm"), "duree_sprint": d.get("duree_sprint") or 1, "profils": d.get("profils") or []}
+    return {"tjm": d["tjm"] if "tjm" in d else TJM_DEFAUT, "duree_sprint": d.get("duree_sprint") or 1, "profils": d.get("profils") or []}
+
+
+def changer_defaut(changements: dict) -> dict:
+    """Hypothèses habituelles réglées depuis les Paramètres (taux journalier, durée d'un sprint, équipe type)."""
+    d = defaut()
+    if "tjm" in changements:
+        v = changements["tjm"]
+        try:
+            d["tjm"] = None if v in (None, "") else float(str(v).replace(",", ".").replace(" ", "").replace("\u202f", ""))
+        except ValueError:
+            raise ErreurAvantProjet("Le taux journalier est un nombre.") from None
+        if d["tjm"] is not None and d["tjm"] < 0:
+            raise ErreurAvantProjet("Le taux journalier est un nombre positif.")
+    if changements.get("duree_sprint"):
+        d["duree_sprint"] = float(str(changements["duree_sprint"]).replace(",", "."))
+    if isinstance(changements.get("profils"), list):
+        d["profils"] = [{"nom": str(p.get("nom", "")), "jours_par_sprint": float(p.get("jours_par_sprint") or 0)} for p in changements["profils"] if isinstance(p, dict) and p.get("nom")]
+    _fichier_defaut().write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+    return defaut()
 
 
 def garder_defaut(racine: Path) -> dict:

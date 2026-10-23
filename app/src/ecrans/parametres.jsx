@@ -23,6 +23,10 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
   const [kit, setKit] = useState(null);
   const [dossierKit, setDossierKit] = useState('');
   useEffect(() => { appel('/kit').then(setKit).catch(() => {}); }, []);
+  const [hyp, setHyp] = useState(null);
+  const [tjm, setTjm] = useState('');
+  useEffect(() => { appel('/chiffrage').then((h) => { setHyp(h); setTjm(h.tjm ?? ''); }).catch(() => {}); }, []);
+  const changerTjm = async () => { setMessage(null); try { const h = await appel('/chiffrage', { corps: { tjm } }); setHyp(h); setTjm(h.tjm ?? ''); } catch (e) { setMessage(e.message); } };
   const changerKit = async (methode, corps) => { setMessage(null); try { setKit(await appel('/kit', methode === 'DELETE' ? { methode } : { corps })); setDossierKit(''); } catch (e) { setMessage(e.message); } };
   useEffect(() => { appel('/reglages').then((x) => { setR(x); if (!x.modeles.some((m) => m.id === x.modele)) setAutre(x.modele); }); }, []);
   const changer = async (c) => {
@@ -82,6 +86,12 @@ export function Parametres({ etat, retour, deconnecte, signalerMaj }) {
           : <p class="encart e-orange">{r.methode.choisi_introuvable ? 'Le dossier choisi ne contient plus 4ward.' : '4ward n\'a pas été trouvé sur ce poste.'} Watson applique ses consignes de base. Installe 4ward dans Claude, ou indique son dossier ci-dessous.</p>}
         <span class="ligne"><input class="saisie espace" placeholder="Dossier du plugin 4ward (celui qui contient « skills »)" value={dossier} onInput={(e) => setDossier(e.target.value)} />
           <button class="bouton" disabled={!dossier.trim()} onClick={() => changer({ dossier_4ward: dossier.trim() })}>Utiliser ce dossier</button></span>
+      </Section>
+
+      <Section titre="Chiffrage" description="Les hypothèses reprises pour chaque nouveau chiffrage. Chaque projet peut ensuite avoir les siennes, dans Proposition, onglet Chiffrage.">
+        <span class="ligne"><label class="champ" style="width:220px">Taux journalier par défaut (€ HT)<input inputMode="decimal" value={tjm} placeholder="à renseigner" onInput={(e) => setTjm(e.target.value)} /></label>
+          <button class="bouton" style="align-self:flex-end" disabled={String(tjm) === String(hyp?.tjm ?? '')} onClick={changerTjm}>Enregistrer</button>
+          {hyp?.profils?.length > 0 && <span class="doux petit" style="align-self:flex-end">Équipe type : {hyp.profils.map((p) => `${p.nom} ${p.jours_par_sprint} j`).join(', ')}</span>}</span>
       </Section>
 
       <Section titre="Kit de présentation 4SH" description="Les visuels du modèle de présentation 4SH (photos en losanges, logo, coin rouge, losanges) et la présentation de 4SH réutilisable, pour mettre le deck à la charte. Le kit reste sur ce poste : il n'est jamais copié dans les dépôts.">
