@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.34.0 (2026-10-23)
+
+- Évolutions : la spec d'une évolution se travaille sur une branche de la base, se valide puis se fusionne dans la version de travail
+
 ## 0.33.0 (2026-10-23)
 
 - Avancement des écrans : de la maquette validée au code livré, lu dans le dépôt de l'application ; validation des maquettes ; lien écran et code

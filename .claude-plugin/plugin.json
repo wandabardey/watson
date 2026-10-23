@@ -1,6 +1,6 @@
 {
   "name": "watson",
-  "version": "0.33.0",
+  "version": "0.34.0",
   "description": "Watson, le référentiel métier vivant : la source de vérité des règles métier d'un projet (entités, étapes, actions, règles, acteurs, parcours, écrans). Détecte les trous, pose les questions manquantes, mesure l'impact, gère versions et évolutions, propose les tests.",
   "author": {
     "name": "Wanda Bardey, 4SH"
