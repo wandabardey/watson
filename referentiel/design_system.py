@@ -200,6 +200,7 @@ def controles(ds: dict) -> list[str]:
 def vue(racine: Path) -> dict:
     from .avant_projet import lire_moodboard
     from .chargement import charger
+    from .livraisons import _depot
 
     ds = lire(racine)
     mb = lire_moodboard(racine) or {}
@@ -208,7 +209,7 @@ def vue(racine: Path) -> dict:
     return {"existe": ds is not None, "systeme": ds or {"fondations": fondations_vides(), "composants": [], "source": {"genre": "libre"}},
             "css": variables_css((ds or {}).get("fondations") or fondations_vides()), "controles": controles(ds or {}),
             "piste": {"id": piste["id"], "nom": piste["nom"]} if piste else None, "kits": KITS, "familles": FAMILLES,
-            "applications": [{"id": a["id"], "nom": a["nom"], "depot": a.get("depot", "")} for a in p.meta.get("applications") or []]}
+            "applications": [{"id": a["id"], "nom": a["nom"], "depot": str(_depot(racine, a) or "")} for a in p.meta.get("applications") or []]}
 
 
 # ---------------------------------------------------------------- départ depuis le starter
@@ -390,7 +391,7 @@ def importer_existant(racine: Path, application: str) -> dict:
         raise ErreurDesignSystem("Application inconnue.")
     depot = _depot(racine, app)
     if not depot:
-        raise ErreurDesignSystem(f"L'application « {app['nom']} » n'a pas de dépôt de code sur ce poste : indique-le dans Administration du projet.")
+        raise ErreurDesignSystem(f"L'application « {app['nom']} » n'a pas de dépôt de code sur ce poste : indique-le dans Passage en code, Réglages de l'application.")
     d = detecter(depot)
     actuel = lire(racine) or {}
     ds = {**actuel, "nom": actuel.get("nom") or "Design system",

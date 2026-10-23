@@ -52,7 +52,44 @@ def applications(p: Projet) -> list[dict]:
     return list(p.meta.get("applications") or [])
 
 
+def _fichier_local() -> Path:
+    from .application import dossier_donnees
+
+    return dossier_donnees() / "depots-code.json"
+
+
+def depots_locaux() -> dict:
+    import json
+
+    f = _fichier_local()
+    try:
+        return json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    except (ValueError, OSError):
+        return {}
+
+
+def definir_depot_local(racine: Path, app_id: str, chemin: str | None):
+    """Le dossier du dépôt de code de l'application sur ce poste (chaque poste a le sien, rien n'est partagé)."""
+    import json
+
+    d = depots_locaux()
+    cle = str(Path(racine).resolve())
+    d.setdefault(cle, {})
+    if chemin:
+        p = Path(chemin).expanduser()
+        if not p.is_dir():
+            raise ErreurVersion(f"Dossier introuvable sur ce poste : {p}")
+        d[cle][app_id] = str(p)
+    else:
+        d[cle].pop(app_id, None)
+    _fichier_local().write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
 def _depot(racine: Path, app: dict) -> Path | None:
+    """Le dépôt de code de l'application : celui choisi sur ce poste, sinon celui déclaré dans projet.yaml."""
+    local = (depots_locaux().get(str(Path(racine).resolve())) or {}).get(app.get("id", ""))
+    if local:
+        return Path(local)
     if not app.get("depot"):
         return None
     d = Path(app["depot"]).expanduser()

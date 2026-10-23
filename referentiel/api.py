@@ -450,6 +450,66 @@ def _crud(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _code(methode, pid, reste, corps):
+    from . import passage_code as pc
+
+    racine = application.chemin(pid)
+    try:
+        if not reste and methode == "GET":
+            return pc.vue(pid, racine)
+        if reste == ["lancer"] and methode == "POST":
+            ecrans = corps.get("ecrans")
+            pc.lancer(pid, racine, str(corps.get("application") or ""), str(corps.get("genre") or ""),
+                      [str(x) for x in ecrans] if isinstance(ecrans, list) else [], str(corps.get("demande") or "")[:4000],
+                      github.compte()["nom"], str(corps.get("dossier") or "") or None)
+            return pc.vue(pid, racine)
+        if reste == ["declarer"] and methode == "POST":
+            pc.declarer_depot(racine, str(corps.get("application") or ""), str(corps.get("chemin") or ""))
+            return pc.vue(pid, racine)
+        if reste == ["application"] and methode == "POST":
+            from .ecriture import ErreurEcriture, enregistrer_application
+            from .livraisons import definir_depot_local
+            from .versions import ErreurVersion
+            aid = str(corps.get("application") or "")
+            if "depot" in corps:
+                try:
+                    definir_depot_local(racine, aid, str(corps.get("depot") or "").strip() or None)
+                except ErreurVersion as e:
+                    raise Erreur(str(e), 400) from e
+            partage = {k: corps[k] for k in ("build", "adresses") if k in corps}
+            if partage:
+                adresses = [{"nom": str(x.get("nom") or "").strip(), "url": str(x.get("url") or "").strip()} for x in partage.get("adresses") or []
+                            if isinstance(x, dict) and str(x.get("url") or "").strip()]
+                try:
+                    from .chargement import charger
+                    app = next(x for x in charger(racine).meta.get("applications") or [] if x["id"] == aid)
+                    app = {**app, "build": str(partage.get("build", app.get("build", "")) or "").strip(), "adresses": adresses if "adresses" in partage else app.get("adresses")}
+                    app = {k: v for k, v in app.items() if v not in (None, "", [])}
+                    from .ecriture import _ecrire_transaction, dump
+                    p = charger(racine)
+                    meta = dict(p.meta)
+                    meta["applications"] = [app if x["id"] == aid else x for x in meta.get("applications") or []]
+                    from . import schemas
+                    from .validation import erreurs as erreurs_schema
+                    if erreurs_schema(meta, schemas.PROJET):
+                        raise Erreur("Adresse invalide : elle doit commencer par http:// ou https://.", 400)
+                    _ecrire_transaction(p.racine, {p.racine / "projet.yaml": dump(meta)})
+                except StopIteration as e:
+                    raise Erreur("Application inconnue.", 404) from e
+                return {**pc.vue(pid, racine), **application.enregistrer_et_envoyer(pid, f"Application {aid} : construction et adresses")}
+            return pc.vue(pid, racine)
+        if len(reste) == 3 and reste[0] == "chantiers" and methode == "POST":
+            if reste[2] == "lier":
+                pc.lier_ecrans(pid, racine, reste[1])
+                return {**pc.vue(pid, racine), **application.enregistrer_et_envoyer(pid, "Lien écrans et code, depuis un chantier de Watson")}
+            if reste[2] == "abandonner":
+                pc.abandonner(pid, reste[1])
+                return pc.vue(pid, racine)
+    except pc.ErreurCode as e:
+        raise Erreur(str(e), 400) from e
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _avancement(methode, pid, reste, corps):
     from . import avancement as av
 
@@ -1056,6 +1116,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _specifications(methode, pid, reste[1:], corps)
         if reste[:1] == ["crud"]:
             return _crud(methode, pid, reste[1:], corps)
+        if reste[:1] == ["code"]:
+            return _code(methode, pid, reste[1:], corps)
         if reste[:1] == ["avancement"]:
             return _avancement(methode, pid, reste[1:], corps)
         if reste[:1] == ["design"]:

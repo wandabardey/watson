@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import {
   AppWindow, ArrowLeftRight, BookOpen, ChevronsUpDown, Database, Route, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
-  ListChecks, MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, ChevronRight, MessagesSquare, Landmark, KeyRound, BookMarked, MessageCircleQuestion, FileUp
+  Code2, ListChecks, MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, ChevronRight, MessagesSquare, Landmark, KeyRound, BookMarked, MessageCircleQuestion, FileUp
 } from 'lucide-preact';
 import { appel, attendreMoteur, lancerMiseAJour, suivreMiseAJour, verifierMiseAJour } from './api.js';
 import { ConnexionGitHub } from './ecrans/connexion.jsx';
@@ -33,6 +33,7 @@ import { Flux } from './ecrans/flux.jsx';
 import { Crud } from './ecrans/crud.jsx';
 import { Design } from './ecrans/design.jsx';
 import { Avancement } from './ecrans/avancement.jsx';
+import { Code } from './ecrans/code.jsx';
 import { Specifications } from './ecrans/specifications.jsx';
 import './styles.css';
 
@@ -44,12 +45,12 @@ const GROUPES = [
     ['regles', 'Règles', Scale], ['crud', 'Qui fait quoi', KeyRound], ['secteur', 'Fiche secteur', Landmark], ['flux', 'Flux externes', ArrowLeftRight]]],
   ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow],
     ['versions', 'Versions', GitBranch], ['specifications', 'Spécifications Confluence', BookMarked], ['recette', 'Recette et TNR', FlaskConical], ['documentation', 'Documentation', BookOpen]]],
-  ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette], ['avancement', 'Avancement des écrans', ListChecks]]],
+  ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette], ['avancement', 'Avancement des écrans', ListChecks], ['code', 'Passage en code', Code2]]],
 ];
 
 const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: EcranDemander, alimenter: EcranAlimenter, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
-  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud, specifications: Specifications, design: Design, avancement: Avancement };
+  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud, specifications: Specifications, design: Design, avancement: Avancement, code: Code };
 
 const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
 

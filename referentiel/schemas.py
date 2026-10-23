@@ -69,6 +69,9 @@ PROJET = {
                     "depot": TEXTE,  # chemin du dépôt de code, relatif au projet ou absolu
                     "etiquettes": TEXTE,  # motif des étiquettes de livraison, « v* » par défaut
                     "fichier": TEXTE,  # fichier de référence dans le dépôt, « REFERENTIEL.md » par défaut
+                    "build": TEXTE,  # commande de construction, sinon le script build de package.json
+                    "adresses": {"type": "array", "items": {"type": "object", "required": ["nom", "url"], "properties": {
+                        "nom": TEXTE, "url": {"type": "string", "pattern": r"^https?://"}}, "additionalProperties": False}},  # app en direct
                     "couleur": {"type": "string", "pattern": r"^#[0-9A-Fa-f]{6}$"},  # couleur dans les schémas
                     "support": {"enum": ["web", "mobile", "bureau", "api"]},
                 },

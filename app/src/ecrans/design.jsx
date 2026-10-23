@@ -210,7 +210,7 @@ export function Design({ projet }) {
           <div class="carte pile">
             <strong>Projet déjà codé</strong>
             <span class="doux">Watson lit le dépôt de code de l'application sur ce poste : kit et librairies, Storybook, fichiers de jetons, variables CSS. Il en tire les fondations reconnaissables et la liste des composants, sans rien modifier dans le code.</span>
-            {apps.length === 0 ? <span class="doux">Aucune application n'a de dépôt de code indiqué. Renseigne-le dans Administration du projet.</span> : (
+            {apps.length === 0 ? <span class="doux">Aucune application n'a de dépôt de code indiqué. Renseigne-le dans Passage en code, Réglages de l'application.</span> : (
               <div class="ligne">
                 <select class="saisie" value={app} onChange={(e) => setApp(e.currentTarget.value)}><option value="">Choisir l'application</option>{apps.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}</select>
                 <button class="bouton principal-b" disabled={!app || occupe} onClick={() => faire('existant', () => appel(`${base}/existant`, { corps: { application: app } }))}><Code2 size={15} /> Lire le code</button>

@@ -61,7 +61,7 @@ export function Avancement({ projet, aller }) {
             </button>
           ))}
         </div>
-        {d.applications.some((a) => !a.depot) && <span class="doux" style="font-size:12px">{d.applications.filter((a) => !a.depot).map((a) => a.nom).join(', ')} : pas de dépôt de code indiqué sur ce poste (Administration du projet), l'avancement s'arrête à la maquette.</span>}
+        {d.applications.some((a) => !a.depot) && <span class="doux" style="font-size:12px">{d.applications.filter((a) => !a.depot).map((a) => a.nom).join(', ')} : pas de dépôt de code indiqué sur ce poste (Passage en code, Réglages), l'avancement s'arrête à la maquette.</span>}
       </div>
       <div class="ligne" style="margin-bottom:10px">
         {d.applications.length > 1 && <select class="saisie" value={filtre.app} onChange={(e) => setFiltre({ ...filtre, app: e.currentTarget.value })}><option value="">Toutes les applications</option>{d.applications.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}</select>}

@@ -147,7 +147,7 @@ def suggestions(racine: Path, ecran: str, limite: int = 8) -> list[dict]:
     app = _application(p, e)
     depot = _depot(racine, app) if app else None
     if not depot:
-        raise ErreurAvancement("L'application de cet écran n'a pas de dépôt de code sur ce poste : indique-le dans Administration du projet.")
+        raise ErreurAvancement("L'application de cet écran n'a pas de dépôt de code sur ce poste : indique-le dans Passage en code, Réglages de l'application.")
     d = Depot(depot)
     if not d.ok:
         raise ErreurAvancement(f"Pas de dépôt git lisible dans {depot}.")
@@ -191,7 +191,7 @@ def vue(racine: Path) -> dict:
         derniere = maqs[-1] if maqs else None
         lien = tous.get(eid) or {}
         code = None
-        if app and app.get("depot"):
+        if app and _depot(racine, app):
             if app["id"] not in depots:
                 depots[app["id"]] = Depot(_depot(racine, app))
             code = depots[app["id"]].code(lien.get("fichiers") or [])
@@ -220,9 +220,9 @@ def vue(racine: Path) -> dict:
                        "maquettes": len(maqs), "maquette": {k: derniere.get(k) for k in ("id", "titre", "date", "validee")} if derniere else None,
                        "validee": {k: validee.get(k) for k in ("id", "titre", "validee", "validee_par")} if validee else None,
                        "fichiers": lien.get("fichiers") or [], "route": lien.get("route", ""), "code": code,
-                       "depot": bool(app and app.get("depot")), "alertes": alertes})
+                       "depot": bool(app and _depot(racine, app)), "alertes": alertes})
     compte = {k: sum(1 for x in lignes if x["etat"] == k) for k in ETATS}
     return {"ecrans": lignes, "compte": compte, "etats": ETATS,
-            "applications": [{"id": a["id"], "nom": a["nom"], "depot": bool(a.get("depot")),
+            "applications": [{"id": a["id"], "nom": a["nom"], "depot": bool(_depot(racine, a)),
                               "principale": depots[a["id"]].principale if a["id"] in depots else None} for a in p.meta.get("applications") or []],
             "versions": [v["id"] for v in p.meta.get("versions_produit") or []]}
