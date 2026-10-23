@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.29.0 (2026-10-23)
+
+- Watson travaille en arrière-plan : on voit depuis tous les écrans ce qu'il fait (lecture, réflexion, texte déjà écrit, durée), on peut changer d'écran pendant ce temps, un message prévient quand c'est fini et mène au résultat. L'accueil du projet est scindé en trois : Accueil (la synthèse), Demander à Watson, Alimenter. 4ward n'est plus recherché toutes les deux minutes : au lancement, à l'ouverture des Paramètres ou si sa version change. Les maquettes et la critique suivent les nouvelles règles de composants de 4ward 0.64.
+
 ## 0.28.2 (2026-10-23)
 
 - 4ward : Watson cherche plus loin les installations de 4ward, refait la recherche toutes les deux minutes (une mise à jour dans Claude est prise sans relancer Watson), et Paramètres liste toutes les versions trouvées, avec Rechercher à nouveau et le choix de celle à utiliser.
