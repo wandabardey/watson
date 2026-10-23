@@ -137,7 +137,7 @@ def test_contexte_compact():
 
     p = charger(FRET)
     texte = generer_contexte(p)
-    assert taille(texte)["jetons_estimes"] < 4000  # base d'exemple complète : entités, listes, écrans, scénarios
+    assert taille(texte)["jetons_estimes"] < 4300  # base d'exemple complète : entités, listes, écrans, scénarios
     for attendu in ("[RG-007]", "Remplace Annulation possible avant prise en charge [RG-006]", "Comité produit du 2026-10-01",
                     "Si document_douanier = valide, marchandise_dangereuse = oui alors Envoyer en contrôle sécurité",
                     "## Ce que la base ne dit pas encore"):

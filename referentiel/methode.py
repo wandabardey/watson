@@ -49,6 +49,9 @@ TACHES = {
     "evolution": ["4SH-evolution-backlog/SKILL.md", "4SH-analyse-impact/SKILL.md", "4SH-analyse-impact/references/methode-impact.md"],
     "documentation": ["4SH-doc-utilisateur/SKILL.md", "4SH-accueil/references/anti-slop-redactionnel.md"],
     "mail": ["4SH-communication-client/SKILL.md", "4SH-communication-client/references/gabarits-communication.md"],
+    "specification": ["4SH-conception-specs/references/methode-design-4sh.md", "4SH-conception-specs/references/droits-et-etats-d-erreur.md"],
+    "chiffrage": ["4SH-cadrage-projet/SKILL.md", "4SH-deck-commercial/references/modele-et-deck-de-reference.md"],
+    "proposition_ecrite": ["4SH-cadrage-projet/SKILL.md", "4SH-deck-commercial/SKILL.md", "4SH-accueil/references/anti-slop-redactionnel.md"],
 }
 LIBELLES = {"cahier": "cadrage de projet et expertise métier", "moodboard": "direction artistique",
             "maquettes": "maquettes et prototypes", "proposition": "deck commercial", "comite_casting": "comité d'experts"}

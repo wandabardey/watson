@@ -1,6 +1,16 @@
 id: ENT-EXPEDITION
 nom: Expédition
 description: Cycle de vie d'un envoi, de la saisie à la livraison.
+origine: Saisie dans l'application
+crud:
+  creer: l'expéditeur, depuis la saisie d'une expédition
+  lire: tous les acteurs du dossier
+  modifier: changements de statut selon le rôle, documents, litige
+  supprimer: non, annulation puis archivage
+droits:
+  - {acteur: ACT-EXPEDITEUR, droits: CRU}
+  - {acteur: ACT-AGENT-TRANSIT, droits: RU}
+  - {acteur: ACT-TRANSPORTEUR, droits: R}
 attributs:
   - {nom: expediteur, libelle: Expéditeur, type: reference, cible: ENT-EXPEDITEUR}
   - {nom: transitaire, libelle: Transitaire, type: reference, cible: ENT-SOCIETE}

@@ -8,6 +8,8 @@ import { BoutonMail, BoutonRevue } from './studio.jsx';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 import { H, L, Slide, capturerMaquette, photographier, sections } from './deck.jsx';
 import { police } from './moodboard.jsx';
+import { Chiffrage } from './chiffrage.jsx';
+import { Ecrite } from './ecrite.jsx';
 
 const imagesMaquettes = {};
 
@@ -105,7 +107,7 @@ function Presenter({ slides, rendu, fermer }) {
   );
 }
 
-export function Proposition({ projet, etat, aller }) {
+function Deck({ projet, etat }) {
   const [d, setD] = useState(null);
   const [erreur, setErreur] = useState(null);
   const [message, setMessage] = useState(null);
@@ -167,7 +169,7 @@ export function Proposition({ projet, etat, aller }) {
   };
   const courant = affiche.slides[Math.min(sel, affiche.slides.length - 1)];
   const entete = (
-    <Entete titre="Proposition commerciale" description="Le deck de soutenance : votre besoin, le socle fonctionnel, l'identité, les maquettes, notre proposition. Watson l'écrit avec ce que contient l'avant-projet ; tu relis, tu présentes, tu exportes.">
+    <div class="ligne" style="justify-content:space-between;gap:10px"><span class="doux">Le deck de soutenance, écrit par Watson avec ce que contient l'avant-projet : tu relis, tu présentes, tu exportes.</span>
       {!d.en_attente && !attente && (
         <div class="ligne">
           {d.existe && <select class="saisie" value={deck.statut || 'brouillon'} onChange={(e) => { setDeck({ ...deck, statut: e.target.value }); setModifie(true); }}>{Object.entries(d.statuts).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>}
@@ -180,7 +182,7 @@ export function Proposition({ projet, etat, aller }) {
           <button class="bouton bouton-watson" disabled={!claude?.connecte} onClick={() => setDemande(demande === null ? '' : null)}><Sparkles size={15} /> {d.existe ? 'Tout réécrire' : 'Rédiger avec Watson'}</button>
         </div>
       )}
-    </Entete>
+    </div>
   );
   if (attente) {
     return (<>{entete}<div class="carte pile" style="align-items:center;padding:40px;text-align:center"><Watson humeur="ecrit" hauteur={200} />
@@ -248,6 +250,22 @@ export function Proposition({ projet, etat, aller }) {
         </div>
       )}
       {presenter && <Presenter slides={deck.slides} rendu={rendu} fermer={() => setPresenter(false)} />}
+    </>
+  );
+}
+
+const ONGLETS = [['deck', 'Deck de soutenance'], ['ecrite', 'Proposition écrite'], ['chiffrage', 'Chiffrage']];
+
+export function Proposition({ projet, etat }) {
+  const [onglet, setOnglet] = useState(() => { try { return localStorage.getItem('watson.proposition.onglet') || 'deck'; } catch { return 'deck'; } });
+  const choisir = (o) => { setOnglet(o); try { localStorage.setItem('watson.proposition.onglet', o); } catch { /* rien */ } };
+  return (
+    <>
+      <Entete titre="Proposition" description="Ce qu'on remet au prospect : le deck de soutenance, la proposition écrite qui l'accompagne, et le chiffrage qui les alimente tous les deux." />
+      <div class="onglets" style="margin-bottom:14px">{ONGLETS.map(([k, l]) => <button key={k} class={`onglet ${onglet === k ? 'actif' : ''}`} onClick={() => choisir(k)}>{l}</button>)}</div>
+      {onglet === 'deck' && <Deck projet={projet} etat={etat} />}
+      {onglet === 'ecrite' && <Ecrite projet={projet} etat={etat} />}
+      {onglet === 'chiffrage' && <Chiffrage projet={projet} etat={etat} />}
     </>
   );
 }

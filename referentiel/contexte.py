@@ -121,6 +121,13 @@ def generer_contexte(p: Projet, sections: list[str] | None = None, trous=None, i
                         t += ", optionnel"
                     attrs.append(f"{a.get('libelle') or a.get('nom')} ({t})")
                 l.append("Informations : " + " ; ".join(attrs) + ".")
+            if e.get("origine"):
+                l.append(f"Origine des données : {e['origine']}.")
+            if e.get("crud"):
+                noms = {"creer": "création", "lire": "consultation", "modifier": "modification", "supprimer": "suppression"}
+                l.append("Qui fait quoi : " + " ; ".join(f"{noms[k]} : {v}" for k, v in e["crud"].items() if k in noms) + ".")
+            if e.get("droits"):
+                l.append("Droits : " + " ; ".join(f"{_nom(p, d['acteur'])} {d['droits']}" for d in e["droits"]) + ".")
             etapes = []
             for s in e.get("statuts", []):
                 drapeau = " (départ)" if s["id"] == e.get("statut_initial") else (" (finale)" if s.get("final") else "")

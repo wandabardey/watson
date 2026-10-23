@@ -178,6 +178,9 @@ def controler_references(p: Projet, trous: list):
                 inconnu(ent["id"], a["nom"], a.get("cible") or "(aucune)", "l'entité")
             if a["type"] == "liste" and a.get("cible") not in p.listes:
                 inconnu(ent["id"], a["nom"], a.get("cible") or "(aucune)", "la liste de valeurs")
+        for d in ent.get("droits") or []:
+            if d["acteur"] not in p.acteurs:
+                inconnu(ent["id"], "droits", d["acteur"], "l'acteur")
         for tr in ent["transitions"]:
             for champ in ("de", "vers"):
                 if tr[champ] not in statuts:
@@ -639,9 +642,40 @@ def controler_flux(p: Projet, trous: list):
                      elements=[fl["id"]])
 
 
+def controler_crud(p: Projet, trous: list):
+    """Qui crée, modifie, supprime : dit pour chaque objet qui a un écran, et cohérent avec les actions."""
+    from .crud import ecrans_par_entite
+
+    ecrans = ecrans_par_entite(p)
+    transitions = p.transitions
+    for eid, ent in p.entites.items():
+        nom = ent["nom"]
+        if eid in ecrans and not ent.get("crud") and not ent.get("droits"):
+            _ajouter(trous, id=f"ENTITE_SANS_CRUD:{eid}", type="ENTITE_SANS_CRUD", gravite=ALERTE, entite=eid, elements=[eid],
+                     message=f"« {nom} » a des écrans, mais personne n'a dit qui la crée, la modifie ou la supprime.",
+                     question=f"Pour « {nom} » : qui la crée (ou d'où vient-elle), qui la modifie, et peut-on la supprimer ?")
+        droits = {d["acteur"]: d["droits"] for d in ent.get("droits") or []}
+        if not droits:
+            continue
+        manque: dict[str, list[str]] = {}
+        for tid, (e2, tr) in transitions.items():
+            if e2["id"] != eid:
+                continue
+            for a in tr.get("acteurs", []):
+                if a in p.acteurs and "U" not in droits.get(a, ""):
+                    manque.setdefault(a, []).append(tr["nom"])
+        for a, actions in manque.items():
+            na = p.acteurs[a]["nom"]
+            liste = ", ".join(f"« {x} »" for x in actions)
+            _ajouter(trous, id=f"DROITS_INCOHERENTS:{eid}:{a}", type="DROITS_INCOHERENTS", gravite=ALERTE, entite=eid, elements=[eid, a],
+                     message=f"« {na} » fait {liste} sur « {nom} », mais la matrice des droits ne lui donne pas la modification.",
+                     question=f"« {na} » doit-il pouvoir modifier « {nom} » ? Si oui, on ajoute U à ses droits ; sinon, on lui retire {liste}.")
+
+
 CONTROLES = [
     controler_references,
     controler_flux,
+    controler_crud,
     controler_cycle_de_vie,
     controler_tables,
     controler_regles,

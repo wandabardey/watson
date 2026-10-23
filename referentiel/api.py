@@ -26,6 +26,7 @@ from .studio import ErreurStudio
 from .backlog import ErreurEvolution
 from .campagnes import ErreurRecette
 from .documentation import ErreurDocumentation
+from .crud import ErreurCrud
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -424,6 +425,28 @@ def _documentation(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _crud(methode, pid, reste, corps):
+    from . import crud as cr
+
+    racine = application.chemin(pid)
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return cr.vue(racine, pid)
+    if not reste and methode == "POST":
+        return {**cr.enregistrer(racine, corps.get("entites") or []), **envoyer("Droits et origine des objets métier")}
+    if reste == ["proposer"] and methode == "POST":
+        return cr.proposer(pid, racine, str(corps.get("demande") or "")[:3000])
+    if reste == ["garder"] and methode == "POST":
+        ids = corps.get("ids")
+        v = cr.garder(pid, racine, [str(x) for x in ids] if isinstance(ids, list) else None)
+        return {**v, **envoyer("Droits et origine des objets métier, proposés par Watson")}
+    if reste == ["ecarter"] and methode == "POST":
+        from .avant_projet import ecarter_proposition
+        ecarter_proposition(pid, "crud")
+        return cr.vue(racine, pid)
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _recette(methode, pid, reste, corps):
     from . import campagnes as ca
 
@@ -640,6 +663,10 @@ def _avant_projet(methode, pid, reste, corps):
         return _maquettes(methode, pid, racine, reste[1:], corps)
     if reste[:1] == ["proposition"]:
         return _proposition(methode, pid, racine, reste[1:], corps)
+    if reste[:1] == ["chiffrage"]:
+        return _chiffrage(methode, pid, racine, reste[1:], corps)
+    if reste[:1] == ["ecrite"]:
+        return _ecrite(methode, pid, racine, reste[1:], corps)
     if reste == ["image"] and methode == "POST":
         return ap.image(racine, str(corps.get("fichier", "")))
     raise Erreur("Ressource inconnue.", 404)
@@ -664,6 +691,54 @@ def _proposition(methode, pid, racine, reste, corps):
         return pr.vue(racine, pid)
     if reste == ["exporter"] and methode == "POST":
         return pr.exporter(racine, str(corps.get("format", "")), corps.get("images") or [], corps.get("nom") or None)
+    raise Erreur("Ressource inconnue.", 404)
+
+
+def _ecrite(methode, pid, racine, reste, corps):
+    from . import avant_projet as ap
+    from . import dossier as do
+
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return do.vue(racine, pid)
+    if not reste and methode == "POST":
+        do.enregistrer(racine, corps.get("dossier") or {})
+        return {**do.vue(racine, pid), **envoyer("Proposition écrite : mise à jour")}
+    if reste == ["rediger"] and methode == "POST":
+        return do.rediger(pid, racine, str(corps.get("demande") or "")[:4000] or None, [str(x) for x in corps.get("parties") or []] or None)
+    if reste == ["garder"] and methode == "POST":
+        v = do.garder(pid, racine, github.compte()["nom"])
+        return {**v, **envoyer("Proposition écrite : rédigée avec Watson")}
+    if reste == ["ecarter"] and methode == "POST":
+        ap.ecarter_proposition(pid, "ecrite")
+        return do.vue(racine, pid)
+    if reste == ["exporter"] and methode == "POST":
+        return do.exporter(racine, str(corps.get("format") or "docx"))
+    raise Erreur("Ressource inconnue.", 404)
+
+
+def _chiffrage(methode, pid, racine, reste, corps):
+    from . import avant_projet as ap
+    from . import chiffrage as ch
+
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return ch.vue(racine, pid)
+    if not reste and methode == "POST":
+        ch.enregistrer(racine, corps.get("chiffrage") or {})
+        return {**ch.vue(racine, pid), **envoyer("Chiffrage : mise à jour")}
+    if reste == ["calculer"] and methode == "POST":
+        return ch.calculer(ch._nettoyer({**ch.lire(racine), **(corps.get("chiffrage") or {})}))
+    if reste == ["hypotheses"] and methode == "POST":
+        return {**ch.vue(racine, pid), "defaut": ch.garder_defaut(racine)}
+    if reste == ["proposer"] and methode == "POST":
+        return ch.proposer(pid, racine, str(corps.get("demande") or "")[:3000] or None)
+    if reste == ["garder"] and methode == "POST":
+        v = ch.garder(pid, racine)
+        return {**v, **envoyer("Chiffrage : découpage proposé par Watson")}
+    if reste == ["ecarter"] and methode == "POST":
+        ap.ecarter_proposition(pid, "chiffrage")
+        return ch.vue(racine, pid)
     raise Erreur("Ressource inconnue.", 404)
 
 
@@ -829,6 +904,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _recette(methode, pid, reste[1:], corps)
         if reste[:1] == ["documentation"]:
             return _documentation(methode, pid, reste[1:], corps)
+        if reste[:1] == ["crud"]:
+            return _crud(methode, pid, reste[1:], corps)
         if reste[:1] == ["studio"]:
             return _studio(methode, pid, reste[1:], corps)
         if methode == "POST" and reste == ["versions-produit"]:
@@ -930,7 +1007,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, ErreurDocumentation, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, ErreurDocumentation, ErreurCrud, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

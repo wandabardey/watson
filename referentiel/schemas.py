@@ -115,6 +115,24 @@ ENTITE = {
         "nom": TEXTE,
         "description": TEXTE,
         "version": VERSION,
+        # D'où viennent les données : « Import SI-SIAO », « Saisie dans l'application », « Administration »…
+        "origine": TEXTE,
+        # Qui crée, consulte, modifie et supprime, dit en mots (« import chaque nuit », « non, archivage »).
+        "crud": {
+            "type": "object",
+            "properties": {"creer": TEXTE, "lire": TEXTE, "modifier": TEXTE, "supprimer": TEXTE},
+            "additionalProperties": False,
+        },
+        # La matrice des droits : pour chaque acteur, les lettres C, R (lecture), U (modification), D.
+        "droits": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["acteur", "droits"],
+                "properties": {"acteur": ID, "droits": {"type": "string", "pattern": "^C?R?U?D?$"}, "note": TEXTE},
+                "additionalProperties": False,
+            },
+        },
         "attributs": {"type": "array", "items": ATTRIBUT},
         "statut_initial": ID,
         "statuts": {

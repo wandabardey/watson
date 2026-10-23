@@ -13,7 +13,7 @@ function enLigne(t) {
     .replace(/\[([^\]]+)\]\(#([a-z0-9-]+)\)/g, '<span class="lien-interne" data-ancre="$2">$1</span>');
 }
 
-export function versHtml(md) {
+export function versHtml(md, document = false) {
   const lignes = (md || '').replace(/\r/g, '').split('\n');
   const out = [];
   let i = 0;
@@ -23,7 +23,7 @@ export function versHtml(md) {
     const l = lignes[i];
     const titre = l.match(/^(#{1,4})\s+(.*)$/);
     if (!l.trim()) { fermerPara(); i++; continue; }
-    if (titre) { fermerPara(); const n = Math.min(4, Math.max(3, titre[1].length + 1)); out.push(`<h${n}>${enLigne(titre[2])}</h${n}>`); i++; continue; }
+    if (titre) { fermerPara(); const n = document ? titre[1].length : Math.min(4, Math.max(3, titre[1].length + 1)); out.push(`<h${n}>${enLigne(titre[2])}</h${n}>`); i++; continue; }
     if (/^\s*>/.test(l)) {
       fermerPara();
       const bloc = [];
@@ -62,7 +62,7 @@ export function versHtml(md) {
   return out.join('');
 }
 
-export function Markdown({ texte, classe = '', ancre }) {
+export function Markdown({ texte, classe = '', ancre, document = false }) {
   const clic = ancre ? (e) => { const a = e.target.closest?.('[data-ancre]'); if (a) ancre(a.dataset.ancre); } : undefined;
-  return <div class={`md ${classe}`} onClick={clic} dangerouslySetInnerHTML={{ __html: versHtml(texte) }} />;
+  return <div class={`md ${classe}`} onClick={clic} dangerouslySetInnerHTML={{ __html: versHtml(texte, document) }} />;
 }

@@ -181,6 +181,14 @@ def _matiere(racine: Path) -> str:
         noms = {i: e["nom"] for i, e in p.ecrans.items()}
         l.append("## Maquettes disponibles (repère : titre, écran, notes)")
         l += [f"- {m['id']} : {m['titre']}, écran {noms.get(m.get('ecran'), 'libre')}. {m.get('notes', '')}" for m in idx["maquettes"]]
+    from . import chiffrage as ch
+    calc = ch.calculer(ch.lire(racine))
+    if calc["phases"]:
+        l.append("## Chiffrage (montants calculés par Watson, à reprendre tels quels)")
+        l += [f"- {x['nom']} : {x['modalite']}, {x['duree_texte']}, {x['montant_texte']}, semaines {x['debut']:g} à {x['fin']:g}. {x['contenu']}" for x in calc["phases"]]
+        if calc["annonce_texte"]:
+            l.append(f"Première enveloppe : {' + '.join(calc['annonce_phases'])} = {calc['annonce_texte']}. Total : {calc['total_texte']}.")
+        l.append(calc["base_calcul"])
     f = Path(racine) / "sujets.yaml"
     if f.exists():
         qs = [q["question"] for q in yaml.safe_load(f.read_text(encoding="utf-8")) or [] if q.get("statut", "ouvert") == "ouvert"]
