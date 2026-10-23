@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.26.0 (2026-10-23)
+
+- Flux externes : les échanges entre les applications du produit et les systèmes du client ou des partenaires deviennent des éléments de la base (sens, partenaire, déclencheur, moyen et format, données, règles, gestion des échecs, volumétrie). Watson les tire des documents dans Alimenter ou d'une description, signale ce qui manque (que faire si l'échange échoue, quelles données, quand il part), et les suit dans l'analyse d'impact, les versions et le comité. Une carte montre qui échange avec qui.
+
 ## 0.25.0 (2026-10-22)
 
 - Documentation utilisateur : Watson propose le sommaire du guide (par tâche, par profil, par écran ou par grande fonction), rédige chaque rubrique en mode d'emploi depuis la base (au « vous », étapes numérotées, libellés réels, encadrés, sans code interne) et le glossaire ; une rubrique est signalée à mettre à jour quand la base bouge ; export HTML avec les captures des maquettes, prêt à imprimer en PDF.
