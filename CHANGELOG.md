@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.31.0 (2026-10-23)
+
+- Schémas de scénarios lisibles : les boîtes s'élargissent pour que les libellés tiennent en entier, les conditions sont posées sur le trait qui arrive à l'étape (elles ne se chevauchent plus), deux liens ne partagent plus le même trait vertical, et la version n'est affichée que quand elle diffère de celle du scénario. Lecture des schémas : Watson crée une application par système (couloirs, badges, sigles, couleurs), range chaque étape dans la sienne et ne fusionne plus deux boîtes de même nom dans deux systèmes ; il reprend chaque flèche avec son libellé exact. Demander à Watson : un scénario, un flux ou une application cités en source ne sont plus déclarés introuvables, et Watson ne dit plus qu'un élément existe et manque dans la même réponse.
+
 ## 0.30.0 (2026-10-23)
 
 - Spécifications Confluence : Watson écrit les pages de la méthode DESIGN de 4SH (acteurs, objets, cas d'usage, écrans, règles, intégrations, exports et imports, contexte) à partir de la base. Il analyse l'espace du projet pour reprendre sa convention de titre, une page modèle par type (macros et mise en forme comprises) et le style des écrans. Les brouillons s'affichent en aperçu, se corrigent, puis se publient après une confirmation qui dit ce qui sera créé et ce qui sera remplacé ; une page est signalée à mettre à jour quand la base bouge. Connexion par jeton d'API Atlassian, gardé dans le trousseau.
