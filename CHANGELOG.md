@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.36.0 (2026-10-23)
+
+- App en direct : l'application qui tourne, écran par écran, en face de la spec, de la maquette et du guide utilisateur ; écarts relevés en anomalie, évolution ou question ; critique UX de l'écran réel
+
 ## 0.35.0 (2026-10-23)
 
 - Passage en code : Watson code les écrans depuis les maquettes validées, reporte le design system ou crée l'application, sur une branche, construite puis proposée en demande de fusion
