@@ -851,6 +851,9 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return github.proprietaires()
         if methode == "GET" and morceaux[1:] == ["depots"]:
             return {"depots": github.depots(requete.get("q", [""])[0])}
+    if morceaux == ["travaux"] and methode == "GET":
+        from . import travaux
+        return travaux.vue()
     if morceaux == ["chiffrage"]:
         from . import chiffrage as ch
         return ch.changer_defaut(corps) if methode == "POST" else ch.defaut()

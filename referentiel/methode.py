@@ -31,9 +31,16 @@ TACHES = {
     "moodboard": ["4SH-direction-artistique/SKILL.md", "4SH-direction-artistique/references/dials-et-craft.md",
                   "4SH-direction-artistique/references/anti-slop.md", "4SH-conception-specs/references/regles-ux-applications-metier.md"],
     "maquettes": ["4SH-direction-artistique/references/dials-et-craft.md", "4SH-direction-artistique/references/anti-slop.md",
-                  "4SH-conception-specs/references/maquettes-figma-visualizer.md",
                   "4SH-conception-specs/references/regles-ux-applications-metier.md",
-                  "4SH-conception-specs/references/droits-et-etats-d-erreur.md"],
+                  # Règles d'UX par famille de composants et correspondances entre librairies (4ward 0.64 et plus)
+                  "4SH-conception-specs/references/composants-socle.md", "4SH-conception-specs/references/motifs-d-assemblage.md",
+                  "4SH-conception-specs/references/composants-correspondances.md",
+                  "4SH-conception-specs/references/composants-saisie-et-selection.md",
+                  "4SH-conception-specs/references/composants-donnees-et-contenu.md",
+                  "4SH-conception-specs/references/composants-actions-et-navigation.md",
+                  "4SH-conception-specs/references/composants-surcouches-et-retours.md",
+                  "4SH-conception-specs/references/droits-et-etats-d-erreur.md",
+                  "4SH-conception-specs/references/maquettes-figma-visualizer.md"],
     "comite_casting": ["4SH-comite-boost/SKILL.md", "4SH-comite-boost/references/roster.md", "4SH-comite-boost/references/fiche-de-poste.md",
                        "4SH-comite-boost/references/comite-du-projet.md"],
     "comite_expert": ["4SH-agent-expert/SKILL.md", "4SH-agent-expert/references/portrait-expert.md", "4SH-agent-expert/references/compte-rendu.md"],
@@ -44,6 +51,7 @@ TACHES = {
                 "4SH-accueil/references/arbitrer-une-decision.md"],
     "compte_rendu": ["4SH-compte-rendu/SKILL.md", "4SH-compte-rendu/references/gabarit-compte-rendu.md"],
     "critique": ["4SH-critique-ux/SKILL.md", "4SH-conception-specs/references/regles-ux-applications-metier.md",
+                 "4SH-conception-specs/references/composants-socle.md", "4SH-conception-specs/references/motifs-d-assemblage.md",
                  "4SH-direction-artistique/references/anti-slop.md"],
     "relecture": ["4SH-relecture-livrable/SKILL.md", "4SH-relecture-livrable/references/grilles-relecture.md"],
     "secteur": ["4SH-expert-metier/SKILL.md"],
@@ -58,6 +66,7 @@ LIBELLES = {"cahier": "cadrage de projet et expertise métier", "moodboard": "di
             "maquettes": "maquettes et prototypes", "proposition": "deck commercial", "comite_casting": "comité d'experts"}
 REPERE = "skills/4SH-deck-commercial/SKILL.md"
 LIMITE = 60_000  # caractères de méthode par appel
+LIMITES = {"maquettes": 90_000}  # les maquettes suivent toutes les règles de composants
 _IGNORES = {".trash", "node_modules", ".git", "Cache", "Code Cache", "GPUCache", "vm_bundles", "logs", "IndexedDB",
             "Local Storage", "Session Storage", "blob_storage", "Crashpad", "sessions"}
 _cache: dict = {}
@@ -125,8 +134,9 @@ def dossier() -> Path | None:
     choisi = reglages.lire().get("dossier_4ward")
     if choisi:
         return Path(choisi) if valide(choisi) else None
-    # La détection est refaite toutes les deux minutes : une mise à jour de 4ward dans Claude est prise sans relancer Watson.
-    if "auto" not in _cache or time.time() - _cache.get("quand", 0) > 120 or (_cache["auto"] and not valide(_cache["auto"])):
+    # Détection au lancement de Watson, quand on ouvre les Paramètres (Rechercher à nouveau), ou si le dossier disparaît
+    # (Claude a remplacé 4ward par une version plus récente).
+    if "auto" not in _cache or (_cache["auto"] and not valide(_cache["auto"])):
         t = detecter()
         _cache["auto"] = t[0]["chemin"] if t else None
         _cache["toutes"] = t
@@ -169,8 +179,8 @@ def consignes(tache: str) -> str:
             t = _nettoyer(f.read_text(encoding="utf-8"))
         except OSError:
             continue
-        if total + len(t) > LIMITE:
-            break
+        if total + len(t) > LIMITES.get(tache, LIMITE):
+            continue
         morceaux.append(f'<methode fichier="{rel}">\n{t}\n</methode>')
         total += len(t)
     if not morceaux:

@@ -331,23 +331,31 @@ async def _lire_par_claude(systeme: str, message: str, requete=None) -> dict:
     env = {"ANTHROPIC_API_KEY": os.environ["REFERENTIEL_CLE_API"]} if mode_auth() == "cle" else {"ANTHROPIC_API_KEY": ""}
     options = ClaudeAgentOptions(tools=[], allowed_tools=[], mcp_servers={}, strict_mcp_config=True, setting_sources=[],
                                  system_prompt=systeme, max_turns=1, env=env, cli_path=chemin_claude_code(),
-                                 model=reglages.modele(), effort=reglages.effort())
-    from . import conso
+                                 model=reglages.modele(), effort=reglages.effort(), include_partial_messages=True)
+    from . import conso, travaux
 
-    resultat, depart = None, conso.debut()
-    async for m in requete(prompt=_flux(message) if isinstance(message, list) else message, options=options):
-        conso.observer(m)
-        if isinstance(m, ResultMessage):
-            resultat = m
-    conso.noter(depart, resultat, reglages.modele())
-    if resultat is None:
-        raise ErreurAlimentation("Claude n'a renvoyé aucun résultat.")
-    if resultat.is_error:
-        raise ErreurAlimentation(_message_erreur(resultat))
+    tid = travaux.debut(conso.projet_courant.get(), conso.usage_courant.get())
     try:
-        return valider_json(resultat.result)
-    except ErreurAssistant as e:
-        raise ErreurAlimentation(str(e)) from e
+        resultat, depart = None, conso.debut()
+        async for m in requete(prompt=_flux(message) if isinstance(message, list) else message, options=options):
+            conso.observer(m)
+            travaux.observer(tid, m)
+            if isinstance(m, ResultMessage):
+                resultat = m
+        conso.noter(depart, resultat, reglages.modele())
+        if resultat is None:
+            raise ErreurAlimentation("Claude n'a renvoyé aucun résultat.")
+        if resultat.is_error:
+            raise ErreurAlimentation(_message_erreur(resultat))
+        try:
+            r = valider_json(resultat.result)
+        except ErreurAssistant as e:
+            raise ErreurAlimentation(str(e)) from e
+    except Exception as e:
+        travaux.finir(tid, str(e) or "Erreur")
+        raise
+    travaux.finir(tid)
+    return r
 
 
 def _slug(texte: str) -> str:

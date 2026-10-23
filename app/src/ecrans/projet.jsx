@@ -1,11 +1,14 @@
-// Accueil du projet : tout au même endroit. Watson dit où en est le projet, on lui pose une question, on lui donne
-// des documents, et on voit l'avancement, les questions ouvertes et les derniers changements.
-import { useEffect, useRef } from 'preact/hooks';
-import { ArrowRight, Check, CircleHelp, ExternalLink, FileText, Frame, Palette, Presentation } from 'lucide-preact';
+// Accueil du projet : la synthèse. Watson dit où en est le projet ; on voit l'avancement de l'avant-projet, les
+// questions ouvertes, ce que la base ne dit pas encore et les derniers changements. Poser une question et donner des
+// documents ont chacun leur écran.
+import { ArrowRight, Check, CircleHelp, ExternalLink, FileText, FileUp, Frame, MessageCircleQuestion, Palette, Presentation } from 'lucide-preact';
 import { ouvrirLien } from '../api.js';
 import { Alimenter } from './alimenter.jsx';
 import { Attente, GRAVITE, useVue, Watson } from './commun.jsx';
 import { Demander } from './demander.jsx';
+
+export function EcranDemander(props) { return <Demander {...props} />; }
+export function EcranAlimenter(props) { return <Alimenter {...props} />; }
 
 const prenom = (nom) => (nom || '').split(/\s+/)[0] || '';
 
@@ -18,10 +21,8 @@ function Etape({ icone: I, titre, etat, fait, aller, cible }) {
   );
 }
 
-export function AccueilProjet({ projet, etat, aller, questionInitiale, zone }) {
+export function AccueilProjet({ projet, etat, aller }) {
   const { donnees: d, erreur } = useVue(`/projets/${projet.id}/synthese`);
-  const alimenter = useRef(null);
-  useEffect(() => { if (d && zone === 'alimenter') alimenter.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [d, zone]);
   if (!d) return <Attente erreur={erreur} />;
   const ap = d.avant_projet;
   const vide = d.compteurs.entites + d.compteurs.regles + d.compteurs.acteurs === 0;
@@ -39,7 +40,10 @@ export function AccueilProjet({ projet, etat, aller, questionInitiale, zone }) {
           <h1>{vide ? `Bonjour ${prenom(etat.github.compte?.nom)}, on commence ?` : `Bonjour ${prenom(etat.github.compte?.nom)}, voici où en est le projet.`}</h1>
           <p class="doux">{vide ? 'Le projet est vide. Donne-moi ce qui existe déjà (comptes rendus, notes, captures, spécifications) : je le lis et je t\'en tire une première base, que tu valides.'
             : resume.length ? `${resume.join(', ')}.` : 'Rien d\'ouvert : la base est à jour.'}</p>
-          <div class="question-projet"><Demander projet={projet} etat={etat} questionInitiale={questionInitiale} integre /></div>
+          <div class="ligne" style="gap:8px;margin-top:4px">
+            <button class="bouton principal-b" onClick={() => aller('alimenter')}><FileUp size={15} /> Donner des documents</button>
+            <button class="bouton" onClick={() => aller('demander')}><MessageCircleQuestion size={15} /> Poser une question</button>
+          </div>
         </div>
       </section>
 
@@ -55,11 +59,6 @@ export function AccueilProjet({ projet, etat, aller, questionInitiale, zone }) {
           <Etape icone={Presentation} titre="Proposition" cible="proposition" aller={aller} fait={ap.proposition.statut === 'Envoyé au client'}
             etat={ap.proposition.existe ? `${ap.proposition.slides} slides · ${ap.proposition.statut}` : 'À écrire'} />
         </div>
-      </section>
-
-      <section class="carte pile" ref={alimenter} style="gap:10px">
-        <div class="ligne"><h2 class="espace">Donner des documents à Watson</h2><span class="petit doux">Comptes rendus, transcriptions, notes, captures, spécifications</span></div>
-        <Alimenter projet={projet} etat={etat} aller={aller} integre />
       </section>
 
       <div class="ligne" style="align-items:flex-start;gap:16px">

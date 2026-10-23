@@ -85,5 +85,6 @@ def vue() -> dict:
     r = lire()
     from . import methode
 
+    methode.oublier_cache()  # ouvrir les Paramètres relance la recherche de 4ward
     return {**r, "methode": methode.etat(), "modeles": MODELES, "efforts": EFFORTS, "nom_modele": nom_modele(r["modele"]),
             "impose_par_variable": bool(os.environ.get("REFERENTIEL_MODELE") or os.environ.get("REFERENTIEL_EFFORT"))}

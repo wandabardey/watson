@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Check, ClipboardPaste, FileText, Image as IconeImage, Quote, Trash2, Upload, X } from 'lucide-preact';
+import { Avancee, useTravail } from './travaux.jsx';
 import { appel } from '../api.js';
 import { ConnexionClaude, DEVISE, Entete, Watson } from './commun.jsx';
 
@@ -254,6 +255,20 @@ export function Alimenter({ projet, etat, aller, integre }) {
   const [claude, setClaude] = useState(etat.claude);
   const [phase, setPhase] = useState({ nom: 'depot' });
   const [erreur, setErreur] = useState(null);
+  // Revenu sur l'écran pendant que Watson lit encore : on attend la fin, puis on ouvre le résultat.
+  const travail = useTravail(projet.id, 'alimenter', phase.nom === 'depot' || phase.nom === 'lecture');
+  useEffect(() => {
+    if (travail && phase.nom === 'depot') setPhase({ nom: 'lecture', noms: [], reprise: true });
+    if (travail === null && phase.reprise) {
+      appel(`/projets/${projet.id}/alimenter`).then((r) => { const l = r.lots?.[0]; if (l) reprendre(l.id); else setPhase({ nom: 'depot' }); }).catch(() => setPhase({ nom: 'depot' }));
+    }
+  }, [travail]);
+  // Arrivé par « Voir » depuis l'avis de fin de lecture : on ouvre directement le résultat.
+  useEffect(() => {
+    let voulu = null;
+    try { voulu = sessionStorage.getItem('watson.resultat'); sessionStorage.removeItem('watson.resultat'); } catch { /* rien */ }
+    if (voulu === 'alimenter') appel(`/projets/${projet.id}/alimenter`).then((r) => { if (r.lots?.[0]) reprendre(r.lots[0].id); }).catch(() => {});
+  }, []);
   const lancer = async (documents, noms) => {
     setErreur(null); setPhase({ nom: 'lecture', noms });
     try { setPhase({ nom: 'tri', lot: await appel(`/projets/${projet.id}/alimenter`, { corps: { documents } }) }); } catch (e) { setErreur(e.message); setPhase({ nom: 'depot' }); }
@@ -274,8 +289,9 @@ export function Alimenter({ projet, etat, aller, integre }) {
       {phase.nom === 'lecture' && (
         <div class="carte pile" style="align-items:center;padding:40px;text-align:center">
           <Watson humeur="lit" hauteur={200} />
-          <strong>Claude lit {phase.noms.length > 1 ? `${phase.noms.length} documents` : `« ${phase.noms[0]} »`}</strong>
-          <span class="doux">Avec la base actuelle, pour ne proposer que ce qui est nouveau. Compte de trente secondes à deux minutes.</span>
+          <strong>{!phase.noms.length ? 'Watson lit encore tes documents' : `Watson lit ${phase.noms.length > 1 ? `${phase.noms.length} documents` : `« ${phase.noms[0]} »`}`}</strong>
+          <span class="doux">Avec la base actuelle, pour ne proposer que ce qui est nouveau. Les images prennent plus de temps. Tu peux aller sur un autre écran : la lecture continue, et Watson te prévient quand elle est finie.</span>
+          <Avancee t={travail} />
         </div>
       )}
       {phase.nom === 'tri' && <Tri projet={projet} lot={phase.lot} fini={(r) => setPhase({ nom: 'bilan', r })} abandonner={abandonner} />}

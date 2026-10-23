@@ -2,14 +2,15 @@ import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import {
   AppWindow, ArrowLeftRight, BookOpen, ChevronsUpDown, Database, Route, FilePlus2, CircleHelp, FlaskConical, GitBranch, GitPullRequestArrow, LayoutDashboard, Library,
-  MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, ChevronRight, MessagesSquare, Landmark, KeyRound
+  MonitorPlay, Network, Palette, FileText, Frame, Presentation, Users, RefreshCw, Scale, Settings, Sparkles, ChevronRight, MessagesSquare, Landmark, KeyRound, MessageCircleQuestion, FileUp
 } from 'lucide-preact';
 import { appel, attendreMoteur, lancerMiseAJour, suivreMiseAJour, verifierMiseAJour } from './api.js';
 import { ConnexionGitHub } from './ecrans/connexion.jsx';
 import { Accueil, Tuile } from './ecrans/accueil.jsx';
 import { DEVISE, Watson } from './ecrans/commun.jsx';
 import logo from './images/logo.png';
-import { AccueilProjet } from './ecrans/projet.jsx';
+import { AccueilProjet, EcranAlimenter, EcranDemander } from './ecrans/projet.jsx';
+import { Travaux } from './ecrans/travaux.jsx';
 import { Referentiels } from './ecrans/referentiels.jsx';
 import { Ecrans } from './ecrans/ecrans.jsx';
 import { Regles } from './ecrans/regles.jsx';
@@ -43,7 +44,7 @@ const GROUPES = [
   ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette, true]]],
 ];
 
-const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: AccueilProjet, alimenter: AccueilProjet, sujets: Sujets, comite: Comite,
+const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: EcranDemander, alimenter: EcranAlimenter, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
   workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud };
 
@@ -89,8 +90,14 @@ function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerP
         )}
       </div>
       <div class="menu-defilant">
-        <button class={`menu ${['projet', 'synthese', 'demander', 'alimenter'].includes(ecran) ? 'actif' : ''}`} onClick={() => choisir('projet')}>
+        <button class={`menu ${['projet', 'synthese'].includes(ecran) ? 'actif' : ''}`} onClick={() => choisir('projet')}>
           <LayoutDashboard size={18} strokeWidth={1.8} /> Accueil du projet
+        </button>
+        <button class={`menu ${ecran === 'demander' ? 'actif' : ''}`} onClick={() => choisir('demander')}>
+          <MessageCircleQuestion size={18} strokeWidth={1.8} /> Demander à Watson
+        </button>
+        <button class={`menu ${ecran === 'alimenter' ? 'actif' : ''}`} onClick={() => choisir('alimenter')}>
+          <FileUp size={18} strokeWidth={1.8} /> Alimenter
         </button>
         <button class={`menu ${ecran === 'sujets' ? 'actif' : ''}`} onClick={() => choisir('sujets')}>
           <CircleHelp size={18} strokeWidth={1.8} /> Questions ouvertes
@@ -113,6 +120,7 @@ function Lateral({ projet, ecran, choisir, quitter, compte, parametres, changerP
           );
         })}
       </div>
+      <Travaux projet={projet} aller={choisir} />
       <button class={`menu petit-menu ${ecran === 'administration' ? 'actif' : ''}`} onClick={() => choisir('administration')}><Settings size={16} strokeWidth={1.8} /> Administration du projet</button>
       {compte && (
         <div class="profil">
@@ -196,7 +204,7 @@ function App() {
           {synchro && !synchro.erreur && synchro.etat !== 'en_cours' && <span class="badge b-vert">À jour avec GitHub</span>}
           <button class="bouton" style="min-height:30px" onClick={() => ouvrir(projet)}><RefreshCw size={14} /> Synchroniser</button>
         </div>
-        <Ecran key={`${projet.id}-${ECRANS[ecran] === AccueilProjet ? 'projet' : ecran}-${synchro?.etat === 'en_cours' ? 'a' : 'b'}`} projet={projet} etat={etat} aller={setEcran} questionInitiale={questionInitiale} zone={ecran} />
+        <Ecran key={`${projet.id}-${ecran}-${synchro?.etat === 'en_cours' ? 'a' : 'b'}`} projet={projet} etat={etat} aller={setEcran} questionInitiale={questionInitiale} zone={ecran} />
       </main>
     </div>
   );

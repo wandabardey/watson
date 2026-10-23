@@ -23,7 +23,7 @@ CINQ_HEURES = 5 * 3600
 USAGES = {"alimenter": "Lecture de documents", "demander": "Questions à Watson", "modifier": "Demandes de changement",
           "sujets": "Mise à jour depuis une question", "cahier": "Cahier des charges", "moodboard": "Moodboard",
           "maquettes": "Maquettes", "proposition": "Proposition commerciale", "comite": "Comité d'experts",
-          "ateliers": "Ateliers", "relire": "Relectures et critiques UX", "secteur": "Fiche secteur", "mail": "Mails au client", "evolutions": "Évolutions", "documentation": "Documentation", "recette": "Recette", "elements": "Demandes de changement", "test": "Test des réglages"}
+          "ateliers": "Ateliers", "relire": "Relectures et critiques UX", "secteur": "Fiche secteur", "mail": "Mails au client", "evolutions": "Évolutions", "documentation": "Documentation", "recette": "Recette", "elements": "Demandes de changement", "test": "Test des réglages", "crud": "Qui fait quoi", "chiffrage": "Chiffrage", "ecrite": "Proposition écrite"}
 
 
 def _dossier() -> Path:
