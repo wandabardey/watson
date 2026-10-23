@@ -66,7 +66,7 @@ def liste(racine: Path) -> list[dict]:
         e = _propre(yaml.safe_load(f.read_text(encoding="utf-8")) or {})
         r.append({k: e.get(k) for k in ("id", "titre", "statut", "priorite", "version", "date", "origine")}
                  | {"redigee": bool(e.get("redaction")), "touches": len((e.get("impact") or {}).get("elements") or []),
-                    "base": (e.get("base") or {}).get("etat")})
+                    "base": (e.get("base") or {}).get("etat"), "branche": (e.get("branche") or {}).get("statut")})
     return r
 
 
@@ -262,9 +262,98 @@ def recalculer(racine: Path, eid: str) -> dict:
     return e
 
 
+# ---------------------------------------------------------------- spec travaillée à part, sur une branche
+
+def branche_active(e: dict) -> dict | None:
+    b = e.get("branche")
+    return b if b and b.get("statut") in ("en_cours", "validee") else None
+
+
+def brancher(racine: Path, eid: str) -> dict:
+    from . import branches_spec as bs
+
+    e = lire(racine, eid)
+    if branche_active(e):
+        raise ErreurEvolution("Cette évolution a déjà sa branche.")
+    try:
+        if (e.get("branche") or {}).get("statut") in ("abandonnee", "integree"):
+            bs.supprimer(racine, eid)
+        e["branche"] = bs.creer(racine, eid)
+    except bs.ErreurBranche as x:
+        raise ErreurEvolution(str(x)) from x
+    if e.get("statut") in ("a_qualifier", "prete"):
+        e["statut"] = "en_cours"
+    _ecrire(racine, e)
+    return e
+
+
+def etat_branche(racine: Path, e: dict) -> dict | None:
+    from . import branches_spec as bs
+
+    b = e.get("branche")
+    if not b:
+        return None
+    r = {**b, "libelle": bs.STATUTS.get(b.get("statut"), b.get("statut"))}
+    if branche_active(e):
+        try:
+            r["changements"] = bs.changements(racine, eid := e["id"], b["base"])
+            r["commits"] = bs.commits(racine, eid, b["base"])
+            r["existe"] = True
+        except bs.ErreurBranche as x:
+            r.update(existe=False, changements=[], commits=0, erreur=str(x))
+    return r
+
+
+def valider_branche(racine: Path, eid: str, auteur: str, valide: bool = True) -> dict:
+    e = lire(racine, eid)
+    b = branche_active(e)
+    if not b:
+        raise ErreurEvolution("Pas de branche en cours pour cette évolution.")
+    if valide:
+        b.update(statut="validee", validee_le=aujourdhui(), validee_par=auteur)
+    else:
+        b["statut"] = "en_cours"
+        b.pop("validee_le", None)
+        b.pop("validee_par", None)
+    _ecrire(racine, e)
+    return e
+
+
+def fusionner_branche(racine: Path, eid: str) -> dict:
+    """Reporte la spec validée dans la version de travail. L'enregistrement (commit) est fait par l'appelant."""
+    from . import branches_spec as bs
+
+    e = lire(racine, eid)
+    b = branche_active(e)
+    if not b or b.get("statut") != "validee":
+        raise ErreurEvolution("La spec de l'évolution doit être validée avant d'être fusionnée.")
+    try:
+        r = bs.integrer(racine, eid, b["base"])
+    except bs.ErreurBranche as x:
+        raise ErreurEvolution(str(x)) from x
+    if not r["fusionne"]:
+        raise ErreurEvolution("Ces fichiers ont changé à la fois dans la version de travail et sur la branche : "
+                              + ", ".join(r["conflits"][:8]) + ". Rien n'a été fusionné : reprends-les sur la branche.")
+    e = lire(racine, eid)
+    e["branche"].update(statut="integree", integree_le=aujourdhui())
+    e["base"] = {**(e.get("base") or {}), "etat": "appliquee", "le": aujourdhui()}
+    _ecrire(racine, e)
+    return {**e, "fichiers": r["fichiers"]}
+
+
+def abandonner_branche(racine: Path, eid: str) -> dict:
+    e = lire(racine, eid)
+    if not branche_active(e):
+        raise ErreurEvolution("Pas de branche en cours pour cette évolution.")
+    e["branche"].update(statut="abandonnee", abandonnee_le=aujourdhui())
+    _ecrire(racine, e)
+    return e
+
+
 def vue(racine: Path, eid: str | None = None) -> dict:
     p = charger(racine)
     commun = {"statuts": STATUTS, "priorites": PRIORITES, "versions_produit": p.meta.get("versions_produit") or []}
     if not eid:
         return {"evolutions": liste(racine), **commun}
-    return {"evolution": lire(racine, eid), **commun}
+    e = lire(racine, eid)
+    return {"evolution": e, "branche": etat_branche(racine, e), **commun}

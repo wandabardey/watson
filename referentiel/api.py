@@ -598,9 +598,32 @@ def _evolutions(methode, pid, reste, corps):
     if action == "base":
         e = ev.lire(racine, eid)
         consigne = str(corps.get("consigne") or (e.get("redaction") or {}).get("consigne_base") or "")[:4000]
-        lot = alimentation.modifier(pid, racine, consigne, github.compte()["nom"])
+        if ev.branche_active(e):
+            from . import branches_spec as bs
+            lot = alimentation.modifier(pid, bs.dossier(pid, racine, eid), consigne, github.compte()["nom"])
+            lot = {**alimentation.lire_lot(pid, lot["id"]), "branche": eid}
+            alimentation._ecrire_lot(pid, lot)
+        else:
+            lot = alimentation.modifier(pid, racine, consigne, github.compte()["nom"])
         ev.modifier(racine, eid, {"lot": lot["id"]})
         return lot
+    try:
+        if action == "brancher":
+            ev.brancher(racine, eid)
+            return {**ev.vue(racine, eid), **envoyer(f"Évolution {eid} : spec travaillée sur la branche evo/{eid}")}
+        if action == "branche-valider":
+            ev.valider_branche(racine, eid, github.compte()["nom"], bool(corps.get("valide", True)))
+            return {**ev.vue(racine, eid), **envoyer(f"Évolution {eid} : spec {'validée' if corps.get('valide', True) else 'remise en cours'}")}
+        if action == "branche-fusionner":
+            if not corps.get("confirme"):
+                raise Erreur("Confirmation attendue avant de fusionner.", 400)
+            e = ev.fusionner_branche(racine, eid)
+            return {**ev.vue(racine, eid), **envoyer(f"Évolution {eid} : spec fusionnée dans la version de travail ({e['fichiers']} fichiers)")}
+        if action == "branche-abandonner":
+            ev.abandonner_branche(racine, eid)
+            return {**ev.vue(racine, eid), **envoyer(f"Évolution {eid} : branche abandonnée")}
+    except ev.ErreurEvolution as x:
+        raise Erreur(str(x), 400) from x
     raise Erreur("Ressource inconnue.", 404)
 
 
@@ -868,6 +891,23 @@ def _alimenter(methode, pid, reste, corps):
         return alimentation.analyser(pid, racine, corps.get("documents") or [])
     if methode == "GET" and len(reste) == 1:
         return alimentation.lire_lot(pid, reste[0])
+    lot_branche = None
+    if len(reste) >= 1 and re.match(r"^[a-z0-9-]+$", reste[0] or ""):
+        try:
+            lot_branche = alimentation.lire_lot(pid, reste[0]).get("branche")
+        except alimentation.ErreurAlimentation:
+            lot_branche = None
+    if lot_branche and len(reste) == 2 and reste[1] in ("apercu", "appliquer"):
+        from . import branches_spec as bs
+        dossier_b = bs.dossier(pid, racine, lot_branche)
+        if methode == "GET" and reste[1] == "apercu":
+            changes, p = alimentation.apercu(pid, dossier_b, reste[0])
+            return {**changes, "referentiels": vue_referentiels(p), "ecrans": vue_ecrans(p), "scenarios": vue_scenarios(p), "branche": bs.nom(lot_branche)}
+        if methode == "POST":
+            compte = github.compte()
+            r = alimentation.appliquer(pid, dossier_b, reste[0], corps.get("decisions") or [], compte["nom"])
+            sha = bs.enregistrer(racine, lot_branche, dossier_b, r["message"], compte["nom"], compte.get("email"))
+            return {**r, "commit": sha, "envoye": bs.envoyer(racine, lot_branche, github.jeton()), "branche": bs.nom(lot_branche)}
     if methode == "GET" and len(reste) == 2 and reste[1] == "apercu":
         changes, p = alimentation.apercu(pid, racine, reste[0])
         return {**changes, "referentiels": vue_referentiels(p), "ecrans": vue_ecrans(p), "scenarios": vue_scenarios(p)}

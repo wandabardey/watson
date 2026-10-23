@@ -2,7 +2,7 @@
 // d'acceptation), l'analyse d'impact suit la base à l'envers (ce qui cite quoi) et donne ce qu'il faut rejouer ;
 // la mise à jour de la base passe par une demande à Watson, validée comme toujours.
 import { useEffect, useState } from 'preact/hooks';
-import { ArrowLeft, Check, CircleHelp, ClipboardCopy, GitPullRequestArrow, Network, Plus, RefreshCw, RotateCcw, Sparkles, Trash2, X } from 'lucide-preact';
+import { ArrowLeft, Check, CircleHelp, ClipboardCopy, GitBranch, GitMerge, GitPullRequestArrow, Network, Plus, RefreshCw, RotateCcw, Sparkles, Trash2, X } from 'lucide-preact';
 import { appel } from '../api.js';
 import { Attente, ConnexionClaude, Entete, Watson } from './commun.jsx';
 import { LotEnCours } from './edition.jsx';
@@ -77,6 +77,40 @@ function Impact({ e, aller, faire, occupe }) {
           {im.a_rejouer.map((x) => <span key={x.id}>{x.genre} « {x.nom} »</span>)}
         </div>
       )}
+    </section>
+  );
+}
+
+const GENRE_CH = { ajouté: 'b-vert', modifié: 'b-indigo', supprimé: 'b-rouge', remplacé: 'b-ambre', 'rendu obsolète': 'b-ambre' };
+
+// La spec de l'évolution travaillée à part : une branche de la base, validée puis fusionnée dans la version de travail.
+function Branche({ e, b, faire, occupe }) {
+  const [confirmer, setConfirmer] = useState(false);
+  const active = b && ['en_cours', 'validee'].includes(b.statut);
+  return (
+    <section class="carte pile" style="gap:10px">
+      <div class="ligne"><h2 class="espace">Spec de l'évolution</h2>{b && <span class={`badge ${b.statut === 'integree' ? 'b-vert' : b.statut === 'validee' ? 'b-indigo' : b.statut === 'abandonnee' ? 'b-gris' : 'b-ambre'}`}>{b.libelle}</span>}</div>
+      {!active && <>
+        <span class="doux">{b?.statut === 'integree' ? `Fusionnée dans la version de travail le ${date(b.integree_le)}. ` : ''}Pour une évolution qui change la spec en profondeur, travaille-la à part : les changements que Watson propose iront sur une branche de la base, la version de travail ne bouge pas tant que la spec n'est pas validée et fusionnée.</span>
+        <button class="bouton" style="align-self:flex-start" disabled={occupe} onClick={() => faire(`/evolutions/${e.id}/brancher`, {})}><GitBranch size={14} /> Travailler la spec sur une branche</button>
+      </>}
+      {active && <>
+        <span class="doux">Branche {b.nom}, ouverte le {date(b.creee_le)} · {b.commits || 0} enregistrement{b.commits > 1 ? 's' : ''}{b.statut === 'validee' ? ` · validée le ${date(b.validee_le)}${b.validee_par ? ` par ${b.validee_par}` : ''}` : ''}</span>
+        {b.erreur && <p class="encart e-rouge">{b.erreur}</p>}
+        {(b.changements || []).length === 0 ? <span class="doux">Rien de changé sur la branche pour l'instant : demande à Watson les changements de la spec ci-dessous.</span> : (
+          <div class="pile" style="gap:4px">{b.changements.map((c) => <span key={c.id}><span class={`badge ${GENRE_CH[c.changement] || 'b-gris'}`}>{c.changement}</span> {c.nom} <span class="petit doux">{c.id}{c.champs?.length ? ` · ${c.champs.join(', ')}` : ''}</span></span>)}</div>
+        )}
+        <div class="ligne">
+          {b.statut === 'en_cours' && <button class="bouton principal-b" disabled={occupe || !(b.changements || []).length} onClick={() => faire(`/evolutions/${e.id}/branche-valider`, { valide: true })}><Check size={14} /> Valider la spec</button>}
+          {b.statut === 'validee' && (confirmer
+            ? <><button class="bouton principal-b" disabled={occupe} onClick={() => { setConfirmer(false); faire(`/evolutions/${e.id}/branche-fusionner`, { confirme: true }); }}>Confirmer la fusion</button><button class="bouton" onClick={() => setConfirmer(false)}>Annuler</button></>
+            : <><button class="bouton principal-b" disabled={occupe} onClick={() => setConfirmer(true)}><GitMerge size={14} /> Fusionner dans la version de travail</button>
+                <button class="bouton" disabled={occupe} onClick={() => faire(`/evolutions/${e.id}/branche-valider`, { valide: false })}>Remettre en cours</button></>)}
+          <span class="espace" />
+          <button class="bouton icone" disabled={occupe} title="Abandonner la branche (elle reste dans l'historique)" onClick={() => faire(`/evolutions/${e.id}/branche-abandonner`, {})}><X size={14} /></button>
+        </div>
+        {confirmer && <span class="petit doux">Les {b.changements.length} changements de la branche rejoignent la version de travail et partent sur GitHub. Si un même fichier a bougé des deux côtés, rien n'est fusionné.</span>}
+      </>}
     </section>
   );
 }
@@ -166,8 +200,9 @@ function Fiche({ projet, d, faire, occupe, attente, claude, aller, retour }) {
             <button class="bouton" disabled={occupe} onClick={async () => { try { await appel(`/projets/${projet.id}/recette/evolution`, { corps: { evolution: e.id } }); aller('recette'); } catch (x) { setMessage(x.message); } }}>Créer les cas de test</button>
             <button class="bouton" disabled={occupe} onClick={async () => { try { await appel(`/projets/${projet.id}/recette/campagnes`, { corps: { nom: `TNR ${e.titre}`, genre: 'tnr', evolution: e.id } }); aller('recette'); } catch (x) { setMessage(x.message); } }}>Ouvrir une campagne</button>
           </section>
+          <Branche e={e} b={d.branche} faire={faire} occupe={occupe} />
           <section class="carte pile" style="gap:10px">
-            <div class="ligne"><h2 class="espace">Mettre la base à jour</h2>
+            <div class="ligne"><h2 class="espace">{d.branche && ['en_cours', 'validee'].includes(d.branche.statut) ? `Changer la spec sur la branche ${d.branche.nom}` : 'Mettre la base à jour'}</h2>
               {e.base?.etat === 'appliquee' && <span class="badge b-vert">Base mise à jour le {date(e.base.le)}</span>}
               {e.base?.etat === 'proposee' && !lot && <span class="badge b-ambre">Proposition en attente dans Alimenter</span>}</div>
             {!lot && consigne === null && <>
@@ -179,7 +214,7 @@ function Fiche({ projet, d, faire, occupe, attente, claude, aller, retour }) {
               <div class="ligne"><button class="bouton bouton-watson" disabled={!consigne.trim()} onClick={lancerBase}><Sparkles size={14} /> Demander à Watson</button><button class="bouton" onClick={() => setConsigne(null)}><X size={14} /> Annuler</button></div>
             </>}
             {lot && <LotEnCours projet={projet} lot={lot}
-              fini={async () => { setLot(null); await faire(`/evolutions/${e.id}`, { base_appliquee: true }); await faire(`/evolutions/${e.id}/impact`, {}); }}
+              fini={async () => { setLot(null); if (lot.branche) await faire(`/evolutions/${e.id}`, undefined, 'GET'); else { await faire(`/evolutions/${e.id}`, { base_appliquee: true }); await faire(`/evolutions/${e.id}/impact`, {}); } }}
               abandonner={async () => { await appel(`/projets/${projet.id}/alimenter/${lot.id}`, { methode: 'DELETE', corps: {} }).catch(() => {}); setLot(null); }} />}
           </section>
         </>
