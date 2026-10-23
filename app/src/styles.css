@@ -780,3 +780,20 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .code-cr { white-space: pre-wrap; font-size: 13px; background: #FAFAFA; border: 1px solid var(--bord); border-radius: 10px; padding: 10px 12px; max-height: 360px; overflow: auto; }
 .code-sortie { white-space: pre-wrap; font-size: 11px; background: #18181b; color: #e4e4e7; border-radius: 8px; padding: 10px; max-height: 260px; overflow: auto; }
 .code-fichiers { display: flex; flex-direction: column; font-family: ui-monospace, monospace; font-size: 12px; padding: 6px 0; }
+
+/* App en direct */
+.direct { display: grid; grid-template-columns: 200px minmax(0, 1fr) 380px; gap: 12px; height: calc(100vh - 230px); min-height: 520px; }
+@media (max-width: 1250px) { .direct { grid-template-columns: 170px minmax(0, 1fr) 320px; } }
+.direct-liste { display: flex; flex-direction: column; gap: 2px; overflow: auto; }
+.direct-ecran { display: flex; align-items: center; gap: 6px; text-align: left; border: 0; background: none; padding: 7px 9px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--texte); }
+.direct-ecran:hover { background: #F4F4F5; } .direct-ecran.actif { background: var(--indigo-pale); color: var(--indigo-fonce); font-weight: 600; }
+.direct-app { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.direct-barre { flex-wrap: nowrap; }
+.direct-cadre { flex: 1; width: 100%; border: 1px solid var(--bord); border-radius: 12px; background: #fff; }
+.direct-vide { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 1px dashed var(--bord2); border-radius: 12px; color: var(--doux); }
+.direct-panneau { display: flex; flex-direction: column; gap: 10px; overflow: auto; border: 1px solid var(--bord); border-radius: 12px; padding: 12px 14px; background: #fff; }
+.direct-texte { white-space: pre-wrap; font-size: 13px; line-height: 1.5; }
+.direct-guide { font-size: 13px; }
+.direct-capture { position: relative; border: 1px dashed var(--bord2); border-radius: 10px; padding: 10px; min-height: 60px; display: flex; align-items: center; justify-content: center; text-align: center; }
+.direct-capture img { max-width: 100%; max-height: 220px; border-radius: 6px; }
+.direct-capture .bouton { position: absolute; top: 6px; right: 6px; }

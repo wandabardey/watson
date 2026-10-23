@@ -49,7 +49,7 @@ def _donnees(pid: str, *parties: str) -> Path:
 
 # ----------------------------------------------------------------- relecture
 
-RELISIBLES = {"maquette": "critique", "cahier": "relecture", "evolution": "relecture", "atelier": "relecture", "compte_rendu": "relecture",
+RELISIBLES = {"maquette": "critique", "ecran_reel": "critique", "cahier": "relecture", "evolution": "relecture", "atelier": "relecture", "compte_rendu": "relecture",
               "proposition": "relecture"}
 
 SCHEMA_REVUE = {"type": "object", "required": ["verdict", "points"], "properties": {
@@ -70,6 +70,18 @@ def _matiere(pid: str, racine: Path, cible: dict) -> tuple[str, str]:
     t, i = cible.get("type"), str(cible.get("id") or "")
     if t not in RELISIBLES:
         raise ErreurStudio("Ce livrable ne se relit pas encore ici.")
+    if t == "ecran_reel":
+        from .chargement import charger
+        from .maquettes import _description_ecran, lire_index
+
+        p = charger(racine)
+        if i not in p.ecrans:
+            raise ErreurStudio("Écran inconnu.")
+        maqs = [m for m in lire_index(racine)["maquettes"] if m.get("ecran") == i]
+        ref = next((m for m in reversed(maqs) if m.get("validee")), maqs[-1] if maqs else None)
+        return (f"Écran « {p.ecrans[i]['nom']} » de l'application en fonctionnement",
+                "Ce que la spec attend de l'écran :\n" + _description_ecran(p, i)
+                + (f"\n\nMaquette de référence : « {ref['titre']} »" + (" (validée)" if ref.get("validee") else " (non validée)") if ref else "\n\nPas de maquette pour cet écran."))
     if t == "evolution":
         from .backlog import ErreurEvolution, lire as lire_evo
 
@@ -112,8 +124,14 @@ def relire(pid: str, racine: Path, cible: dict, question: str = "", capture: str
     from .assistant import construire_contexte
 
     nom, texte = _matiere(pid, racine, cible)
-    maquette = cible["type"] == "maquette"
-    if maquette:
+    maquette = cible["type"] in ("maquette", "ecran_reel")
+    if cible["type"] == "ecran_reel":
+        role = """Tu fais la critique UX/UI d'un écran de l'application telle qu'elle fonctionne (capture de l'écran réel),
+pour une Product Owner de 4SH. Tu confrontes d'abord l'écran à ce que la spec attend (sections, règles visibles,
+navigation, libellés) : chaque écart entre le livré et l'attendu est un retour, en disant s'il ressemble à une
+anomalie (le code ne fait pas ce que dit la spec) ou à une évolution (la spec elle-même est à revoir). Puis tu juges
+l'usage : hiérarchie, densité, lisibilité, accessibilité (contraste, cibles, focus), états, microcopy."""
+    elif maquette:
         role = """Tu fais la critique UX/UI d'une maquette d'écran pour une Product Owner de 4SH. Tu juges l'usage avant
 l'esthétique : objectif et parcours, hiérarchie, densité, lisibilité, couleur et cohérence avec la piste retenue,
 accessibilité (contraste, cibles, focus, information portée par la seule couleur), états et cas limites, microcopy,
@@ -150,7 +168,8 @@ FORMAT DE SORTIE : uniquement un objet JSON, sans texte autour ni bloc de code, 
         except ValueError as e:
             raise ErreurStudio("Capture illisible.") from e
         message = [{"type": "image", "source": {"type": "base64", "media_type": media, "data": donnees}},
-                   {"type": "text", "text": "Ci-dessus, la maquette telle qu'elle s'affiche.\n\n" + corps}]
+                   {"type": "text", "text": ("Ci-dessus, l'écran tel qu'il s'affiche dans l'application.\n\n" if cible["type"] == "ecran_reel"
+                                             else "Ci-dessus, la maquette telle qu'elle s'affiche.\n\n") + corps}]
     debut = time.time()
     r = _sans_tirets(_claude(systeme, message, requete))
     ordre = {"bloquant": 0, "majeur": 1, "mineur": 2}

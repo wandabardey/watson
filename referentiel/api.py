@@ -450,6 +450,32 @@ def _crud(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _direct(methode, pid, reste, corps):
+    from . import direct as di
+
+    racine = application.chemin(pid)
+    try:
+        if not reste and methode == "GET":
+            return di.vue(racine)
+        if reste == ["relever"] and methode == "POST":
+            r = di.relever(racine, corps, github.compte()["nom"])
+            libelle = {"anomalie": f"Anomalie relevée : {(r.get('ecart') or {}).get('titre', '')}", "evolution": f"Évolution {r.get('evolution')} depuis l'app en direct",
+                       "question": "Question notée depuis l'app en direct"}[r["genre"]]
+            return {**r, **di.vue(racine), **application.enregistrer_et_envoyer(pid, libelle[:120])}
+        if len(reste) == 2 and reste[0] == "ecarts" and methode == "POST":
+            e = di.changer(racine, reste[1], str(corps.get("statut") or ""))
+            return {**di.vue(racine), **application.enregistrer_et_envoyer(pid, f"Écart {e['id']} : {di.STATUTS[e['statut']].lower()}")}
+        if len(reste) == 3 and reste[0] == "ecarts" and reste[2] == "ticket" and methode == "GET":
+            from .chargement import charger
+            e = next((x for x in di.ecarts(racine) if x["id"] == reste[1]), None)
+            if not e:
+                raise Erreur("Écart inconnu.", 404)
+            return {"ticket": di.ticket(charger(racine), e)}
+    except di.ErreurDirect as e:
+        raise Erreur(str(e), 400) from e
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _code(methode, pid, reste, corps):
     from . import passage_code as pc
 
@@ -1116,6 +1142,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _specifications(methode, pid, reste[1:], corps)
         if reste[:1] == ["crud"]:
             return _crud(methode, pid, reste[1:], corps)
+        if reste[:1] == ["direct"]:
+            return _direct(methode, pid, reste[1:], corps)
         if reste[:1] == ["code"]:
             return _code(methode, pid, reste[1:], corps)
         if reste[:1] == ["avancement"]:

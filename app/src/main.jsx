@@ -34,6 +34,7 @@ import { Crud } from './ecrans/crud.jsx';
 import { Design } from './ecrans/design.jsx';
 import { Avancement } from './ecrans/avancement.jsx';
 import { Code } from './ecrans/code.jsx';
+import { Direct } from './ecrans/direct.jsx';
 import { Specifications } from './ecrans/specifications.jsx';
 import './styles.css';
 
@@ -45,12 +46,12 @@ const GROUPES = [
     ['regles', 'Règles', Scale], ['crud', 'Qui fait quoi', KeyRound], ['secteur', 'Fiche secteur', Landmark], ['flux', 'Flux externes', ArrowLeftRight]]],
   ['gestion', 'Gestion projet', [['ateliers', 'Ateliers', MessagesSquare], ['comite', 'Comité d\'experts', Users], ['evolutions', 'Évolutions', GitPullRequestArrow],
     ['versions', 'Versions', GitBranch], ['specifications', 'Spécifications Confluence', BookMarked], ['recette', 'Recette et TNR', FlaskConical], ['documentation', 'Documentation', BookOpen]]],
-  ['produit', 'Produit', [['apercu', 'App en direct', MonitorPlay, true], ['design', 'Design system', Palette], ['avancement', 'Avancement des écrans', ListChecks], ['code', 'Passage en code', Code2]]],
+  ['produit', 'Produit', [['direct', 'App en direct', MonitorPlay], ['design', 'Design system', Palette], ['avancement', 'Avancement des écrans', ListChecks], ['code', 'Passage en code', Code2]]],
 ];
 
 const ECRANS = { projet: AccueilProjet, synthese: AccueilProjet, demander: EcranDemander, alimenter: EcranAlimenter, sujets: Sujets, comite: Comite,
   cahier: Cahier, moodboard: Moodboard, maquettes: Maquettes, proposition: Proposition, referentiels: Referentiels, catalogue: Referentiels,
-  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud, specifications: Specifications, design: Design, avancement: Avancement, code: Code };
+  workflow: Referentiels, ecrans: Ecrans, scenarios: Scenarios, regles: Regles, versions: Versions, administration: Administration, ateliers: Ateliers, secteur: Secteur, evolutions: Evolutions, recette: Recette, documentation: Documentation, flux: Flux, crud: Crud, specifications: Specifications, design: Design, avancement: Avancement, code: Code, direct: Direct };
 
 const lireOuverts = () => { try { return JSON.parse(localStorage.getItem('watson.menu.ouverts') || '["avant","metier"]'); } catch { return ['avant', 'metier']; } };
 

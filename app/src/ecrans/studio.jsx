@@ -33,7 +33,7 @@ function Revue({ projet, cible, titre, capturer, corriger, fermer }) {
     } catch (e) { setMessage(e.message); }
     setAttente(false);
   };
-  const critique = cible.type === 'maquette';
+  const critique = cible.type === 'maquette' || cible.type === 'ecran_reel';
   return (
     <div class="visionneuse" onClick={fermer}>
       <div class="modale-comite" onClick={(e) => e.stopPropagation()}>
@@ -45,7 +45,7 @@ function Revue({ projet, cible, titre, capturer, corriger, fermer }) {
         <div class="ligne" style="gap:8px;flex-wrap:nowrap">
           <input class="saisie espace" placeholder={critique ? 'Une question précise, facultative : « le parcours de validation est-il clair ? »' : 'Une question précise, facultative : « est-ce prêt à partir chez le client ? »'}
             value={question} onInput={(e) => setQuestion(e.target.value)} />
-          <button class="bouton bouton-watson" disabled={attente} onClick={relire}><Sparkles size={14} /> {revue ? 'Relire à nouveau' : critique ? 'Critiquer la maquette' : 'Relire'}</button>
+          <button class="bouton bouton-watson" disabled={attente} onClick={relire}><Sparkles size={14} /> {revue ? 'Relire à nouveau' : cible.type === 'ecran_reel' ? 'Critiquer l\'écran' : critique ? 'Critiquer la maquette' : 'Relire'}</button>
         </div>
         {message && <p class="encart e-rouge">{message}</p>}
         {attente && <div class="carte ligne" style="gap:14px;flex-wrap:nowrap"><Watson humeur="lit" hauteur={80} flotte={false} /><span><strong>Watson relit</strong><br /><span class="doux">{critique ? 'Il regarde la maquette telle qu\'elle s\'affiche, et la confronte à la base.' : 'Il confronte le livrable à la base du projet.'}</span></span></div>}
