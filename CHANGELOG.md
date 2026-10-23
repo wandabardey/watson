@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.28.2 (2026-10-23)
+
+- 4ward : Watson cherche plus loin les installations de 4ward, refait la recherche toutes les deux minutes (une mise à jour dans Claude est prise sans relancer Watson), et Paramètres liste toutes les versions trouvées, avec Rechercher à nouveau et le choix de celle à utiliser.
+
 ## 0.28.1 (2026-10-23)
 
 - Chiffrage : taux journalier de 640 € HT par défaut, réglable dans les Paramètres pour tous les nouveaux chiffrages, et dans chaque projet.
