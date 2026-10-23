@@ -11,7 +11,7 @@
       "name": "watson",
       "source": "./",
       "description": "Watson, le référentiel métier vivant : source de vérité des règles métier d'un projet (entités, étapes, actions, règles, acteurs, parcours, écrans). Détecte les trous, pose les questions manquantes, mesure l'impact, gère versions et évolutions, propose les tests.",
-      "version": "0.27.0"
+      "version": "0.28.0"
     }
   ]
 }

@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.28.0 (2026-10-23)
+
+- Deck de soutenance à la charte 4SH : couverture, intercalaires et fin avec les photos en losanges, coin rouge et losanges sur les slides de contenu, colonnes rouges avec encoche, pictogrammes dans des cercles roses ; nouveaux types de slides (contraintes en grille, références, image, périmètre et interfaces, équipe et engagements). Le kit de présentation 4SH s'importe une fois dans Paramètres et reste sur le poste ; il apporte aussi la présentation de 4SH réutilisable, insérée après la couverture. Le planning et le budget du deck sont remplis par le chiffrage.
+
 ## 0.27.0 (2026-10-23)
 
 - Proposition écrite et chiffrage : à côté du deck, Watson rédige le document de travail de l'avant-vente (récap du besoin, fonctionnalités, objets métier, cycle de vie, détail par objet avec écrans, états et droits, moodboard, maquettes, enveloppe financière, rétroplanning, points ouverts), exportable en Word et en HTML. Le chiffrage pose les hypothèses (taux, équipe type, sprint), recalcule chaque phase, la fourchette et la première enveloppe, et montre ce qui pèse dans chaque lot ; Watson peut proposer un découpage argumenté. Nouvel écran Qui fait quoi : origine des données, CRUD et matrice des droits par acteur, avec les incohérences signalées.
