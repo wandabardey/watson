@@ -20,11 +20,15 @@ const RANG = 118;
 const MARGE_COULOIR = 34;
 const ESPACE_COULOIRS = 26;
 
-function taille(e) {
+// Les boîtes s'élargissent pour que le libellé tienne en entier (jamais coupé), dans une limite raisonnable.
+function taille(e, pastille) {
   if (e.genre === 'statut') return { w: Math.max(120, largeurTexte(e.libelle, 13) + 10), h: 36 };
-  if (e.genre === 'debut' || e.genre === 'fin') return { w: Math.min(190, Math.max(120, largeurTexte(e.libelle, 12.5) + 30)), h: 48 };
-  if (e.genre === 'decision') return { w: 200, h: 66 };
-  return { w: 214, h: e.regles.length || e.version || e.transition_nom ? 92 : 78 };
+  if (e.genre === 'debut' || e.genre === 'fin') return { w: Math.min(300, Math.max(120, largeurTexte(e.libelle, 12.5) + 44 + (pastille ? 46 : 0))), h: 48 };
+  if (e.genre === 'decision') return { w: Math.min(280, Math.max(200, largeurTexte(e.libelle, 13.5) / 2 + 90)), h: 66 };
+  const sous = [e.acteur_nom, e.ecran_nom].filter(Boolean).join(' · ');
+  const w = Math.min(300, Math.max(214, largeurTexte(e.libelle, 13.5) / 1.6 + 74, largeurTexte(sous, 11.5) / 2 + 74));
+  const lignesSous = sous ? Math.min(2, Math.ceil(largeurTexte(sous, 11.5) / (w - 74))) : 0;
+  return { w, h: (e.regles.length || pastille || e.transition_nom ? 92 : 78) + Math.max(0, lignesSous - 1) * 14 };
 }
 
 // Colonnes : plus long chemin depuis le début, en ignorant les retours (liens qui remontent le courant).
@@ -54,7 +58,7 @@ function colonnes(etapes, liens) {
 }
 
 function disposer(sc, applications) {
-  const etapes = sc.etapes.map((e) => ({ ...e, ...taille(e) }));
+  const etapes = sc.etapes.map((e) => ({ ...e, ...taille(e, e.version && e.version !== sc.version) }));
   const { col, arriere } = colonnes(etapes, sc.liens);
   const nbCol = Math.max(0, ...Object.values(col)) + 1;
   const largeurs = Array(nbCol).fill(0);
@@ -62,7 +66,12 @@ function disposer(sc, applications) {
   // L'espace après chaque colonne s'ajuste aux conditions écrites sur les liens qui en partent.
   const ecarts = Array(nbCol).fill(ECART_MIN);
   const colDe = Object.fromEntries(etapes.map((e) => [e.id, col[e.id]]));
-  for (const l of sc.liens) if (l.libelle && colDe[l.de] !== undefined && !arriere.has(l)) ecarts[colDe[l.de]] = Math.max(ecarts[colDe[l.de]], largeurTexte(l.libelle, 12) + 30);
+  for (const l of sc.liens) {
+    if (!l.libelle || colDe[l.de] === undefined || colDe[l.vers] === undefined || arriere.has(l)) continue;
+    const w = largeurTexte(l.libelle, 12) + 34;
+    ecarts[colDe[l.de]] = Math.max(ecarts[colDe[l.de]], w);
+    if (colDe[l.vers] > 0) ecarts[colDe[l.vers] - 1] = Math.max(ecarts[colDe[l.vers] - 1], w);
+  }
   const xCol = [];
   let x = MARGE_COULOIR + 150;
   for (let c = 0; c < nbCol; c++) { xCol.push(x); x += largeurs[c] + ecarts[c]; }
@@ -88,6 +97,7 @@ function disposer(sc, applications) {
   const pos = Object.fromEntries(noeuds.map((n) => [n.id, n]));
   const bloque = (yy, x1, x2, sauf) => noeuds.some((n) => !sauf.includes(n.id) && yy > n.y - 4 && yy < n.y + n.h + 4 && Math.max(x1, x2) > n.x && Math.min(x1, x2) < n.x + n.w);
   const traits = [];
+  const verticaux = [];
   sc.liens.forEach((l, i) => {
     const s = pos[l.de], t = pos[l.vers];
     if (!s || !t) return;
@@ -103,17 +113,26 @@ function disposer(sc, applications) {
       else {
         const tot = xCol[s.col] + largeurs[s.col] + ecarts[s.col] / 2;
         const tard = xCol[t.col] - ecarts[t.col - 1] / 2;
-        const mx = !bloque(ty, tot, x2, [s.id, t.id]) ? tot : !bloque(sy, x1, tard, [s.id, t.id]) ? tard : tot;
+        // Un lien qui porte une condition tourne tôt : le segment qui arrive à l'étape est long et porte le libellé.
+        const tot2 = l.libelle ? x1 + 18 : tot;
+        let mx = !bloque(ty, tot2, x2, [s.id, t.id]) ? tot2 : !bloque(ty, tot, x2, [s.id, t.id]) ? tot : !bloque(sy, x1, tard, [s.id, t.id]) ? tard : tot;
+        // Deux liens ne partagent jamais le même trait vertical : le second se décale.
+        const y1 = Math.min(sy, ty), y2 = Math.max(sy, ty);
+        while (verticaux.some((v) => Math.abs(v.x - mx) < 8 && v.y1 < y2 && v.y2 > y1)) mx += 12;
+        verticaux.push({ x: mx, y1, y2 });
         pts = [{ x: x1, y: sy }, { x: mx, y: sy }, { x: mx, y: ty }, { x: x2, y: ty }];
       }
     }
     let etiquette = null;
     if (l.libelle) {
       const w = largeurTexte(l.libelle, 12);
-      // Sur le premier segment horizontal assez long, sinon au milieu du segment vertical.
-      const a = pts[0], b = pts[1];
-      if (Math.abs(a.y - b.y) < 1 && Math.abs(b.x - a.x) > w + 16) etiquette = { texte: l.libelle, x: (a.x + b.x) / 2 - w / 2, y: a.y - 13, w };
-      else { const m = pts.length > 2 ? [pts[1], pts[2]] : [a, b]; etiquette = { texte: l.libelle, x: (m[0].x + m[1].x) / 2 - w / 2, y: (m[0].y + m[1].y) / 2 - 13, w }; }
+      // Sur le dernier segment horizontal (celui qui arrive à l'étape : deux liens qui partent d'une même décision
+      // ne se superposent plus), sinon sur le premier, sinon au milieu du segment vertical.
+      const n = pts.length;
+      const fin = [pts[n - 2], pts[n - 1]], debut = [pts[0], pts[1]];
+      const horizontal = (m) => Math.abs(m[0].y - m[1].y) < 1 && Math.abs(m[1].x - m[0].x) > w + 16;
+      const m = horizontal(fin) && !arriere.has(l) ? fin : horizontal(debut) ? debut : (n > 2 ? [pts[1], pts[2]] : debut);
+      etiquette = { texte: l.libelle, x: (m[0].x + m[1].x) / 2 - w / 2, y: (m[0].y + m[1].y) / 2 - 13, w };
     }
     traits.push({ id: `${l.de}>${l.vers}>${i}`, l, points: pts, etiquette, couleur: s.couleur || GRIS });
   });
@@ -129,26 +148,26 @@ function disposer(sc, applications) {
   return { noeuds, traits, fonds, groupes, largeur, hauteur: Math.max(0, y - ESPACE_COULOIRS) };
 }
 
-function Etape({ e, choisie, attenuee, choisir, hors, nomV, version }) {
+function Etape({ e, choisie, attenuee, choisir, hors, nomV, version, versionSc }) {
   const c = e.couleur || GRIS;
   const sortie = hors(e.version);
   const classes = `etape-sc g-${e.genre} ${choisie ? 'choisie' : ''} ${attenuee ? 'attenuee' : ''} ${sortie ? 'hors-version' : ''} ${e.a_trancher ? 'a-trancher' : ''}`;
   const pos = `left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px`;
   const clic = (ev) => { ev.stopPropagation(); choisir(e.id); };
-  const pastille = e.version && (version === 'toutes' || sortie) && <span class="pastille-version">{nomV(e.version)}</span>;
+  const pastille = e.version && (e.version !== versionSc || sortie) && (version === 'toutes' || sortie) && <span class="pastille-version">{nomV(e.version)}</span>;
   if (e.genre === 'statut') return <div class={classes} style={pos} onClick={clic} title="Statut apposé">{e.statut_nom || e.libelle}{pastille}</div>;
   if (e.genre === 'debut' || e.genre === 'fin') {
     return <div class={classes} style={`${pos};border-color:${teinteClaire(c, 0.4)}`} onClick={clic}>
-      {e.genre === 'debut' ? <CircleDot size={15} color={c} /> : <Flag size={15} color={c} />}<span class="tronque">{e.libelle}</span>{pastille}</div>;
+      {e.genre === 'debut' ? <CircleDot size={15} color={c} /> : <Flag size={15} color={c} />}<span>{e.libelle}</span>{pastille}</div>;
   }
   const Icone = e.genre === 'decision' ? Diamond : e.ecran ? AppWindow : MousePointerClick;
   return (
     <div class={`brique ${classes}`} style={`${pos};border-color:${sortie ? '' : e.genre === 'decision' ? '#F2C46D' : teinteClaire(c, 0.42)}`} onClick={clic}>
-      <div class="brique-tete" style="height:64px;gap:10px;padding:0 12px">
+      <div class="brique-tete" style="min-height:64px;gap:10px;padding:8px 12px">
         <span class="brique-icone" style={`flex-basis:36px;height:36px;border-radius:11px;${e.genre === 'decision' ? 'background:#FFF4E0;color:#B45309' : `background:${teinteClaire(c, 0.12)};color:${c}`}`}><Icone size={17} strokeWidth={1.9} /></span>
         <span class="pile espace" style="gap:2px;min-width:0">
           <strong class="brique-titre etape-titre">{e.libelle}</strong>
-          {(e.acteur_nom || e.ecran_nom) && <span class="brique-sous tronque" style="font-size:11.5px">{[e.acteur_nom, e.ecran_nom].filter(Boolean).join(' · ')}</span>}
+          {(e.acteur_nom || e.ecran_nom) && <span class="brique-sous" style="font-size:11.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{[e.acteur_nom, e.ecran_nom].filter(Boolean).join(' · ')}</span>}
         </span>
       </div>
       {(e.transition_nom || e.regles.length > 0 || pastille || e.a_trancher) && (
@@ -216,7 +235,7 @@ function SchemaScenario({ sc, applications, choisi, choisir, filtre, versions, v
           style={`left:${t.etiquette.x}px;top:${t.etiquette.y}px;height:24px;font-size:12px;opacity:${!choisi || t.l.de === choisi || t.l.vers === choisi ? 1 : 0.35}`}>{t.etiquette.texte}</span>
       ))}
       {plan.noeuds.map((e) => (
-        <Etape key={e.id} e={e} choisie={choisi === e.id} attenuee={(choisi && choisi !== e.id && !voisins.has(e.id)) || !correspond(e)} choisir={choisir}
+        <Etape key={e.id} e={e} versionSc={sc.version} choisie={choisi === e.id} attenuee={(choisi && choisi !== e.id && !voisins.has(e.id)) || !correspond(e)} choisir={choisir}
           hors={hors} nomV={nomV} version={version} />
       ))}
     </Toile>

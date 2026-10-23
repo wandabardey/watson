@@ -9,7 +9,7 @@ const estImage = (f) => /^image\/(png|jpeg|webp|gif)$/.test(f.type) || /\.(png|j
 const MAX_IMAGE = 5 * 1000 * 1000;
 const MAX = 40 * 1024 * 1024;
 const GROUPES = [
-  ['entite', 'Objets métier et données'], ['liste', 'Listes de valeurs'], ['ecran', 'Écrans'], ['scenario', 'Scénarios'], ['regle', 'Règles'], ['acteur', 'Acteurs'],
+  ['application', 'Applications'], ['entite', 'Objets métier et données'], ['liste', 'Listes de valeurs'], ['ecran', 'Écrans'], ['scenario', 'Scénarios'], ['regle', 'Règles'], ['acteur', 'Acteurs'], ['flux', 'Flux externes'],
   ['question', 'Questions ouvertes']
 ];
 

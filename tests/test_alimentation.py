@@ -226,3 +226,41 @@ def test_image_lue_par_claude(projet):
     assert "SCR-050" in charger(projet).ecrans
     with pytest.raises(alimentation.ErreurAlimentation, match="5 Mo"):
         alimentation.analyser("fret", projet, [{"nom": "grande.jpg", "contenu_base64": base64.b64encode(b"x" * 5_000_001).decode()}], requete=requete)
+
+
+def test_deux_applications_dans_un_schema(projet):
+    """Un schéma avec deux systèmes : une application chacun, chaque étape dans la sienne, rien de fusionné."""
+    reponse = {"resume": "", "propositions": [
+        {"type": "application", "action": "creer", "titre": "EasyFret", "pourquoi": "badge EF", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "EF"}, "contenu": {"id": "APP-EF", "nom": "EasyFret", "couleur": "#EA7317", "inconnu": 1}},
+        {"type": "application", "action": "creer", "titre": "Mauvaise", "pourquoi": "x", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "x"}, "contenu": {"id": "APP-X", "nom": "X", "couleur": "orange"}},
+        {"type": "scenario", "action": "creer", "titre": "Déclaration", "pourquoi": "x", "conflit": "",
+         "citation": {"document": "DOC-1", "extrait": "Déclaration"},
+         "contenu": {"id": "SCN-009", "nom": "Déclaration", "etapes": [
+             {"id": "ctrl_ef", "libelle": "Contrôle du déposant", "application": "APP-EF"},
+             {"id": "ctrl_x", "libelle": "Contrôle du déposant", "application": "APP-X"}],
+             "liens": [{"de": "ctrl_ef", "vers": "ctrl_x", "libelle": "Refus · routage RAS", "genre": "refus"}]}}]}
+    requete, vus = faux_claude(reponse)
+    lot = alimentation.analyser("fret", projet, [{"titre": "Schéma", "texte": "Deux systèmes."}], requete=requete)
+    s = vus["options"].system_prompt
+    assert "Plusieurs applications" in s and "jamais fusionnées" in s and '"application"' in s
+    app, mauvaise = lot["propositions"][0], lot["propositions"][1]
+    assert not app.get("invalide") and "inconnu" not in app["contenu"] and mauvaise.get("invalide")
+    _, p_apercu = alimentation.apercu("fret", projet, lot["id"])
+    assert any(a["id"] == "APP-EF" for a in p_apercu.meta["applications"])
+    r = alimentation.appliquer("fret", projet, lot["id"], [{"index": 0, "accepte": True}, {"index": 2, "accepte": True}], "W")
+    p = charger(projet)
+    assert not p.erreurs and any(a["id"] == "APP-EF" and a["couleur"] == "#EA7317" for a in p.meta["applications"])
+    etapes = p.scenarios["SCN-009"]["etapes"]
+    assert etapes[0]["application"] == "APP-EF" and "application" not in etapes[1]
+    assert any("APP-X" in t for t in r["retouches"]) and r["ecrits"][0]["type"] == "application"
+
+
+def test_sources_verifiees_scenarios_et_noms():
+    from referentiel.assistant import sources_verifiees
+
+    s = sources_verifiees(FRET, [{"type": "scénario", "nom": "x", "identifiant": next(iter(charger(FRET).scenarios))},
+                                 {"type": "parcours", "nom": charger(FRET).scenarios[next(iter(charger(FRET).scenarios))]["nom"], "identifiant": "SCN-999"},
+                                 {"type": "règle", "nom": "Inventée", "identifiant": "RG-999"}])
+    assert [x["verifiee"] for x in s] == [True, True, False] and s[1]["identifiant"] != "SCN-999"

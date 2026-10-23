@@ -90,8 +90,11 @@ Règles absolues :
 4. Tu parles avec les noms métier, en français, sans identifiants dans les paragraphes. Phrases courtes,
    deux paragraphes courts le plus souvent (quatre au plus), l'essentiel d'abord. Pas de tiret cadratin ni
    demi-cadratin. Trois sources au plus, les plus directes, avec une trace d'une phrase.
-   Dans les sources, le type est un mot français accentué (« règle », « action », « étape », « écran »,
-   « entité », « acteur », « parcours ») et le statut reste vide si l'élément n'en a pas.
+   Dans les sources, le type est un mot français accentué : « règle », « action », « étape », « écran »,
+   « entité », « acteur », « scénario » (repère SCN-…), « parcours » (cas d'usage, repère UC-…), « flux »,
+   « application » ; le statut reste vide si l'élément n'en a pas. L'identifiant est recopié tel quel depuis la base.
+8. Cohérence : ne dis jamais qu'un élément existe et, dans la même réponse, qu'il manque. Si la base est ambiguë
+   (deux éléments proches, une étape sans application), dis-le simplement dans « trou ».
 5. Verdict : « oui », « non », « depend » (la réponse change selon la situation ou la version),
    « partiel » (c'est le cas en pratique mais aucune règle validée ne le décide), « inconnu », ou « resume »
    pour une question qui appelle une synthèse plutôt qu'un oui ou non.
@@ -347,15 +350,27 @@ def sources_verifiees(projet: Path, sources: list[dict]) -> list[dict]:
 
     p = charger(Path(projet))
     connus = set()
-    for collection in (p.acteurs, p.entites, p.regles, p.cas_usage, p.ecrans):
+    for collection in (p.acteurs, p.entites, p.regles, p.cas_usage, p.ecrans, p.scenarios, p.flux, p.listes):
         connus.update(collection.keys())
+    connus.update(a["id"] for a in p.meta.get("applications") or [])
+    for sc in p.scenarios.values():  # une étape citée par son repère seul, ou « SCN-1:etape »
+        for et in sc.get("etapes") or []:
+            connus.update({et["id"], f"{sc['id']}:{et['id']}", f"{sc['id']}/{et['id']}"})
+    noms = {}
+    for collection in (p.acteurs, p.entites, p.regles, p.cas_usage, p.ecrans, p.scenarios, p.flux, p.listes):
+        for i, e in collection.items():
+            noms.setdefault((e.get("nom") or e.get("titre") or "").strip().lower(), i)
     connus.update(p.transitions.keys())
     for ent in p.entites.values():
         for st in ent.get("statuts") or []:
             if isinstance(st, dict) and st.get("id"):
                 connus.add(st["id"])
     for s in sources:
-        s["verifiee"] = s.get("identifiant") in connus if connus else None
+        ok = s.get("identifiant") in connus
+        if not ok and (s.get("nom") or "").strip().lower() in noms:  # bon élément, repère mal recopié : on corrige
+            s["identifiant"] = noms[s["nom"].strip().lower()]
+            ok = True
+        s["verifiee"] = ok if connus else None
     return sources
 
 

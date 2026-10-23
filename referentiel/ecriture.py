@@ -369,3 +369,22 @@ def enregistrer_versions_produit(racine, versions: list[dict]) -> dict:
         raise ErreurEcriture("Versions invalides : " + "; ".join(m for _, m in errs))
     _ecrire_transaction(p.racine, {p.racine / "projet.yaml": dump(meta)})
     return {"versions_produit": meta.get("versions_produit", [])}
+
+
+def enregistrer_application(racine, application: dict) -> dict:
+    """Ajoute ou remplace une application du produit dans projet.yaml (les autres champs, dépôt compris, sont gardés)."""
+    p = charger(racine)
+    meta = dict(p.meta)
+    apps = list(meta.get("applications") or [])
+    i = next((n for n, a in enumerate(apps) if a["id"] == application.get("id")), None)
+    nouvelle = {**(apps[i] if i is not None else {}), **{k: v for k, v in application.items() if v not in (None, "")}}
+    if i is None:
+        apps.append(nouvelle)
+    else:
+        apps[i] = nouvelle
+    meta["applications"] = apps
+    errs = erreurs_schema(meta, schemas.PROJET)
+    if errs:
+        raise ErreurEcriture("Application invalide : " + "; ".join(m for _, m in errs))
+    _ecrire_transaction(p.racine, {p.racine / "projet.yaml": dump(meta)})
+    return nouvelle

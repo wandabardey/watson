@@ -92,6 +92,12 @@ def generer_contexte(p: Projet, sections: list[str] | None = None, trous=None, i
         l += [f"- {_ref(p, i)} : {a.get('description', '')}".rstrip(" :") for i, a in p.acteurs.items()]
         l.append("")
 
+    if p.meta.get("applications"):
+        l.append("## Applications du produit (couloirs des scénarios)")
+        for a in p.meta["applications"]:
+            l.append(f"- {a['nom']} [{a['id']}]" + (f", {a['support']}" if a.get("support") else ""))
+        l.append("")
+
     if "listes" in sections and p.listes:
         l.append("## Listes de valeurs")
         for i, li in p.listes.items():
