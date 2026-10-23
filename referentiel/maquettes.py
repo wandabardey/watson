@@ -280,9 +280,10 @@ def dessiner(pid: str, racine: Path, ecran: str | None = None, description: str 
     contexte, _ = construire_contexte(racine)
     quoi = _description_ecran(p, ecran) if ecran else f"Écran à imaginer : {description}"
     debut = time.time()
+    from .design_system import lire as lire_systeme
+    systeme = lire_systeme(racine)
     try:
-        from .design_system import lire as lire_systeme
-        r = asyncio.run(_lire_par_claude(_consignes(contexte, piste, cahier_txt, idx["donnees"], support, demande, precedente, lire_systeme(racine)),
+        r = asyncio.run(_lire_par_claude(_consignes(contexte, piste, cahier_txt, idx["donnees"], support, demande, precedente, systeme),
                                          f"Dessine cet écran.\n\n{quoi}", requete))
     except ErreurAlimentation as e:
         raise ErreurAvantProjet(str(e)) from e
@@ -292,6 +293,7 @@ def dessiner(pid: str, racine: Path, ecran: str | None = None, description: str 
     titre = str(r.get("titre") or (p.ecrans[ecran]["nom"] if ecran else "Maquette")).strip()
     mid = reprendre or _nouvel_id(racine, titre, pid)
     prop = {"id": mid, "titre": titre, "ecran": ecran or "", "support": support, "origine": "watson", "piste": (piste or {}).get("id", ""),
+            "systeme": (systeme or {}).get("mis_a_jour", "") if (systeme or {}).get("fondations") else "",
             "notes": str(r.get("notes") or ""), "donnees": str(r.get("donnees") or idx["donnees"]), "date": aujourdhui(),
             "duree_s": round(time.time() - debut), "modele": reglages.nom_modele(reglages.modele()), "remplace": bool(reprendre),
             "demande": demande or "", "questions": [q for q in r.get("questions") or [] if isinstance(q, dict) and q.get("question")],
@@ -311,7 +313,7 @@ def garder(pid: str, racine: Path, mid: str, auteur: str, questions: bool = True
     dossier.mkdir(parents=True, exist_ok=True)
     (dossier / f"{mid}.html").write_text(prop["html"], encoding="utf-8")
     idx = lire_index(racine)
-    entree = {k: prop[k] for k in ("id", "titre", "ecran", "support", "origine", "piste", "notes", "date") if prop.get(k)}
+    entree = {k: prop[k] for k in ("id", "titre", "ecran", "support", "origine", "piste", "notes", "date", "systeme") if prop.get(k)}
     entree["fichier"] = f"{mid}.html"
     idx["maquettes"] = [m for m in idx["maquettes"] if m["id"] != mid] + [entree]
     idx["donnees"] = prop.get("donnees") or idx["donnees"]
@@ -366,6 +368,14 @@ def modifier(racine: Path, mid: str, champs: dict) -> dict:
         m["ecran"] = champs["ecran"] or ""
     if champs.get("support") in SUPPORTS:
         m["support"] = champs["support"]
+    if "validee" in champs:
+        if champs["validee"]:
+            m["validee"] = aujourdhui()
+            if champs.get("par"):
+                m["validee_par"] = str(champs["par"])[:80]
+        else:
+            m.pop("validee", None)
+            m.pop("validee_par", None)
     for k in [k for k, v in m.items() if v == ""]:
         m.pop(k)
     _ecrire_index(racine, idx)

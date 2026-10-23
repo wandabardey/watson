@@ -450,6 +450,25 @@ def _crud(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _avancement(methode, pid, reste, corps):
+    from . import avancement as av
+
+    racine = application.chemin(pid)
+    try:
+        if not reste and methode == "GET":
+            return av.vue(racine)
+        if reste == ["lier"] and methode == "POST":
+            fichiers = corps.get("fichiers")
+            av.lier(racine, str(corps.get("ecran") or ""), [str(x) for x in fichiers] if isinstance(fichiers, list) else None,
+                    corps.get("route") if isinstance(corps.get("route"), str) else None)
+            return {**av.vue(racine), **application.enregistrer_et_envoyer(pid, f"Lien écran et code : {corps.get('ecran')}")}
+        if reste == ["suggestions"] and methode == "POST":
+            return {"suggestions": av.suggestions(racine, str(corps.get("ecran") or ""))}
+    except av.ErreurAvancement as e:
+        raise Erreur(str(e), 400) from e
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _design(methode, pid, reste, corps):
     from . import design_system as dsm
 
@@ -825,7 +844,13 @@ def _maquettes(methode, pid, racine, reste, corps):
                         str(corps.get("ecran") or ""), str(corps.get("support") or "desktop"), str(corps.get("origine") or "import"))
         return {**mq.vue(racine, pid), **envoyer(f"Maquette importée : {m['titre']}"), "gardee": m["id"]}
     if reste == ["modifier"] and methode == "POST":
-        m = mq.modifier(racine, str(corps.get("id", "")), corps.get("champs") or {})
+        champs = dict(corps.get("champs") or {})
+        if champs.get("validee"):
+            try:
+                champs["par"] = github.compte()["nom"]
+            except Exception:  # noqa: BLE001
+                pass
+        m = mq.modifier(racine, str(corps.get("id", "")), champs)
         return {**mq.vue(racine, pid), **envoyer(f"Maquette : {m['titre']}")}
     if reste == ["supprimer"] and methode == "POST":
         mq.supprimer(racine, str(corps.get("id", "")))
@@ -991,6 +1016,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _specifications(methode, pid, reste[1:], corps)
         if reste[:1] == ["crud"]:
             return _crud(methode, pid, reste[1:], corps)
+        if reste[:1] == ["avancement"]:
+            return _avancement(methode, pid, reste[1:], corps)
         if reste[:1] == ["design"]:
             return _design(methode, pid, reste[1:], corps)
         if reste[:1] == ["studio"]:

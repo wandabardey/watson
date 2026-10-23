@@ -763,3 +763,13 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .ds-nuances { display: grid; grid-template-columns: repeat(10, 1fr); border-radius: 8px; overflow: hidden; }
 .ds-nuances div { height: 30px; font-size: 10px; display: flex; align-items: flex-end; padding: 3px; }
 .ds-nuances div.base { box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px #18181b; }
+
+/* Avancement des écrans */
+.av-barre { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.av-legende { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 6px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--texte); }
+.av-legende.actif { background: var(--indigo-pale); }
+.av-legende i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.av-etat { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--c) 18%, #fff); color: color-mix(in srgb, var(--c) 70%, #18181b); white-space: nowrap; }
+.av-alerte { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; color: var(--orange); }
+.av-lien { border: 0; background: none; padding: 0; color: var(--indigo-fonce); cursor: pointer; text-align: left; font: inherit; }
+.av-lien:hover { text-decoration: underline; }

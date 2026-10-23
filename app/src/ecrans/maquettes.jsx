@@ -62,6 +62,10 @@ function Visionneuse({ projet, m, d, fermer, faire, reprendre, occupe }) {
             {Object.entries({ desktop: Monitor, mobile: Smartphone }).map(([k, I]) => <button key={k} class={`segment ${support === k ? 'actif' : ''}`} onClick={() => { setSupport(k); if (k !== m.support) modifier({ support: k }); }}><I size={14} /> {d.supports[k]}</button>)}
           </div>
           <label class="champ">Écran<select value={m.ecran || ''} onChange={(e) => modifier({ ecran: e.target.value })}><option value="">Aucun</option>{d.ecrans.map((e) => <option key={e.id} value={e.id}>{e.nom}</option>)}</select></label>
+          {m.ecran && (m.validee
+            ? <div class="encart e-vert" style="flex-direction:column;gap:6px"><span><Check size={14} /> Maquette validée le {m.validee.split('-').reverse().join('/')}{m.validee_par ? ` par ${m.validee_par}` : ''} : c'est la référence pour le code de cet écran.</span>
+                <button class="bouton icone" style="align-self:flex-start" disabled={occupe} onClick={() => modifier({ validee: false })}>Retirer la validation</button></div>
+            : <button class="bouton" disabled={occupe} onClick={() => modifier({ validee: true })}><Check size={15} /> Valider : référence pour le code</button>)}
           <label class="champ">Notes<textarea rows={5} value={notes} onInput={(e) => setNotes(e.target.value)} onBlur={() => notes !== (m.notes || '') && modifier({ notes })} /></label>
           {m.fichier?.endsWith('.html') && (dem === null
             ? <button class="bouton bouton-watson" disabled={occupe} onClick={() => setDem('')}><Sparkles size={15} /> Reprendre avec Watson</button>
