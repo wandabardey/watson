@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.30.0 (2026-10-23)
+
+- Spécifications Confluence : Watson écrit les pages de la méthode DESIGN de 4SH (acteurs, objets, cas d'usage, écrans, règles, intégrations, exports et imports, contexte) à partir de la base. Il analyse l'espace du projet pour reprendre sa convention de titre, une page modèle par type (macros et mise en forme comprises) et le style des écrans. Les brouillons s'affichent en aperçu, se corrigent, puis se publient après une confirmation qui dit ce qui sera créé et ce qui sera remplacé ; une page est signalée à mettre à jour quand la base bouge. Connexion par jeton d'API Atlassian, gardé dans le trousseau.
+
 ## 0.29.0 (2026-10-23)
 
 - Watson travaille en arrière-plan : on voit depuis tous les écrans ce qu'il fait (lecture, réflexion, texte déjà écrit, durée), on peut changer d'écran pendant ce temps, un message prévient quand c'est fini et mène au résultat. L'accueil du projet est scindé en trois : Accueil (la synthèse), Demander à Watson, Alimenter. 4ward n'est plus recherché toutes les deux minutes : au lancement, à l'ouverture des Paramètres ou si sa version change. Les maquettes et la critique suivent les nouvelles règles de composants de 4ward 0.64.
