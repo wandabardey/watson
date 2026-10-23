@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.27.0 (2026-10-23)
+
+- Proposition écrite et chiffrage : à côté du deck, Watson rédige le document de travail de l'avant-vente (récap du besoin, fonctionnalités, objets métier, cycle de vie, détail par objet avec écrans, états et droits, moodboard, maquettes, enveloppe financière, rétroplanning, points ouverts), exportable en Word et en HTML. Le chiffrage pose les hypothèses (taux, équipe type, sprint), recalcule chaque phase, la fourchette et la première enveloppe, et montre ce qui pèse dans chaque lot ; Watson peut proposer un découpage argumenté. Nouvel écran Qui fait quoi : origine des données, CRUD et matrice des droits par acteur, avec les incohérences signalées.
+
 ## 0.26.0 (2026-10-23)
 
 - Flux externes : les échanges entre les applications du produit et les systèmes du client ou des partenaires deviennent des éléments de la base (sens, partenaire, déclencheur, moyen et format, données, règles, gestion des échecs, volumétrie). Watson les tire des documents dans Alimenter ou d'une description, signale ce qui manque (que faire si l'échange échoue, quelles données, quand il part), et les suit dans l'analyse d'impact, les versions et le comité. Une carte montre qui échange avec qui.
