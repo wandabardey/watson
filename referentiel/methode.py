@@ -59,6 +59,9 @@ TACHES = {
     "documentation": ["4SH-doc-utilisateur/SKILL.md", "4SH-accueil/references/anti-slop-redactionnel.md"],
     "mail": ["4SH-communication-client/SKILL.md", "4SH-communication-client/references/gabarits-communication.md"],
     "specification": ["4SH-conception-specs/references/methode-design-4sh.md", "4SH-conception-specs/references/droits-et-etats-d-erreur.md"],
+    "specifications": ["4SH-conception-specs/references/methode-design-4sh.md", "4SH-conception-specs/references/conventions-specs.md",
+                       "4SH-conception-specs/references/droits-et-etats-d-erreur.md", "4SH-conception-specs/references/composants-fiche-et-spec.md",
+                       "4SH-conception-specs/references/confluence-adf.md"],
     "chiffrage": ["4SH-cadrage-projet/SKILL.md", "4SH-deck-commercial/references/modele-et-deck-de-reference.md"],
     "proposition_ecrite": ["4SH-cadrage-projet/SKILL.md", "4SH-deck-commercial/SKILL.md", "4SH-accueil/references/anti-slop-redactionnel.md"],
 }

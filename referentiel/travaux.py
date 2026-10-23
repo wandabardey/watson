@@ -18,7 +18,7 @@ PHASES = {"prepare": "Watson prépare la demande", "lit": "Watson lit", "reflech
 ECRANS = {"alimenter": "alimenter", "demander": "demander", "modifier": "projet", "elements": "projet", "sujets": "sujets",
           "cahier": "cahier", "moodboard": "moodboard", "maquettes": "maquettes", "proposition": "proposition", "chiffrage": "proposition",
           "ecrite": "proposition", "comite": "comite", "ateliers": "ateliers", "relire": "projet", "secteur": "secteur", "mail": "projet",
-          "evolutions": "evolutions", "documentation": "documentation", "recette": "recette", "crud": "crud"}
+          "evolutions": "evolutions", "documentation": "documentation", "recette": "recette", "crud": "crud", "specifications": "specifications"}
 _verrou = threading.Lock()
 _travaux: dict[str, dict] = {}
 GARDE = 3600

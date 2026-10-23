@@ -28,6 +28,8 @@ from .campagnes import ErreurRecette
 from .documentation import ErreurDocumentation
 from .crud import ErreurCrud
 from .kit import ErreurKit
+from .confluence import ErreurConfluence
+from .specifications import ErreurSpecifications
 from .schemas import cible_et_donnee
 from .chargement import charger
 from .contexte import STATUTS
@@ -448,6 +450,34 @@ def _crud(methode, pid, reste, corps):
     raise Erreur("Ressource inconnue.", 404)
 
 
+def _specifications(methode, pid, reste, corps):
+    from . import specifications as sp
+
+    racine = application.chemin(pid)
+    envoyer = lambda message: application.enregistrer_et_envoyer(pid, message)  # noqa: E731
+    if not reste and methode == "GET":
+        return sp.vue(racine, pid)
+    if reste == ["configurer"] and methode == "POST":
+        sp.configurer(racine, str(corps.get("espace") or ""), corps.get("racine_id") or None, corps.get("racine_titre") or None, corps.get("style"))
+        return {**sp.vue(racine, pid), **envoyer("Spécifications Confluence : espace et racine")}
+    if reste == ["analyser"] and methode == "POST":
+        return {**sp.analyser(racine, pid), **envoyer("Spécifications Confluence : analyse de l'espace")}
+    if reste == ["rediger"] and methode == "POST":
+        return sp.rediger(pid, racine, [str(x) for x in corps.get("cles") or []][:200])
+    if reste == ["brouillon"] and methode == "POST":
+        cle = str(corps.get("cle") or "")
+        if corps.get("storage") is not None:
+            sp.modifier_brouillon(pid, cle, str(corps["storage"]))
+        b = sp.lire_brouillon(pid, cle)
+        if not b:
+            raise Erreur("Pas de brouillon pour cette page.", 404)
+        return {**b, "apercu": sp.apercu(b["storage"])}
+    if reste == ["publier"] and methode == "POST":
+        r = sp.publier(racine, pid, [str(x) for x in corps.get("cles") or []], bool(corps.get("confirme")))
+        return {**r, **envoyer(f"Spécifications Confluence : {len(r['publiees'])} pages publiées")}
+    raise Erreur("Ressource inconnue.", 404)
+
+
 def _recette(methode, pid, reste, corps):
     from . import campagnes as ca
 
@@ -851,6 +881,15 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return github.proprietaires()
         if methode == "GET" and morceaux[1:] == ["depots"]:
             return {"depots": github.depots(requete.get("q", [""])[0])}
+    if morceaux[:1] == ["confluence"]:
+        from . import confluence as cf
+        if morceaux == ["confluence", "espaces"]:
+            return {"espaces": cf.Client().espaces()}
+        if methode == "POST":
+            return cf.connecter(str(corps.get("site") or ""), str(corps.get("email") or ""), str(corps.get("jeton") or ""))
+        if methode == "DELETE":
+            return cf.deconnecter()
+        return cf.etat()
     if morceaux == ["travaux"] and methode == "GET":
         from . import travaux
         return travaux.vue()
@@ -921,6 +960,8 @@ def route(methode: str, chemin: str, requete: dict, corps: dict):
             return _recette(methode, pid, reste[1:], corps)
         if reste[:1] == ["documentation"]:
             return _documentation(methode, pid, reste[1:], corps)
+        if reste[:1] == ["specifications"]:
+            return _specifications(methode, pid, reste[1:], corps)
         if reste[:1] == ["crud"]:
             return _crud(methode, pid, reste[1:], corps)
         if reste[:1] == ["studio"]:
@@ -1024,7 +1065,7 @@ def fabrique(jeton: str):
                 self._repondre(200, route(methode, url.path, parse_qs(url.query), corps))
             except Erreur as e:
                 self._repondre(e.code, {"erreur": str(e)})
-            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, ErreurDocumentation, ErreurCrud, ErreurKit, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
+            except (application.ErreurApplication, alimentation.ErreurAlimentation, reglages.ErreurReglages, ErreurAvantProjet, ErreurComite, ErreurAtelier, ErreurStudio, ErreurEvolution, ErreurRecette, ErreurDocumentation, ErreurCrud, ErreurKit, ErreurConfluence, ErreurSpecifications, github.ErreurGitHub, depot.ErreurDepot, ErreurVersion, ErreurEcriture) as e:
                 self._repondre(400, {"erreur": str(e)})
             except Exception as e:  # noqa: BLE001
                 from .assistant import ErreurAssistant

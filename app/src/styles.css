@@ -745,3 +745,10 @@ select.saisie, .champ select { padding-right: 34px; background-image: url("data:
 .avis-pile { position: fixed; right: 20px; bottom: 20px; z-index: 70; display: flex; flex-direction: column; gap: 8px; width: min(420px, 90vw); }
 .avis { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px #E4E4EC, 0 12px 28px rgba(24,24,27,.14); font-size: 14px; color: var(--vert); }
 .avis .espace { color: var(--texte); } .avis-erreur { color: #B91C1C; }
+
+/* Spécifications Confluence */
+.specs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+.specs.avec-apercu { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.specs-apercu { gap: 10px; position: sticky; top: 12px; max-height: calc(100vh - 40px); }
+.specs-cadre { width: 100%; height: calc(100vh - 220px); border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px #ECEBF3; background: #fff; }
+.specs-source { min-height: calc(100vh - 280px); padding: 10px 12px; font-family: ui-monospace, monospace; font-size: 12px; }
