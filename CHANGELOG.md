@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.28.1 (2026-10-23)
+
+- Chiffrage : taux journalier de 640 € HT par défaut, réglable dans les Paramètres pour tous les nouveaux chiffrages, et dans chaque projet.
+
 ## 0.28.0 (2026-10-23)
 
 - Deck de soutenance à la charte 4SH : couverture, intercalaires et fin avec les photos en losanges, coin rouge et losanges sur les slides de contenu, colonnes rouges avec encoche, pictogrammes dans des cercles roses ; nouveaux types de slides (contraintes en grille, références, image, périmètre et interfaces, équipe et engagements). Le kit de présentation 4SH s'importe une fois dans Paramètres et reste sur le poste ; il apporte aussi la présentation de 4SH réutilisable, insérée après la couverture. Le planning et le budget du deck sont remplis par le chiffrage.

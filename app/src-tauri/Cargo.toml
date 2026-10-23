@@ -1,6 +1,6 @@
 [package]
 name = "watson"
-version = "0.28.0"
+version = "0.28.1"
 description = "Watson, le référentiel métier vivant"
 authors = ["Wanda Bardey"]
 edition = "2021"
