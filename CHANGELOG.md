@@ -3,6 +3,10 @@
 Numérotation : X.Y.Z. Z pour une correction, Y pour une fonction nouvelle, X quand le format de la base change
 au point de demander une migration.
 
+## 0.37.1 (2026-10-26)
+
+- Nouvelle icône de l'application et mascotte complète : 13 poses selon la situation
+
 ## 0.37.0 (2026-10-23)
 
 - Nouvelle interface : Watson se convoque de partout (panneau de conversation qui tient compte de l'écran, lit documents et liens, propose des changements, pose des questions), navigation en deux niveaux, barre du haut, thème sombre, nouvelle mascotte
