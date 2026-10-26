@@ -59,7 +59,7 @@ function Reponse({ m, aller, envoyer, fermer }) {
       )}
       {m.lot && (
         <div class="wt-lot">
-          <Watson humeur="valide" hauteur={42} flotte={false} />
+          <Watson humeur="range" hauteur={42} flotte={false} />
           <span class="pile espace" style="gap:2px">
             <strong>{m.lot.propositions} proposition{m.lot.propositions > 1 ? 's' : ''} pour la base</strong>
             <span class="petit doux">{m.lot.resume || 'À trier : rien n\'est écrit sans ton accord.'}</span>

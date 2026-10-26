@@ -219,7 +219,7 @@ export function Maquettes({ projet, etat, aller }) {
       {panneau === 'brief' && <Brief projet={projet} d={d} fermer={() => setPanneau(null)} />}
       {panneau === 'importer' && <Importer d={d} envoyer={importer} fermer={() => setPanneau(null)} occupe={occupe} />}
       {file && (
-        <div class="carte ligne" style="gap:16px;flex-wrap:nowrap"><Watson humeur="ecrit" hauteur={90} flotte={false} />
+        <div class="carte ligne" style="gap:16px;flex-wrap:nowrap"><Watson humeur="maquette" hauteur={90} flotte={false} />
           <div class="pile espace" style="gap:4px"><strong>Watson dessine « {file.nom} »{file.n > 1 ? ` (${file.i + 1} sur ${file.n})` : ''}</strong>
             <span class="doux">Avec la piste retenue et le jeu de données commun. Une à trois minutes par écran ; les maquettes arrivent ci-dessous au fur et à mesure.</span></div></div>
       )}
@@ -242,7 +242,7 @@ export function Maquettes({ projet, etat, aller }) {
         </section>
       )}
       {d.maquettes.length === 0 && d.propositions.length === 0 && !file && !panneau && (
-        <div class="vide pile" style="align-items:center;gap:12px"><Watson humeur="note" hauteur={170} />
+        <div class="vide pile" style="align-items:center;gap:12px"><Watson humeur="maquette" hauteur={170} />
           <span>Pas encore de maquette. Je peux dessiner les écrans du projet avec la piste retenue, ou tu peux importer ceux de Claude Design.</span>
           <div class="ligne"><button class="bouton principal-b" disabled={!claude?.connecte} onClick={() => setPanneau('dessiner')}><Sparkles size={15} /> Dessiner avec Watson</button><button class="bouton" onClick={() => setPanneau('brief')}>Brief Claude Design</button></div></div>
       )}

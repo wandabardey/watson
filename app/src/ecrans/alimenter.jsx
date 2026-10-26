@@ -204,7 +204,7 @@ function Tri({ projet, lot, fini, abandonner }) {
           <details key={d.ref} class="petit"><summary class="doux"><IconeImage size={13} /> Ce que Claude a vu sur « {d.titre} »</summary><p style="white-space:pre-line;margin:6px 0 0">{d.texte}</p></details>
         ))}
       </div>
-      {lot.propositions.length === 0 && <div class="vide pile" style="align-items:center"><Watson humeur="reflechit" hauteur={170} />Rien de nouveau dans ces documents par rapport à ce que je sais déjà.</div>}
+      {lot.propositions.length === 0 && <div class="vide pile" style="align-items:center"><Watson humeur="coeur" hauteur={170} />Rien de nouveau dans ces documents par rapport à ce que je sais déjà.</div>}
       {lot.propositions.length > 0 && (
         <div class="ligne"><span class="doux espace">Tout est accepté par défaut : décoche ce que tu écartes, corrige le reste.</span>
           <button class="bouton" onClick={() => tout(true)}>Tout accepter</button><button class="bouton" onClick={() => tout(false)}>Tout écarter</button></div>
@@ -233,7 +233,7 @@ function Tri({ projet, lot, fini, abandonner }) {
 function Bilan({ r, recommencer, aller }) {
   return (
     <div class="carte ligne" style="align-items:flex-start;gap:24px;flex-wrap:nowrap">
-    <Watson humeur={r.ecrits.length ? 'ecrit' : 'reflechit'} hauteur={210} />
+    <Watson humeur={r.ecrits.length ? 'joie' : 'coeur'} hauteur={210} />
     <div class="pile espace">
       <h2>{r.ecrits.length ? 'C\'est noté.' : 'Documents gardés, rien d\'ajouté'}</h2>
       {r.ecrits.some((e) => e.type === 'regle') && <p class="devise" style="text-align:left">{DEVISE}</p>}

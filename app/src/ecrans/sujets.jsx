@@ -109,7 +109,7 @@ export function Sujets({ projet, etat, aller }) {
         </div>
       )}
       {liste.length === 0 && (
-        <div class="vide pile" style="align-items:center;gap:10px"><Watson humeur={d.ouverts ? 'reflechit' : 'ecrit'} hauteur={150} />
+        <div class="vide pile" style="align-items:center;gap:10px"><Watson humeur={d.ouverts ? 'question' : 'coeur'} hauteur={150} />
           <span>{filtre === 'ouverts' ? 'Aucune question ouverte. Elles arrivent d\'Alimenter et des onglets de l\'avant-projet.' : 'Rien ici pour l\'instant.'}</span></div>
       )}
       <div class="pile" style="gap:10px">{liste.map((q) => <Sujet key={q.id} projet={projet} q={q} faire={faire} reporter={reporter} occupe={occupe || !!attente || !!lot} claude={claude} />)}</div>

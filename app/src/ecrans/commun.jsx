@@ -9,6 +9,12 @@ import imgEcrit from '../images/watson-ecrit.png';
 import imgQuestion from '../images/watson-question.png';
 import imgIdee from '../images/watson-idee.png';
 import imgValide from '../images/watson-valide.png';
+import imgJoie from '../images/watson-joie.png';
+import imgCode from '../images/watson-code.png';
+import imgCoeur from '../images/watson-coeur.png';
+import imgRange from '../images/watson-range.png';
+import imgFusee from '../images/watson-fusee.png';
+import imgMaquette from '../images/watson-maquette.png';
 
 // Charge une vue du moteur et gère l'attente et l'erreur.
 export function useVue(chemin, deps = []) {
@@ -89,7 +95,13 @@ const HUMEURS = {
   question: imgQuestion, // il manque quelque chose, une question à poser, une erreur
   reflechit: imgLit,     // Claude travaille
   idee: imgIdee,         // une suggestion, une piste
-  valide: imgValide,     // c'est fait, c'est validé
+  valide: imgValide,     // c'est vérifié, conforme
+  joie: imgJoie,         // réussite, c'est fait
+  code: imgCode,         // passage en code
+  coeur: imgCoeur,       // merci, remerciements, rien en attente
+  range: imgRange,       // propositions rangées, prêtes à trier
+  fusee: imgFusee,       // livraison, publication, mise à jour
+  maquette: imgMaquette, // maquettes, design system, app en direct
 };
 export const HUMEURS_WATSON = Object.keys(HUMEURS);
 

@@ -1,6 +1,5 @@
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { RefreshCw } from 'lucide-preact';
 import { appel, attendreMoteur, lancerMiseAJour, suivreMiseAJour, verifierMiseAJour } from './api.js';
 import { ConnexionGitHub } from './ecrans/connexion.jsx';
 import { Accueil, Tuile } from './ecrans/accueil.jsx';
@@ -56,7 +55,7 @@ function BandeauMiseAJour({ maj }) {
   const installer = () => lancerMiseAJour(maj);
   return (
     <div class="bandeau-maj">
-      <RefreshCw size={18} />
+      <Watson humeur="fusee" hauteur={34} flotte={false} />
       <span class="espace">Watson {maj.version} est disponible{maj.body ? ` : ${maj.body.split('\n')[0]}` : '.'}</span>
       {etat === null || String(etat).startsWith('Échec') ? <>{etat && <span>{etat}</span>}<button class="bouton" onClick={installer}>Installer et redémarrer</button></>
         : <span>{typeof etat === 'number' ? `Téléchargement… ${etat} %` : etat} <span class="doux">· tu peux continuer à travailler</span></span>}
@@ -88,7 +87,7 @@ function App() {
     appel(`/projets/${p.id}/visite`, { corps: {} }).catch(() => {});
   };
 
-  if (erreur) return <div class="coquille"><div class="panneau principal"><Watson humeur="reflechit" hauteur={180} /><h1>Watson ne démarre pas</h1><pre class="encart e-rouge" style="white-space:pre-wrap;font-size:12px">{erreur}</pre><p class="doux">Envoie ce message à la personne qui maintient Watson.</p></div></div>;
+  if (erreur) return <div class="coquille"><div class="panneau principal"><Watson humeur="question" hauteur={180} /><h1>Watson ne démarre pas</h1><pre class="encart e-rouge" style="white-space:pre-wrap;font-size:12px">{erreur}</pre><p class="doux">Envoie ce message à la personne qui maintient Watson.</p></div></div>;
   if (!etat) return <div class="demarrage"><Watson humeur="salue" hauteur={150} /><span class="doux">Watson arrive…</span><span class="devise">{DEVISE}</span></div>;
   if (!etat.github.connecte) return <ConnexionGitHub version={etat.version} connecte={charger} />;
   if (parametres) {

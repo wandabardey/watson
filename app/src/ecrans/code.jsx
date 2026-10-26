@@ -106,7 +106,7 @@ function Chantier({ projet, c, d, recevoir }) {
       </div>
       {ouvert && <>
         {message && <p class="encart e-rouge">{message}</p>}
-        {c.etat === 'en_cours' && <div class="ligne" style="gap:12px;flex-wrap:nowrap"><Watson humeur="reflechit" hauteur={70} flotte={false} /><span class="doux">{d.etapes[c.etape]}… Tu peux quitter cet écran : le chantier continue, et l'avancée reste visible dans la barre latérale.</span></div>}
+        {c.etat === 'en_cours' && <div class="ligne" style="gap:12px;flex-wrap:nowrap"><Watson humeur="code" hauteur={70} flotte={false} /><span class="doux">{d.etapes[c.etape]}… Tu peux quitter cet écran : le chantier continue, et l'avancée reste visible dans la barre du haut.</span></div>}
         {c.erreur && <p class="encart e-rouge">{c.erreur}</p>}
         <div class="code-journal">{(c.journal || []).map((j, i) => <span key={i}><span class="doux">{j.t}</span> {j.texte}</span>)}</div>
         <div class="ligne">

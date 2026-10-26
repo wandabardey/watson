@@ -10,6 +10,7 @@ import {
 import { appel } from './api.js';
 import { Tuile } from './ecrans/accueil.jsx';
 import { Watson } from './ecrans/commun.jsx';
+import logo from './images/logo.png';
 
 // [clé, libellé, icône, [écrans : clé, libellé, icône, compteur]]
 export const CATEGORIES = [
@@ -37,7 +38,7 @@ export function Rail({ categorie, choisirCategorie, compte, theme, basculerTheme
   const [menu, setMenu] = useState(false);
   return (
     <nav class="rail" aria-label="Catégories">
-      <button class="rail-logo" onClick={quitter} title="Tous les projets"><span>W</span></button>
+      <button class="rail-logo" onClick={quitter} title="Tous les projets"><img src={logo} alt="Watson" /></button>
       <div class="rail-groupe">
         {CATEGORIES.map(([k, l, I]) => (
           <button key={k} class={`rail-bouton ${categorie === k ? 'actif' : ''}`} onClick={() => choisirCategorie(k)} aria-label={l} title={l}>
@@ -170,7 +171,7 @@ function Activite({ projet, aller, ouvrirWatson }) {
   if (fini) {
     return (
       <button class={`activite ${fini.etat === 'erreur' ? 'erreur' : 'fini'}`} onClick={() => { setFini(null); if (fini.etat !== 'erreur') voir(fini); }}>
-        <Watson humeur={fini.etat === 'erreur' ? 'question' : 'valide'} hauteur={24} flotte={false} />
+        <Watson humeur={fini.etat === 'erreur' ? 'question' : 'joie'} hauteur={24} flotte={false} />
         <span class="tronque"><strong>{fini.libelle}</strong> · {fini.etat === 'erreur' ? `échec : ${fini.erreur}` : 'terminé, voir le résultat'}</span>
       </button>
     );
